@@ -1,0 +1,637 @@
+# Personal Evidence Graph — Planning Context
+
+Last updated: 2026-07-09
+
+Living doc for product thinking. Update whenever planning decisions, scope, or open questions change.
+
+**Active ideation thread:** brand = **Stilva** (still × vita / distill a life). Next deep work: `data-model.md`.
+
+**Doc altitude:** this is a **product spec** (what / why / scope). Detailed UI, UX, and user flows come later — capture product intent and capabilities here, not screen-level design.
+
+---
+
+## One-liner
+
+A **personal evidence graph** (working brand **Stilva** — still × vita / *distill a life*): capture anything about yourself over time, structure it into reusable entities/stories, score relevance for a given ask + life stage, and compile grounded artifacts. Not a resume tool. Not a college essay writer.
+
+---
+
+## Core insight
+
+Most recruiting products start at the artifact:
+
+```
+Job posting → Generate resume
+```
+
+This starts at the person:
+
+```
+Life → Capture → Organize → Understand → Generate anything (as a view)
+```
+
+The repository compounds. Outputs (resume, interview answers, LinkedIn, site, promo packet) are **views** over the same graph, not separate source-of-truth documents.
+
+---
+
+
+
+## What goes in the corpus
+
+Anything that makes you *you* — not just work wins:
+
+- Jobs / internships
+- Personal projects
+- Classes / coursework
+- Leadership roles (college, clubs, orgs)
+- Hobbies
+- Articles / writing
+- Research
+- Volunteering
+- Art / music / poetry / creative products
+- Failures, lessons, values
+- People, relationships, context
+- Metrics, evidence artifacts (PRs, commits, docs)
+
+Performance reviews / brag docs are one relevant use case, not the center of gravity.
+
+---
+
+
+
+## Target users / life stages
+
+**Wedge (locked for now):** college students recruiting for **tech internships** — founder is in this process; deepest domain knowledge.
+
+Near-term adjacency (same graph, later or light support — not the wedge promise):
+
+- New grads recruiting for full-time roles (similar artifacts; different relevance/recency)
+
+Long-term vision (same corpus, different adapters/relevance policies):
+
+- High school → college applications (later; not essay-writing as a product)
+- Employed ICs → performance reviews, promo packets, rec letters, speaker bios, etc.
+
+Multi-stage is a feature of the **graph + relevance layer**, not a reason to ship every adapter at once. Stickiness thesis: onboard once into a durable self-graph → keep using across life stages as adapters change.
+
+---
+
+
+
+## Explicitly out of scope (for now)
+
+- Full **college essay writer** — too out of scope
+- Acceptable later/narrow: **essay ideas** grounded in the corpus (prompts, story matches), not drafted essays as a core promise
+- Being “just” a performance-review / brag-doc tool
+
+---
+
+
+
+## Example capture → graph → ask
+
+**Capture (yap / type):**
+
+> Today I implemented Redis caching. Had to debug a race condition. Lock wasn’t scoped correctly. Reduced latency ~60%.
+
+**Extracted (no manual tagging as the goal; confirm/edit loop likely needed):**
+
+
+| Field             | Value                               |
+| ----------------- | ----------------------------------- |
+| Project           | Bubble CRM App                      |
+| Skills / tech     | Redis, caching, concurrency         |
+| Competencies      | Debugging, performance optimization |
+| Evidence / metric | ~60% latency reduction              |
+| Story             | STAR-ready narrative                |
+
+
+**Later asks against the same graph:**
+
+- Resume emphasizing backend engineering
+- “Tell me about a time I disagreed with a teammate”
+- Three stories showing ownership
+- LinkedIn post from today’s work
+- Personal site Projects page
+- (Later) essay *ideas* for a prompt — not a full essay product
+
+---
+
+
+
+## Data model direction
+
+**Status:** provisional lean only. Data model is load-bearing enough to warrant its **own spec** — see `data-model.md`. Do not treat the list below as final schema.
+
+### Mental model (provisional)
+
+Freeform captures are **not** a parallel source of truth competing with entities. They are **intake text** (yap, paste, import chunk). The pipeline **extracts structured entities from them and/or links entities back to the source capture** (provenance).
+
+```
+Capture (freeform text / import)
+        ↓
+Extract + link
+        ↓
+Entities + edges  ← what adapters query
+        ↑
+Source capture kept for provenance / re-extract
+```
+
+**Provisional lean:** hybrid coexistence — imports and yaps land as captures; entities are what resume/stories/app-question adapters query; captures remain linked as evidence/provenance. **Confirm or revise in `data-model.md`.**
+
+### Candidate entity types (rough, not final)
+
+- Projects
+- Experiences / Roles
+- Achievements
+- Skills / Technologies
+- People
+- Companies / Orgs
+- Stories
+- Metrics
+- Failures / Lessons
+- Goals / Values
+- Evidence / provenance (commits, PRs, Slack, docs, screenshots, captures, etc.)
+- Application tags (on nodes)
+
+Example node:
+
+```
+Built Redis cache
+  → Project: Bubble
+  → Skills: Redis, Supabase, Node
+  → Traits: Ownership, Initiative
+  → Outcome: 60% latency reduction
+  → People: Amir
+  → Evidence: git commit, PR, source capture
+```
+
+Retrieval becomes: “leadership stories ordered by strongest evidence,” not keyword search over a journal.
+
+---
+
+
+
+## Relevance (key product insight)
+
+Relevance is **contextual**, not just chronological.
+
+A high-school robotics captaincy might be:
+
+
+| Ask                                                     | Relevance  |
+| ------------------------------------------------------- | ---------- |
+| College essay / blog about how you got into engineering | High       |
+| New-grad SWE resume                                     | Low / omit |
+| Interview “tell me about leadership” early in career    | Maybe      |
+| Teaching / mentorship narrative years later             | High again |
+
+
+Needed concept (not finalized):
+
+```
+relevance(experience, audience, artifact_type, career_stage, claim_being_made)
+```
+
+Not crude “last 5 years only.” Resumes skew recent/professional; essays/stories skew thematic fit; interviews skew evidence strength + defensibility.
+
+### Intake-time application tags (proposed)
+
+On ingest / deepen, an LLM suggests **which applications this node is good for**, e.g.:
+
+- `internship_resume`
+- `interview_story`
+- `app_question`
+- `linkedin`
+- `personal_site`
+- `portfolio`
+- `keep_personal` (in graph, but not for recruiting surfaces)
+
+Example: high-school robotics captaincy → strong for `interview_story` / narrative surfaces, weak or absent for `internship_resume` unless exceptional + user override.
+
+**Why this helps:** relevance work happens when context is richest (just captured), not only at generate time.
+
+### What “JD / prompt matching” means
+
+Separate from tags:
+
+- **Tags** answer: “Is this generally useful for *resumes* / *interviews* / …?”
+- **JD/prompt matching** answers: “Given *this* Stripe backend internship posting (or *this* app question), which of my nodes fit *best*?”
+
+Example: both Project A (Redis caching) and Project B (iOS habit app) might be tagged `internship_resume`. For a backend infra JD, matching boosts A; for a mobile JD, boosts B. Tags alone can’t do that.
+
+### Runtime relevance options
+
+| Approach | How it works | Cost / latency | Quality for “tailored” |
+| --- | --- | --- | --- |
+| **Tags only** | Generate from nodes tagged for that surface | Cheap | Good baseline resume; weak per-JD targeting |
+| **At-query AI** | LLM scores candidates against JD/question every generate | Heavier each run | Strong tailoring |
+| **Hybrid** | Tags (or stage) narrow candidates → AI ranks for this ask | Middle | Usually best tradeoff |
+
+**Not too heavy if scoped:** don’t score the whole graph every time — tag-filter to a shortlist (e.g. resume-tagged projects/roles), then LLM ranks top N for the JD. That’s one small call, not a full-graph audit.
+
+**Settled:** **hybrid** — tags narrow candidates → AI ranks for this job description / app question. Not tags-only; not full-graph scoring every time.
+
+### Explainability / graph view (product intent)
+
+- Drafts cite source nodes (link back into the graph).
+- **Aspirational capability:** Obsidian-style **graph view**; when you tailor a resume/answer, relevant nodes **highlight**; inspect a node to see why it was chosen for that artifact.
+- Spec-level for now — layout/interaction details deferred to UX work.
+
+---
+
+
+
+## Artifact = view
+
+
+| Artifact         | Rough query                                         | MVP? |
+| ---------------- | --------------------------------------------------- | ---- |
+| Resume           | Backend projects WITH metrics FOR Stripe internship | Yes  |
+| Interview        | Leadership stories ORDER BY evidence strength       | Yes  |
+| App question     | Answer this written prompt FROM graph (internship apps) | Yes |
+| Essay ideas      | Growth-mindset stories MATCHING prompt (ideas only) | Parked |
+| LinkedIn         | Turn today’s work into a post                       | Later |
+| Personal website | Generate Projects page (maybe via MCP later)        | Post-MVP experiment |
+| Promo / review   | Wins + metrics in review cycle                      | Later |
+
+
+---
+
+
+
+## Capture UX (hardest product problem)
+
+**MVP: type-only.** Voice (Wispr-like or similar) comes after MVP.
+
+### Cold start (settled direction): hybrid, non-blocking
+
+```
+Import resume / LinkedIn / GitHub / docs
+        ↓
+Extract skeleton graph (roles, projects, skills, orgs)
+        ↓
+Broad / light confirm pass  ← enough to enter the product
+        ↓
+User is unblocked (can generate views, browse graph)
+        ↓
+Deepen over time (not a gate): project + role deep-dives first
+```
+
+**Key insight:** people will upload the already-simplified artifacts. A resume bullet is a *distillation* of real work. The product is not “store the resume better” — it’s rebuild the **detailed evidence behind** it (what you actually built, tradeoffs, metrics, collaborators, failures, stories) so later views can re-distill for each ask.
+
+**Onboarding must not block on depth.** One broad pass gets them in. They shore up gaps as they go (prompted, not forced). Detail is progressive, not a wall.
+
+**Deepen nudges (settled):** always-on soft checklist (“3 projects look thin”) + just-in-time prompt when generating an adapter. JIT is skippable — never block export/draft on deepening.
+
+Imports = skeleton. Broad pass = usable entry. Deep-dives = muscle over time. Ongoing capture = compounding.
+
+**MVP import sources:** resume + LinkedIn + GitHub.  
+**Later:** full kitchen sink (docs, transcripts, READMEs, activity lists, Slack, calendar, email, etc.).
+
+**Deepening priority (settled):** **project deep-dives + role deep-dives first.** Interview/STAR stories can often be extrapolated from rich project/role nodes; the reverse is weaker (a canned STAR rarely reconstructs the full project graph).
+
+Directionally after MVP:
+
+- Voice (Wispr-like or similar) — dump on the drive home
+- Later: screenshots, git commits, calendar, Slack, email, meeting transcripts, GitHub — auto-linked
+
+Pipeline sketch:
+
+```
+Capture → Chunk → Extract entities → Deduplicate → Build graph
+      → Embeddings → Store provenance → Artifact generation
+```
+
+Richer than “RAG over journal entries.”
+
+**Tension:** fully automatic extraction will be wrong often enough that a lightweight confirm/edit loop is probably required. “No manual tagging” is the goal, not a day-one guarantee.
+
+---
+
+
+
+## Competitive landscape (approximate)
+
+
+| Slice                  | Examples                                 | Gap vs this                               |
+| ---------------------- | ---------------------------------------- | ----------------------------------------- |
+| Career corpus → resume | Praxis, Job Journal, Starry, career-hub  | Too work-shaped                           |
+| Brag / performance     | Bragduck, LeveliU                        | Review-centric                            |
+| College story → essays | Jengo                                    | Admissions-narrow; essay-writing focus    |
+| HS activities trackers | AdmitPath, Extracurrify                  | Tracking/counseling, weak lifelong graph  |
+| Personal wiki          | Memoral, PersonaVault, LLM-wiki patterns | Capture/organize; weak apply-to-ask layer |
+| Job hunt ops           | Teal, Huntr                              | Thin personal memory                      |
+
+
+**Open space:** ingest broad life material → durable self-graph → stage/purpose-aware relevance → grounded adapters (recruiting first).
+
+---
+
+
+
+## Moat hypothesis
+
+The repository compounds. Six months in, the system knows projects, metrics, failures, lessons, interview stories. A competitor starting empty has none of that.
+
+**Stronger framing (under discussion):** the moat is less “AI features” and more **switching cost of a filled, trusted self-graph**. Onboarding all info well is the critical path into that moat. Once the graph is rich, the product stays sticky because the *same* corpus applies across life stages (internship → new grad → promo → site → networking) via new adapters — you don’t re-enter your life into the next tool.
+
+**Caveat / activation risk:** cold start is the flip side. Day-one empty vault kills activation. Import + guided capture quality determines whether the compounding moat ever starts.
+
+---
+
+
+
+## Longer-term uses (same graph, later adapters)
+
+- Annual self reviews / promo packets / performance reviews
+- Recommendation letter drafts
+- Personal website updates
+- Networking follow-ups / “how do I know this person?”
+- Scholarship / grant / fellowship applications (ideas → drafts carefully)
+- Conference speaker bios / award nominations
+
+Recruiting is the **wedge**, not the ceiling.
+
+---
+
+
+
+## Open questions
+
+
+
+### Product / wedge
+
+- [x] Exact first wedge: **college internship recruiting** (tech); new-grad is adjacency, not the wedge promise
+- [x] First adapters: **tailored resume + interview stories + “answer this application question”** (grounded in graph; not a freeform essay product)
+- [x] HS/college-app adjacency: **GTM silent** (internship recruiting only); **long-term vision** can say “built to grow with you” — never promise an essay product
+- [x] Who pays: student vs parent is a weak distinction (same seat). Freemium lean settled in direction (see Monetization)
+- [x] B2B: **maybe later** — don’t design for it now; keep multi-tenant / coach-share *lightly* in mind (don’t paint into a single-user corner)
+
+
+
+### Relevance
+
+- [x] **Intake-time LLM tagging** of likely applications / surfaces for each node
+- [x] Runtime: **hybrid** — tags narrow the candidate set → AI ranks for this JD / app question
+- [x] Users can **edit/override application tags** on node view / diff-skim; user overrides win
+- [x] Explainability: **inline citations** linking draft bits back to graph nodes; aspiration = **graph view** (Obsidian-like) that highlights nodes used in a tailored artifact, with hover/detail for why chosen
+- [x] Lifecycle: **soft archive / demote** (gray out, lower relevance — can resurface); **hard delete** available but rare (didn’t happen / don’t want association). “Stops being useful” is subjective — don’t auto-purge
+
+
+
+### Trust / provenance
+
+- [~] Claim gating modes (**medium** / **hard**): intentional later — don’t overbuild verification UX in MVP; still prefer graph-grounded generation, avoid inventing facts
+- [x] Data home: **cloud** (web app primary; desktop possible later). Graph/files live in cloud — e.g. Firebase or similar. Export still desirable.
+- [x] Privacy: **private-by-design messaging** — encrypted in transit/at rest; **never train on your graph / never sell data**; export anytime. AI **does** read the graph to power the product (be honest about that). Not E2E for MVP (would block server-side AI).
+- [x] Parent/counselor roles: **out of scope for now** — solo user; revisit with B2B/coach-share later
+
+
+
+### Capture / cold start *(priority — gates the moat)*
+
+- [x] Onboarding shape: **hybrid** — import → broad light pass → enter product; deepen over time (not a gate)
+- [x] Core insight: resume/LinkedIn/GitHub are **distilled/simplified** views; product builds the richer evidence layer behind them
+- [x] First deepening pass: **project + role deep-dives** (before dedicated interview-story mining); stories extrapolate from rich project/role nodes better than vice versa
+- [x] Import priority — **MVP:** resume + LinkedIn + GitHub; **later:** kitchen sink (Google Docs, transcripts, READMEs, activity lists, Slack, calendar, etc.)
+- [x] 10-minute path ≈ import + **diff-skim confirm** (deep-dives post-entry)
+- [x] Confirm/edit UX: **diff skim** — “Here’s what we found (roles/projects/skills). Looks right? → Enter” with inline fix; not per-entity accept theater
+- [x] Deepen prompts: **soft checklist always** + **just-in-time at generate** (“this project is thin”) — JIT is **skippable**, never a hard gate
+- [x] Voice: **post-MVP** — type-only for MVP; voice (Wispr-like / dictation pipeline) after
+- [x] Stickiness signal: **mix** — coverage skeleton (resume lines backed by deepened project/role nodes) **+** at least one real-world used artifact (tailored resume / app answer they actually submitted or reused)
+
+
+
+### Data model
+
+- [~] Provisional lean: **hybrid** — freeform = intake/provenance; entities extracted/linked from captures; adapters query entities. **Needs dedicated spec** (`data-model.md`) before locking
+- [ ] Minimal entity schema for v1? → own spec
+- [ ] Evidence linking: manual attach vs automatic from integrations? → own spec
+
+
+
+### Generators / surfaces
+
+- [x] Resume MVP: **in-app structured editor + PDF** (one solid template). Later: Jake’s LaTeX export, Markdown export, optional DOCX download
+- [x] App-question adapter: **full paste-ready draft** (what people want); still graph-grounded — not unmoored generation
+- [x] Personal site via MCP: **post-MVP experiment** — listed future adapter, not near-term commit
+- [x] Essay ideas adapter: **park entirely** — don’t specify until/unless expanding beyond internship GTM
+
+
+
+### Positioning / naming
+
+- [x] Brand: **Stilva** (still × vita / distill a life). **Stiva** was soft candidate; **Stilva** chosen for marketability + meaning (see Naming)
+- [x] Category language (internal): **personal evidence graph**
+- [ ] Domain / ccTLD — working name Stilva; domain still TBD
+
+---
+
+
+
+## Working decisions (settled so far)
+
+1. This is a **personal evidence graph**, not one tool for one application type.
+2. Scope includes **full personal history**, not only work performance.
+3. **Wedge:** college **internship** tech recruiting (founder knowledge). New-grad = adjacency.
+4. **Not** building a college essay writer; essay *ideas* may be okay later/narrow.
+5. Relevance must be **ask- and stage-aware**, not only recency-based.
+6. Artifacts are **views** over the graph.
+7. Capture habit + provenance + relevance are more core than pretty generators.
+8. Product should be useful for the founder **and** productizable for others.
+9. **Moat thesis:** filled trusted graph + cross-stage reuse; onboarding quality is the on-ramp to stickiness.
+10. **Cold start:** hybrid import → broad light pass → unblocked entry; deepen over time (not gated).
+11. **Deepen first:** project + role deep-dives; interview stories derived/extrapolated from those when possible.
+12. **MVP imports:** resume + LinkedIn + GitHub. Kitchen-sink ingest is the destination, not day-one scope.
+13. **MVP adapters:** tailored resume + interview stories + answer-this-app-question (graph-grounded).
+14. **Resume MVP surface:** in-app structured editor + PDF; Jake’s / MD / DOCX as later exports.
+15. **App questions:** full paste-ready drafts (graph-grounded). Build what people want; provenance/grounding is the quality bar, not withholding the draft.
+16. **Claim gating modes (medium/hard):** later — MVP stays graph-grounded without a full verification-mode system.
+17. **Platform:** cloud-hosted graph; **web app** primary (desktop optional later). Backend candidate: Firebase or similar.
+18. **Monetization:** freemium mix — capture free / outputs paid + AI caps + integrations gated. Student/parent = same seat. Don’t gate basic graph capture.
+19. **Free taste:** small bundle (≈1 resume + 2 app answers + 1 story pack); numbers tunable post-dogfood.
+20. **MVP capture:** type-only; voice post-MVP.
+21. **Deepen UX:** soft checklist + skippable JIT at generate time; never hard-gate outputs on depth.
+22. **Import confirm:** diff-skim of extracted skeleton + inline fix → enter product.
+23. **Relevance:** intake application-tags + hybrid runtime (tag filter → rank for this JD/question).
+24. **Tag overrides:** user-editable on node view / diff-skim; user wins over LLM tags.
+25. **Explainability:** citations back to graph; graph-view highlight-on-tailor is a desired capability (UX later).
+26. **Doc altitude:** product spec now; UI/UX/flows afterward.
+27. **Lifecycle:** soft archive/demote by default (can resurface); hard delete rare/opt-in; no auto-purge for “outdated.”
+28. **Data model:** provisional hybrid (captures → extract/link entities); **full schema TBD in `data-model.md`** — do not overfit product spec.
+29. **Privacy:** market secure/private (no train/sell; export); AI reads graph by design; not E2E MVP.
+30. **Positioning adjacency:** GTM = internship recruiting only; long-term vision = soft “grows with you”; never an essay-product promise.
+31. **B2B:** maybe later; light multi-tenant/coach-share awareness only — not a current design driver.
+32. **Stickiness:** coverage skeleton + ≥1 real-world used artifact.
+33. **Sharing:** solo user for now; parent/counselor out of scope until later.
+34. **Personal site / MCP:** post-MVP experiment / future adapter — not a near-term commit.
+35. **Essay ideas:** parked — unspecified until post-internship expansion (if ever).
+36. **Brand:** **Stilva** (still × vita / distill a life). **Stiva** was soft candidate; **Stilva** chosen for marketability + meaning.
+
+---
+
+
+
+## Naming
+
+Internal category: **personal evidence graph**.
+
+**Meaning we want:** distill a life (still/distill × vita/life).
+
+**Working brand (locked): Stilva** — still × vita; chosen over **Stiva** (soft candidate) for marketability + clearer vita signal (see research below). Domain still TBD.
+
+**Stiva** — strong surface, but mostly reads as *still*; *vita* is nearly invisible. Kept as a passed-through candidate, not the working name.
+
+### Candidates around “distill a life”
+
+| Name | How both halves show | Notes |
+| --- | --- | --- |
+| **Stiva** | still + (vi)ta | Soft on vita — previous favorite |
+| **Vilist** | vita + still (reversed) | Clearer both; maybe clunkier |
+| **Vistil** | vita + still | Both audible; a bit clinical? |
+| **Stillvita** | literal | Too long / not invented |
+| **Vitill** | vita + still | Punchy; “vit-ill” misread risk |
+| **Distiva** | distill + vita | Meaning on the nose; longer |
+| **Stilva** | still + vita (swap) | vita’s *va* clearer than Stiva? |
+| **Vistill** | vita + still | Soft; 2-ish syllables if said fast |
+| **Livest** | live + still? | Wrong vibe maybe |
+| **Elvita** / **Alvita** | el + vita | Vita clear; distill lost |
+| **Stillor** / **Virel** | other mutations | Drift from the phrase |
+
+*(Expand in chat — Stilva locked as working brand; domain TBD.)*
+
+### Marketability: Stiva vs Stilva (2026-07-09 research)
+
+| Dimension | **Stiva** | **Stilva** |
+| --- | --- | --- |
+| Say / spell | Easier — 2 clean syllables (`STI-va`) | Slightly denser (`STIL-va`); risk of typing **Stiva** or **Silva** |
+| Meaning signal | Mostly *still*; *vita* weak | *still* + *va* — closer to “distill a life” |
+| Tech / consumer collisions | **Heavier:** [stiva.app](https://www.stiva.app/) read-later app (launching); StivaSoft PHP tools; Grupo STIVA (`stiva.com`, MX real estate) | **Lighter for SaaS:** Stilva Colors, matcha set, small EU entities — no clear competing consumer app |
+| Phonetic traps | Near **Stevia** (sweetener) — SEO/voice confusion | Near **Silva** (common name) — spelling confusion |
+| `.com` reality | `stiva.com` taken (Grupo STIVA) | Likely contested / not clean either (verify before lock) |
+| SEO / Googleability | Crowded (stevia + apps + real estate) | Quieter search landscape for software |
+
+**Lean from research (→ decision):** **Stilva** chosen as working brand — fewer direct software collisions, better vita signal, closer to “distill a life.” **Stiva** wins on mouthfeel but pays a real collision tax (`stiva.app` especially).
+
+**Not a legal clearance** — just marketability scan. Domain/trademark counsel still needed before shipping.
+
+### Brand taste (how we got here)
+
+- Vercel-like: funky surface, meaning in the lore
+- Roots OK; surface should feel invented (not straight CJK romanization)
+- ccTLD excitement remains
+
+### Rejected / passed-through directions
+
+Straight romanizations (Akashi, Suji, Luli…), literal English (Ledger, Vault), other invented shortlist (Sujel, Zurel, Evashi, Oriva, Vetra, Myven, Keivo, Akeso…) — kept in changelog/history only if needed. **Stiva** was soft candidate; **Stilva** is the working brand.
+
+---
+
+## Monetization (under discussion)
+
+**Payer:** student vs parent doesn’t matter much — one seat, whoever pays. B2B (career services) is later.
+
+**Model lean:** freemium. Free must still deliver the compounding graph (that’s the moat on-ramp). Premium sells leverage on top of a filled graph — not hostage-taking of basic capture.
+
+### Candidate free vs premium axes
+
+| Axis | Free (possible) | Premium (possible) | Risk |
+| --- | --- | --- | --- |
+| **Capture / graph** | Import + broad pass + ongoing type capture; limited nodes or depth prompts | Unlimited graph, deeper interview passes, voice | Gating the graph kills the moat |
+| **Adapters / outputs** | 1 baseline resume; limited app-question drafts / mo | Unlimited tailored resumes, stories packs, app answers | Classic SaaS; easy to understand |
+| **Tailoring depth** | Generic resume from graph | JD-specific tailoring (paste posting → targeted view) | JD-tailoring is core wedge value — maybe don’t bury it |
+| **Exports** | PDF from in-app editor | Jake’s LaTeX, MD, DOCX, bulk export | Weak alone; good add-on |
+| **Integrations** | Manual import only | GitHub sync, LinkedIn refresh, kitchen-sink ingest | Aligns with “kitchen sink later” |
+| **AI volume** | Soft caps on generations | Higher limits / priority | Commodity; race to bottom |
+| **Season pass** | Free year-round light use | “Recruiting season” unlock (Aug–Mar) | Matches internship calendar |
+| **Collaboration** | Solo | Share graph slice with mentor/career coach | Nice later; not MVP |
+
+**Design tension:** free needs enough graph + one “holy shit” output or nobody stays; premium needs a reason to pay that isn’t “we held your life hostage.”
+
+**Settled freemium spine (mix):**
+
+1. **Capture free / output paid** — unlimited (or generous) graph building on free; adapters are where money lives  
+2. **Outputs** — free gets limited baseline outputs; premium unlocks fuller adapter suite / more tailored artifacts  
+3. **AI caps** — soft generation limits on free; higher/unlimited on premium  
+4. **Integrations** — manual import on free; sync / kitchen-sink / richer ingest on premium  
+
+**Free taste (settled direction):** small free bundle so users feel the product before paying — e.g. **1 tailored resume + 2 app-question drafts + 1 interview story pack**, then paywall. Exact numbers tunable after dogfooding.
+
+| Layer | Free | Premium |
+| --- | --- | --- |
+| Graph / capture | Build & deepen freely (type, broad pass, deep-dives) | Same + voice / richer capture later |
+| Outputs | Small bundle (≈1 resume + 2 app answers + 1 story pack) | Full adapter suite, unlimited / high caps |
+| AI volume | Soft generation caps (aligned with bundle) | Higher / unlimited |
+| Integrations | Manual resume + LinkedIn + GitHub upload | Sync / refresh / kitchen-sink ingest |
+
+---
+
+## Resume surfaces (under discussion)
+
+**Mental model:** source of truth is the **graph**, not a .tex / .md / .docx file. Those are export/edit views.
+
+| Surface | What it is | Pros for internship wedge | Cons |
+| --- | --- | --- | --- |
+| Structured in-app editor | Edit sections/bullets in UI; graph stays canonical | Best “editable doc” feel without fighting Word; enforces grounding | Need to build the editor |
+| DOCX | WYSIWYG Word-like file | Familiar final tweak/submit path | Different paradigm; round-trip sync to graph is hard |
+| Markdown | Source → render (simple) | Easy, portable, agent-friendly | Weak classic 1-page resume layout unless templated carefully |
+| LaTeX (e.g. Jake's Resume) | Source → render (layout-powerful) | Huge among SWE students; looks “real” | Brittle compile; scarier raw edit UX |
+
+**MD vs LaTeX:** same *category* (code-ish source that renders), very different *power and culture*. Markdown is content-first; Jake’s LaTeX is layout/ATS-aesthetic-first and a known template people already use. DOCX is not in that category — it’s direct visual editing.
+
+**Likely architecture:** graph → structured resume model → exporters (PDF via MD and/or Jake’s LaTeX; optional DOCX download). Prefer editing the structured model in-app over making users live in raw .tex.
+
+**Settled MVP:** in-app structured editor + PDF (one solid template). Graph stays canonical; user edits sections/bullets in product.
+
+**Later exports:** Jake’s LaTeX, Markdown, optional DOCX download for final tweak/submit.
+
+---
+
+## Next thinking threads
+
+- ~~Pressure-test / lock wedge~~ → college internship recruiting
+- **Open-question walkthrough** (in progress) — fewer product Qs left; domain / privacy / park items
+- **Dedicated data-model spec** (`data-model.md`) — next deep workstream
+- Remaining light product Qs: domain (Stilva locked), privacy, HS adjacency language, B2B, stickiness definition
+
+---
+
+## Changelog
+
+- **2026-07-09:** Initial capture from ideation conversation (vision, graph model, relevance, landscape, open questions, out-of-scope essay writer).
+- **2026-07-09:** Locked wedge to college internship recruiting; elevated onboarding as moat on-ramp; started open-question ideation.
+- **2026-07-09:** Settled hybrid cold start; resume/LinkedIn as distilled views — product deepens the evidence behind them.
+- **2026-07-09:** Deepening is post-onboarding / progressive; prioritize project+role deep-dives over STAR mining.
+- **2026-07-09:** MVP imports = resume + LinkedIn + GitHub; kitchen sink later.
+- **2026-07-09:** MVP adapters = tailored resume + interview stories + answer-this-app-question.
+- **2026-07-09:** Clarified resume surfaces: graph canonical; MD≈LaTeX category but different power; DOCX separate; Jake’s as target export.
+- **2026-07-09:** Resume MVP = in-app structured editor + PDF; Jake’s/MD/DOCX later.
+- **2026-07-09:** App-question MVP = full paste-ready draft, graph-grounded.
+- **2026-07-09:** Claim gating medium/hard modes deferred to later; MVP = grounded generation without mode system.
+- **2026-07-09:** Platform = cloud graph + web app (Firebase-class); desktop optional later.
+- **2026-07-09:** Monetization: freemium lean; student/parent weak distinction; free/premium axes listed, unsettled.
+- **2026-07-09:** Freemium spine = capture free / outputs paid + AI caps + integrations gated.
+- **2026-07-09:** Free taste = small bundle (≈1 resume + 2 app answers + 1 story pack).
+- **2026-07-09:** MVP capture = type-only; voice after.
+- **2026-07-09:** Deepen nudges = soft checklist + skippable JIT; never hard-gate.
+- **2026-07-09:** Import confirm = diff-skim + inline fix → enter.
+- **2026-07-09:** Relevance direction: LLM application-tags at intake; clarified JD/prompt matching vs tags; runtime combo still open.
+- **2026-07-09:** Relevance runtime = hybrid (tags narrow → AI ranks for JD/question).
+- **2026-07-09:** Application tags user-editable; overrides win.
+- **2026-07-09:** Explainability = citations + aspirational graph-view highlight; doc is product-spec altitude (UX later).
+- **2026-07-09:** Lifecycle = soft archive/demote (can resurface); hard delete rare; no auto-purge.
+- **2026-07-09:** Data model = provisional hybrid (captures → entities); spun out `data-model.md` for real schema work.
+- **2026-07-09:** Privacy = private-by-design messaging; AI reads graph; no E2E MVP.
+- **2026-07-09:** HS/college adjacency = GTM silent (internship only); vision soft “grows with you”; no essay product.
+- **2026-07-09:** B2B = maybe later; light coach-share awareness only.
+- **2026-07-09:** Stickiness = coverage skeleton + ≥1 used artifact.
+- **2026-07-09:** Parent/counselor sharing = out of scope for now (solo).
+- **2026-07-09:** Personal site/MCP = post-MVP experiment, not near-term.
+- **2026-07-09:** Essay ideas adapter = parked entirely for now.
+- **2026-07-09:** Brand name locked as **Stiva** (still × vita); domain TBD.
+- **2026-07-09:** Stiva softened — meaning stays “distill a life”; vita under-signaled; iterating blends.
+- **2026-07-09:** Marketability scan Stiva vs Stilva — Stilva edges on collisions/meaning; Stiva wins mouthfeel but crowded (`stiva.app`, etc.).
+- **2026-07-09:** Working brand locked as **Stilva** (still × vita / distill a life). Stiva was soft candidate; Stilva chosen for marketability + meaning. Project folder renamed to Stilva. Domain still TBD.
+
