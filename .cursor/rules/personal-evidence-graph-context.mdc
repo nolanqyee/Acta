@@ -1,0 +1,29 @@
+---
+description: Keep personal-evidence-graph.md as the living planning source of truth
+alwaysApply: true
+---
+
+# Stilva — Personal Evidence Graph Planning Context
+
+Working brand: **Stilva** (still × vita / distill a life). Project folder: `Stilva/`.
+
+Canonical docs (repo root):
+
+- `personal-evidence-graph.md` — product spec (vision, wedge, adapters, monetization, relevance behavior)
+- `data-model.md` — data model / schema (entities, edges, captures, provenance). Own this separately; don't invent schema only in chat or only in the product doc.
+
+When this conversation involves product vision, scope, wedge, relevance, capture, competitive landscape, positioning, or open product questions:
+
+1. **Read** `personal-evidence-graph.md` before planning or advising if it isn't already in context.
+2. **Update** that doc when decisions change, new open questions appear, questions get resolved, scope shifts, or important insights land — don't leave planning only in chat.
+
+When this conversation involves schema, entity types, edges, extraction contracts, dedup, provenance storage, or capture↔entity relationships:
+
+1. **Read/update `data-model.md`** as the source of truth for those decisions.
+2. Keep `personal-evidence-graph.md` in sync only at the summary/lean level (link out; don't duplicate full schema).
+
+General:
+
+- Prefer editing existing sections over duplicating; bump "Last updated" and add a short Changelog entry.
+- Do not invent settled decisions; if unsure, add an open question instead.
+- Product spec altitude: capture what/why/scope; defer detailed UI/UX/flows unless asked.
