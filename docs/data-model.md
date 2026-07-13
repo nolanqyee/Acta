@@ -1,8 +1,8 @@
 # Stilva — Data Model Spec
 
-Last updated: 2026-07-10
+Last updated: 2026-07-13
 
-Product: **Stilva** — personal evidence graph (still × vita / *distill a life*). Companion to [`personal-evidence-graph.md`](personal-evidence-graph.md) (product spec). **This doc owns schema, entity types, edges, provenance, extraction contracts, and how adapters/agents consume the graph.** Product decisions that depend on the model should link here rather than inventing schema in the product doc.
+Product: **Stilva** — personal evidence graph (still × vita / *distill a life*). Companion to [`personal-evidence-graph.md`](personal-evidence-graph.md) (product spec) and [`surfaces-and-flows.md`](surfaces-and-flows.md) (Graph UI). **This doc owns schema, entity types, edges, provenance, extraction contracts, and how adapters/agents consume the graph.** Product decisions that depend on the model should link here rather than inventing schema in the product doc.
 
 Status: **v1 draft locked for implementation planning** (not code yet). Guideline-first: structured and detailed, soft on user overrides.
 
@@ -13,6 +13,8 @@ Status: **v1 draft locked for implementation planning** (not code yet). Guidelin
 | Doc | Owns |
 | --- | --- |
 | `personal-evidence-graph.md` | Vision, wedge, adapters, monetization, relevance *behavior*, open product questions |
+| `surfaces-and-flows.md` | Graph UI / surfaces / flows |
+| `agent-interaction-model.md` | Agent write policy, confirm vs auto, pending proposals |
 | `data-model.md` (this) | What exists in the graph, how captures become entities, IDs, edges, versioning, provenance, agent/adapter read shapes |
 
 When product and model conflict, resolve explicitly and update both.
@@ -28,7 +30,7 @@ When product and model conflict, resolve explicitly and update both.
 5. **Optional density.** Children are **0..n** — an Endeavor is valid with zero Achievements, Skills, Metrics, etc.
 6. **Primary vs secondary.** Facts live on Endeavors + children. **Stories** and **Lessons** are agent-synthesized, stored, regenerable, and **hybrid-stamped** (user edit wins).
 7. **Same spine for career and creative.** Kind changes theme + suggestions, not a second graph.
-8. **Views are projections** over one stored edge set (by containment, kind, skill, people, tags) — not alternate schemas.
+8. **Views are projections** over one stored edge set (by containment, kind, skill, people, tags) — not alternate schemas. **Canvas rendering** (which entity types are drawn as physics nodes) is owned by [`surfaces-and-flows.md`](surfaces-and-flows.md): v1 draws **Endeavors only**; Skills, People, and Orgs remain stored entities but are not canvas nodes (org context lives on role/education endeavors via `at_org`).
 
 ### What is hard vs soft
 
@@ -347,7 +349,7 @@ Atomic claim / contribution under one or more Endeavors (“built Redis cache”
 
 ### Skill
 
-Shared vocabulary node. Hub for skill-centric graph views.
+Shared vocabulary entity (still stored and linked). **Not** a Graph-home canvas node in v1 — skill-centric UX is filter / modal / Explore→endeavors (see [`surfaces-and-flows.md`](surfaces-and-flows.md)); ratio of skills to endeavors would muddle force-directed layout.
 
 | Field | Required | Type | Notes |
 | --- | --- | --- | --- |
@@ -367,7 +369,7 @@ Link to Endeavors and/or Achievements via `used_skill` (0..n either side).
 
 ### Person
 
-Collaborator, mentor, manager, teammate, professor, etc.
+Collaborator, mentor, manager, teammate, professor, etc. **Not** a Graph-home canvas node in v1 — lives on endeavor modals / edges (see [`surfaces-and-flows.md`](surfaces-and-flows.md)).
 
 | Field | Required | Type | Notes |
 | --- | --- | --- | --- |
@@ -384,7 +386,7 @@ Role relative to an Endeavor lives on the **edge** (`involved_person.role`: `tea
 
 ### Org
 
-Company, school, club, lab, gallery, nonprofit, label.
+Company, school, club, lab, gallery, nonprofit, label. **Not** a Graph-home canvas node — redundant with endeavor nodes that already represent roles/education *at* an org (`at_org`); Org stays a stored entity for linking/dedup (see [`surfaces-and-flows.md`](surfaces-and-flows.md)).
 
 | Field | Required | Type | Notes |
 | --- | --- | --- | --- |
@@ -521,17 +523,20 @@ Typed edges. Direction: `from` → `to`. Cardinality is guideline unless noted.
 
 ## Graph view projections
 
-Same stored graph; different renderings. Spec-level capability only — layout UX deferred.
+Same stored graph; different renderings / filters. Spec-level capability — layout UX in [`surfaces-and-flows.md`](surfaces-and-flows.md).
 
-| Projection | Idea | Uses |
-| --- | --- | --- |
-| **Containment** | Tree/DAG of Endeavors | `part_of` (derive parents/children) |
-| **By kind** | Cluster / color by `kind` | `Endeavor.kind` |
-| **By skill** | Skill hub → work | `used_skill` |
-| **By people** | Person hub → shared work | `involved_person` |
-| **By application tag** | Highlight resume-ready vs personal | `application_tags` |
-| **Provenance** | Capture → extracted entities | `sourced_from_capture` |
-| **Story map** | Stories → sources; highlight-on-tailor | `about` / `derived_from` |
+**Canvas vs projection:** “Projection” does **not** mean every entity type becomes a physics node. v1 **canvas** draws **Endeavors only**. Skill/people/org “views” are filters or lists that emphasize related endeavors, not those entity types as physics nodes.
+
+| Projection | Idea | Uses | Canvas? |
+| --- | --- | --- | --- |
+| **Containment** | Emphasize `part_of` clusters / optional hierarchy mode | `part_of` | Endeavor nodes |
+| **By kind** | Cluster / color by `kind` | `Endeavor.kind` | Endeavor nodes |
+| **By skill** | Filter / highlight work that used a skill | `used_skill` | **No Skill nodes** — highlight Endeavors |
+| **By people** | Filter / list work involving a person | `involved_person` | **No Person nodes** — highlight Endeavors |
+| **By org** | Filter / list work at an org | `at_org` | **No Org nodes** — highlight Endeavors (role/education already embody “at Org”) |
+| **By application tag** | Highlight resume-ready vs personal | `application_tags` | Endeavor nodes |
+| **Provenance** | Capture → extracted entities | `sourced_from_capture` | Usually not primary canvas |
+| **Story map** | Stories → sources; highlight-on-tailor | `about` / `derived_from` | Highlight Endeavors |
 
 ---
 
@@ -600,15 +605,15 @@ Logical read shapes — not an HTTP API.
 | --- | --- | --- |
 | **Resume agent** | Endeavors with `internship_resume` (etc.) + Achievements + Skills + Metrics?; walk `part_of` children (prefer `primary_parent` / role parent) | Every endeavor has metrics; single parent only |
 | **Interview / app-question agent** | Prefer `stamped` Stories (and Lessons); else synthesize from Endeavor subgraph then store as `draft` | Stories always pre-exist |
-| **NL explore** | User natural-language ask (“what have I done relating to Redis?”) → retrieve relevant Endeavors / Achievements / Stories / Skills / Evidence via embeddings + structured filters (kind, tags, edges); return **nodes + citations**, not an unmoored essay | Must invent facts not in the graph; only adapters draft long-form artifacts |
+| **NL explore** | User natural-language ask (“what have I done relating to Redis?”) → retrieve relevant Endeavors / Achievements / Stories / Skills / Evidence via embeddings + structured filters; return **hits + citations**. Graph UI highlights matching **Endeavor** canvas nodes; skill/person/org hits resolve via related endeavors | Must invent facts not in the graph; only adapters draft long-form artifacts; Skills/People/Orgs as canvas physics nodes |
 | **Deepen agent** | Thin Endeavors (weak summary, few Achievements); kind profile for prompts & evidence chips | Off-profile evidence forbidden; hard-gate outputs on depth |
-| **Graph UI** | Switchable projections; theme by `kind` | One fixed tree; values taxonomy |
+| **Graph UI** | Force-directed canvas of **Endeavors only**; filters/projections over the stored edge set; theme by `kind`; diff-skim pending-node states | Skill/Person/Org as canvas physics nodes; values taxonomy |
 
 ### Agent tool sketch (logical)
 
 - `list_endeavors({ kind?, tag?, status? })`
 - `get_endeavor_subgraph(id)` — children, parents, skills, people, metrics, evidence
-- `list_skills()` / `get_skill_hub(id)`
+- `list_skills()` / `get_skill(id)` — skill detail + linked endeavors (not a canvas “hub” of Skill physics nodes)
 - `explore_nl(query)` → ranked entity hits + short why/citation
 - `propose_story(endeavor_ids[])` → draft Story
 - `stamp_story(id)` / `regenerate_story(id, { confirm })`
@@ -692,15 +697,15 @@ User attaches `audio` demo walkthrough to a tech `role`. Kind profile did not su
 3. Kinds (v1): `role` | `leadership` | `project` | `creative_work` | `course` | `education` | `event` | `volunteer` | `hobby`.
 4. Nesting DAG with **multi-parent** when overlap is real; store only **`part_of`**; optional soft primary parent.
 5. Children **0..n** on any Endeavor kind: Achievement, Skill, Person, Org, Metric, Evidence.
-6. Skill (and Person/Org) are **shared nodes**; skill merge/aliases are user-confirmed.
+6. Skill (and Person/Org) are **shared stored entities**; skill merge/aliases are user-confirmed.
 7. Metric is first-class and optional.
 8. Story & Lesson are secondary, stored, hybrid-stamped; **sensitive** staleness fingerprint.
 9. Evidence typed for suggestion; not hard-gated by endeavor kind.
 10. Captures immutable full-text intake; `captured_at` ≠ necessarily `created_at`; entities canonical after confirm.
 11. Application tags = surface suitability; multi + user override.
 12. Soft demote/archive; no auto-purge.
-13. Graph views = projections over one edge set.
-14. Consumers include adapters **and** NL explore (retrieve nodes + citations).
+13. Graph views = projections / filters over one edge set; **canvas node set is a UI concern** (not a second schema). Graph-home canvas draws **Endeavors only**; Skills, People, and Orgs are not force-layout nodes — see [`surfaces-and-flows.md`](surfaces-and-flows.md).
+14. Consumers include adapters **and** NL explore (retrieve hits + citations).
 15. Values/Goals entities: **out of scope**.
 16. Single-tenant per user for v1.
 17. Persistence: **Supabase/Postgres** — typed entity tables + `edges` table (logical catalog normative); `ext` as jsonb.
@@ -720,6 +725,7 @@ User attaches `audio` demo walkthrough to a tech `role`. Kind profile did not su
 
 ## Changelog
 
+- **2026-07-13:** Aligned with surfaces IA — Graph-home canvas draws **Endeavors only**; Skills/People/Orgs remain stored entities but are not canvas physics nodes (orgs redundant with role/education + `at_org`); skill/people/org “projections” = filter/highlight endeavors.
 - **2026-07-10:** Storage settled as **Supabase/Postgres** (not Firebase; not graph DB for v1).
 - **2026-07-10:** `ext` promotion rule — only when a key is used across 3+ kinds; open questions fully resolved.
 - **2026-07-10:** Kinds expanded/renamed (`leadership`, `education`, `event`, `hobby`; drop `practice`); clarified application tags + capture timestamps; NL explore consumer; `part_of`-only containment; sensitive Story/Lesson fingerprint; skill merge confirm; resolved most open questions.

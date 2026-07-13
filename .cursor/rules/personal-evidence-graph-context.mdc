@@ -7,23 +7,32 @@ alwaysApply: true
 
 Working brand: **Stilva** (still × vita / distill a life). Project folder: `Stilva/`.
 
-Canonical docs (repo root):
+Canonical docs (`docs/`):
 
-- `personal-evidence-graph.md` — product spec (vision, wedge, adapters, monetization, relevance behavior)
-- `data-model.md` — data model / schema (entities, edges, captures, provenance). Own this separately; don't invent schema only in chat or only in the product doc.
+- `docs/personal-evidence-graph.md` — product spec (vision, wedge, adapters, monetization, relevance behavior)
+- `docs/data-model.md` — data model / schema (entities, edges, captures, provenance). Own this separately; don't invent schema only in chat or only in the product doc.
+- `docs/surfaces-and-flows.md` — IA / surfaces + core interaction flows
+- `docs/agent-interaction-model.md` — agents, confirm vs auto, pending proposals, write policy
+- `docs/building-plan.md` — build roadmap. **Units are `U-A`…`U-I`** (say “U-D”, never bare “D” for roadmap items). See Doc conventions in that file.
 
 When this conversation involves product vision, scope, wedge, relevance, capture, competitive landscape, positioning, or open product questions:
 
-1. **Read** `personal-evidence-graph.md` before planning or advising if it isn't already in context.
+1. **Read** `docs/personal-evidence-graph.md` before planning or advising if it isn't already in context.
 2. **Update** that doc when decisions change, new open questions appear, questions get resolved, scope shifts, or important insights land — don't leave planning only in chat.
 
 When this conversation involves schema, entity types, edges, extraction contracts, dedup, provenance storage, or capture↔entity relationships:
 
-1. **Read/update `data-model.md`** as the source of truth for those decisions.
-2. Keep `personal-evidence-graph.md` in sync only at the summary/lean level (link out; don't duplicate full schema).
+1. **Read/update `docs/data-model.md`** as the source of truth for those decisions.
+2. Keep `docs/personal-evidence-graph.md` in sync only at the summary/lean level (link out; don't duplicate full schema).
+
+When this conversation involves agents, tools, confirm vs auto, pending proposals, or what systems may write to the graph:
+
+1. **Read/update `docs/agent-interaction-model.md`** as the source of truth for write policy.
+2. Keep extract emit shapes and stamp rules in `docs/data-model.md`; keep chrome in `docs/surfaces-and-flows.md`.
 
 General:
 
 - Prefer editing existing sections over duplicating; bump "Last updated" and add a short Changelog entry.
 - Do not invent settled decisions; if unsure, add an open question instead.
 - Product spec altitude: capture what/why/scope; defer detailed UI/UX/flows unless asked.
+- When referring to building-plan workstreams, always use **U-A**, **U-B**, **U-C**, … (never bare A/B/C for those units).

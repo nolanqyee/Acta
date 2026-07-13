@@ -41,7 +41,7 @@ export default function HomePage() {
         <div className="rounded-lg border border-stone-200 bg-white p-4">
           <h2 className="font-medium">Foundation</h2>
           <ul className="mt-2 list-inside list-disc text-sm text-stone-600">
-            <li>Zod domain schemas from data-model.md</li>
+            <li>Zod domain schemas from docs/data-model.md</li>
             <li>Postgres migrations under supabase/migrations</li>
             <li>GraphRepository (in-memory + merge/extract)</li>
           </ul>

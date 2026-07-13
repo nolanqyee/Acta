@@ -4,8 +4,15 @@ Personal evidence graph — capture life material, structure it into endeavors +
 
 ## Specs
 
-- [`personal-evidence-graph.md`](personal-evidence-graph.md) — product
-- [`data-model.md`](data-model.md) — schema
+Planning docs live in [`docs/`](docs/). Building-plan units are **U-A…U-I** (see [`docs/building-plan.md`](docs/building-plan.md)).
+
+- [`docs/personal-evidence-graph.md`](docs/personal-evidence-graph.md) — product
+- [`docs/data-model.md`](docs/data-model.md) — schema
+- [`docs/surfaces-and-flows.md`](docs/surfaces-and-flows.md) — IA & flows (**U-B** / **U-C** locked)
+- [`docs/agent-interaction-model.md`](docs/agent-interaction-model.md) — agents & write policy (**U-D** co-design)
+- [`docs/building-plan.md`](docs/building-plan.md) — build roadmap
+
+**Where we are:** product + data model locked enough to build; Graph IA locked; agent model drafted (open Qs cleared, await lock); next is brand (**U-A**) then **capture + render**. Code is still a prototype scaffold.
 
 ## Stack
 

@@ -1,6 +1,6 @@
 # Personal Evidence Graph — Planning Context
 
-Last updated: 2026-07-10 Update whenever planning decisions, scope, or open questions change.
+Last updated: 2026-07-13 Update whenever planning decisions, scope, or open questions change.
 
 **Active ideation thread:** brand = **Stilva** (still × vita / distill a life). Next deep work: `data-model.md`.
 
@@ -236,7 +236,7 @@ Example: both Project A (Redis caching) and Project B (iOS habit app) might be t
 ### Explainability / graph view (product intent)
 
 - Drafts cite source nodes (link back into the graph).
-- **Aspirational capability:** Obsidian-style **graph view**; when you tailor a resume/answer, relevant nodes **highlight**; inspect a node to see why it was chosen for that artifact.
+- **Aspirational capability:** Obsidian-style **graph view** (force-directed); when you tailor a resume/answer, relevant **endeavor** nodes **highlight**; inspect a node to see why it was chosen for that artifact. Skills / people / orgs are not canvas nodes (see [`surfaces-and-flows.md`](surfaces-and-flows.md)).
 - Spec-level for now — layout/interaction details deferred to UX work.
 
 ---
@@ -283,12 +283,12 @@ Deepen over time (not a gate): project + role deep-dives first
 
 **Onboarding must not block on depth.** One broad pass gets them in. They shore up gaps as they go (prompted, not forced). Detail is progressive, not a wall.
 
-**Deepen nudges (settled):** always-on soft checklist (“3 projects look thin”) + just-in-time prompt when generating an adapter. JIT is skippable — never block export/draft on deepening.
+**Deepen nudges (settled):** always-on soft **Deepen backlog** (“stuff to fill” — thin projects/roles) pulled from Graph + just-in-time prompt when generating an adapter. JIT is skippable — never block export/draft on deepening. Not a notification center or Today home.
 
 Imports = skeleton. Broad pass = usable entry. Deep-dives = muscle over time. Ongoing capture = compounding.
 
 **MVP import sources:** resume + LinkedIn + GitHub.  
-**Later:** full kitchen sink (docs, transcripts, READMEs, activity lists, Slack, calendar, email, etc.).
+**Later:** full kitchen sink (docs, transcripts, READMEs, activity lists, Slack, calendar, email, etc.) **+ agent connectors** (Claude / other coding agents → **chat histories** so Stilva can recover what the agent did for **specific features / projects** into capture → extract).
 
 **Deepening priority (settled):** **project deep-dives + role deep-dives first.** Interview/STAR stories can often be extrapolated from rich project/role nodes; the reverse is weaker (a canned STAR rarely reconstructs the full project graph).
 
@@ -296,6 +296,7 @@ Directionally after MVP:
 
 - Voice (Wispr-like or similar) — dump on the drive home
 - Later: screenshots, git commits, calendar, Slack, email, meeting transcripts, GitHub — auto-linked
+- Later: **agent chat-history connectors** (Claude / Cursor / etc.) for feature-level work threads
 
 Pipeline sketch:
 
@@ -411,10 +412,11 @@ Recruiting is the **wedge**, not the ceiling.
 - [x] Onboarding shape: **hybrid** — import → broad light pass → enter product; deepen over time (not a gate)
 - [x] Core insight: resume/LinkedIn/GitHub are **distilled/simplified** views; product builds the richer evidence layer behind them
 - [x] First deepening pass: **project + role deep-dives** (before dedicated interview-story mining); stories extrapolate from rich project/role nodes better than vice versa
-- [x] Import priority — **MVP:** resume + LinkedIn + GitHub; **later:** kitchen sink (Google Docs, transcripts, READMEs, activity lists, Slack, calendar, etc.)
+- [x] Import priority — **MVP:** resume + LinkedIn + GitHub; **later:** kitchen sink + **agent chat-history connectors** (Claude / other agents → feature-level work) — **after classic MVP**, not parallel with capture+render
+- [x] Agent connector timing — **after classic MVP only** (see [`surfaces-and-flows.md`](surfaces-and-flows.md))
 - [x] 10-minute path ≈ import + **diff-skim confirm** (deep-dives post-entry)
 - [x] Confirm/edit UX: **diff skim** — “Here’s what we found (roles/projects/skills). Looks right? → Enter” with inline fix; not per-entity accept theater
-- [x] Deepen prompts: **soft checklist always** + **just-in-time at generate** (“this project is thin”) — JIT is **skippable**, never a hard gate
+- [x] Deepen prompts: soft **Deepen backlog** (pull queue of thin items) + **just-in-time at generate** — JIT **skippable**, never a hard gate; not notifications/Today
 - [x] Voice: **post-MVP** — type-only for MVP; voice (Wispr-like / dictation pipeline) after
 - [x] Stickiness signal: **mix** — coverage skeleton (resume lines backed by deepened project/role nodes) **+** at least one real-world used artifact (tailored resume / app answer they actually submitted or reused)
 
@@ -469,7 +471,7 @@ Recruiting is the **wedge**, not the ceiling.
 18. **Monetization:** freemium mix — capture free / outputs paid + AI caps + integrations gated. Student/parent = same seat. Don’t gate basic graph capture.
 19. **Free taste:** small bundle (≈1 resume + 2 app answers + 1 story pack); numbers tunable post-dogfood.
 20. **MVP capture:** type-only; voice post-MVP.
-21. **Deepen UX:** soft checklist + skippable JIT at generate time; never hard-gate outputs on depth.
+21. **Deepen UX:** soft **Deepen backlog** (pull queue) + skippable JIT at generate; never hard-gate; not a notification center.
 22. **Import confirm:** diff-skim of extracted skeleton + inline fix → enter product.
 23. **Relevance:** intake application-tags + hybrid runtime (tag filter → rank for this JD/question).
 24. **Tag overrides:** user-editable on node view / diff-skim; user wins over LLM tags.
@@ -612,13 +614,18 @@ Straight romanizations (Akashi, Suji, Luli…), literal English (Ledger, Vault),
 - ~~Pressure-test / lock wedge~~ → college internship recruiting
 - ~~Backfill / “not impressive enough”~~ → wedge justification + messaging (not separate features)
 - ~~Dedicated data-model spec~~ → `data-model.md` v1 draft
-- **Build hardening** — see [`building-plan.md`](building-plan.md): brand/visual, IA/surfaces, core flows, agent model, auth/persistence **before** more feature code; adapter editors + polish later
+- ~~IA + core flows~~ → [`surfaces-and-flows.md`](surfaces-and-flows.md) locked
+- **Next:** explicitly **lock U-D** when ready → **U-A** brand → implement **capture + render** → **U-E** — see [`building-plan.md`](building-plan.md)
 - Remaining light product Qs: domain (Stilva locked)
 
 ---
 
 ## Changelog
 
+- **2026-07-13:** Building-plan units = **U-A…U-I**. Deepen backlog; agent model (**U-D**) in co-design.
+- **2026-07-13:** Deepen UX = **backlog panel** (“stuff to fill”), not notifications/Today — see [`surfaces-and-flows.md`](surfaces-and-flows.md).
+- **2026-07-13:** Agent interaction model (**U-D**) drafted for co-design in [`agent-interaction-model.md`](agent-interaction-model.md).
+- **2026-07-13:** Agent connectors locked to **after classic MVP** (resume/LinkedIn/GitHub first). Surfaces IA open questions for Graph home resolved.
 - **2026-07-10:** Build roadmap spun out to `building-plan.md` (brand/IA/flows/agents/auth next; adapter polish later).
 - **2026-07-10:** Platform storage settled as **Supabase/Postgres** (data-model implementation).
 - **2026-07-10:** Wedge partly justified by backfill tractability (don’t solve mid-career full-life port as a goal). “Not impressive enough” → messaging (extract more than you think) + existing deepen/relevance; no dedicated undersell feature.
