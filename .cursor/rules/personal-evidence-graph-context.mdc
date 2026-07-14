@@ -13,7 +13,7 @@ Canonical docs (`docs/`):
 - `docs/data-model.md` — data model / schema (entities, edges, captures, provenance). Own this separately; don't invent schema only in chat or only in the product doc.
 - `docs/surfaces-and-flows.md` — IA / surfaces + core interaction flows
 - `docs/agent-interaction-model.md` — agents, confirm vs auto, pending proposals, write policy
-- `docs/building-plan.md` — build roadmap. **Units are `U-A`…`U-I`** (say “U-D”, never bare “D” for roadmap items). See Doc conventions in that file.
+- `docs/building-plan.md` — build roadmap. **Units are `U-A`…`U-J`** (say “U-D”, never bare “D” for roadmap items). See Doc conventions in that file. **U-J** = technical implementation plan (HOW).
 
 When this conversation involves product vision, scope, wedge, relevance, capture, competitive landscape, positioning, or open product questions:
 
@@ -35,4 +35,4 @@ General:
 - Prefer editing existing sections over duplicating; bump "Last updated" and add a short Changelog entry.
 - Do not invent settled decisions; if unsure, add an open question instead.
 - Product spec altitude: capture what/why/scope; defer detailed UI/UX/flows unless asked.
-- When referring to building-plan workstreams, always use **U-A**, **U-B**, **U-C**, … (never bare A/B/C for those units).
+- When referring to building-plan workstreams, always use **U-A**, **U-B**, **U-C**, … through **U-J** (never bare A/B/C for those units).

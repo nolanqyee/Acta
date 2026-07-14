@@ -9,10 +9,10 @@ Planning docs live in [`docs/`](docs/). Building-plan units are **U-A…U-I** (s
 - [`docs/personal-evidence-graph.md`](docs/personal-evidence-graph.md) — product
 - [`docs/data-model.md`](docs/data-model.md) — schema
 - [`docs/surfaces-and-flows.md`](docs/surfaces-and-flows.md) — IA & flows (**U-B** / **U-C** locked)
-- [`docs/agent-interaction-model.md`](docs/agent-interaction-model.md) — agents & write policy (**U-D** co-design)
-- [`docs/building-plan.md`](docs/building-plan.md) — build roadmap
+- [`docs/agent-interaction-model.md`](docs/agent-interaction-model.md) — agents & write policy (**U-D** locked)
+- [`docs/building-plan.md`](docs/building-plan.md) — build roadmap (**U-A…U-J**)
 
-**Where we are:** product + data model locked enough to build; Graph IA locked; agent model drafted (open Qs cleared, await lock); next is brand (**U-A**) then **capture + render**. Code is still a prototype scaffold.
+**Where we are:** product + data model + Graph IA (**U-B/U-C**) + agent model (**U-D**) locked. **Next: brand (U-A)** → technical implementation plan (**U-J**) → capture + render → auth (**U-E**). Code is still a prototype scaffold.
 
 ## Stack
 

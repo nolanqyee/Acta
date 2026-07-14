@@ -6,7 +6,7 @@ Last updated: 2026-07-13
 
 Companions: [`data-model.md`](data-model.md) (schema, extract emit, stamp rules), [`surfaces-and-flows.md`](surfaces-and-flows.md) (chrome + flows), [`building-plan.md`](building-plan.md) (roadmap **U-D**), [`personal-evidence-graph.md`](personal-evidence-graph.md) (product).
 
-Status: **v1 co-design draft** — open questions cleared; **not locked** until we explicitly say so. Not prompt text or HTTP API design.
+Status: **v1 locked** for implementation planning (building-plan **U-D**). Not prompt text or HTTP API design.
 
 ---
 
@@ -285,12 +285,13 @@ Details: [`surfaces-and-flows.md`](surfaces-and-flows.md). Schemas: [`data-model
 - [x] Streaming extract: **incremental** — pending nodes/changelog animate as proposals (and user decisions) land; same path for small yaps (just finishes fast). Implement lean: chunked append, throttled layout, batch confirm still OK
 - [x] Adapter citation UX: **thin UX** — inline marks + click → focus endeavor / node modal (+ optional mini-graph pulse). `citations[]` ids required. Richer provenance = **U-G**
 
-*(No open questions remaining in this draft — still co-design until we explicitly lock U-D.)*
+*(No open questions remaining — **U-D locked** 2026-07-13.)*
 
 ---
 
 ## Changelog
 
+- **2026-07-13:** **U-D locked** for implementation planning.
 - **2026-07-13:** Locked thin citation UX (inline + click-to-node). Open questions cleared. Building-plan units = **U-A…U-I**.
 - **2026-07-13:** Locked streaming extract = **incremental** (with implement-lean notes). Locked proposal persistence = store until confirm/discard.
 - **2026-07-13:** Adapters = **family** with per-type `draft_*` entry points (not one `draft_adapter` type-switch). Shared policy; separate logic.

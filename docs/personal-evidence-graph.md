@@ -615,13 +615,15 @@ Straight romanizations (Akashi, Suji, Luli…), literal English (Ledger, Vault),
 - ~~Backfill / “not impressive enough”~~ → wedge justification + messaging (not separate features)
 - ~~Dedicated data-model spec~~ → `data-model.md` v1 draft
 - ~~IA + core flows~~ → [`surfaces-and-flows.md`](surfaces-and-flows.md) locked
-- **Next:** explicitly **lock U-D** when ready → **U-A** brand → implement **capture + render** → **U-E** — see [`building-plan.md`](building-plan.md)
+- ~~Agent write policy (**U-D**)~~ → [`agent-interaction-model.md`](agent-interaction-model.md) locked
+- **Next:** brand (**U-A**) → technical implementation plan (**U-J**) → **capture + render** → **U-E** — see [`building-plan.md`](building-plan.md)
 - Remaining light product Qs: domain (Stilva locked)
 
 ---
 
 ## Changelog
 
+- **2026-07-13:** **U-D locked.** **U-J** (technical implementation plan) added to roadmap. Next = **U-A**.
 - **2026-07-13:** Building-plan units = **U-A…U-I**. Deepen backlog; agent model (**U-D**) in co-design.
 - **2026-07-13:** Deepen UX = **backlog panel** (“stuff to fill”), not notifications/Today — see [`surfaces-and-flows.md`](surfaces-and-flows.md).
 - **2026-07-13:** Agent interaction model (**U-D**) drafted for co-design in [`agent-interaction-model.md`](agent-interaction-model.md).
