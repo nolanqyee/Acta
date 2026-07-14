@@ -1,6 +1,6 @@
-# Stilva — Surfaces & Core Flows
+# Acta — Surfaces & Core Flows
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 **Owns:** information architecture (primary surfaces) and end-to-end interaction flows at contract altitude — not pixels, brand tokens, or full adapter editor design.
 
@@ -311,6 +311,7 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
 
 ## Changelog
 
+- **2026-07-14:** Product brand → **Acta**.
 - **2026-07-13:** Cross-refs use building-plan **U-A…U-I** convention.
 - **2026-07-13:** Deepen = **backlog panel** (“stuff to fill”) from Graph — not notifications / Today inbox; still soft + skippable JIT at Generate.
 - **2026-07-13:** Agent connectors = **after classic MVP** (not early parallel / not loud stub).

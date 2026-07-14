@@ -1,6 +1,6 @@
-# Stilva — Agent / System Interaction Model
+# Acta — Agent / System Interaction Model
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 **Owns:** capture **pipeline** vs reasoning **agents**; read vs write; confirm vs auto; pending proposals; what must not be invented; how proposals become graph state.
 
@@ -291,6 +291,7 @@ Details: [`surfaces-and-flows.md`](surfaces-and-flows.md). Schemas: [`data-model
 
 ## Changelog
 
+- **2026-07-14:** Product brand → **Acta**.
 - **2026-07-13:** **U-D locked** for implementation planning.
 - **2026-07-13:** Locked thin citation UX (inline + click-to-node). Open questions cleared. Building-plan units = **U-A…U-I**.
 - **2026-07-13:** Locked streaming extract = **incremental** (with implement-lean notes). Locked proposal persistence = store until confirm/discard.

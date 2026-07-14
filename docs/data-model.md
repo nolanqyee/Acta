@@ -1,8 +1,8 @@
-# Stilva — Data Model Spec
+# Acta — Data Model Spec
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
-Product: **Stilva** — personal evidence graph (still × vita / *distill a life*). Companion to [`personal-evidence-graph.md`](personal-evidence-graph.md) (product spec) and [`surfaces-and-flows.md`](surfaces-and-flows.md) (Graph UI). **This doc owns schema, entity types, edges, provenance, extraction contracts, and how adapters/agents consume the graph.** Product decisions that depend on the model should link here rather than inventing schema in the product doc.
+Product: **Acta** — personal evidence graph. Companion to [`personal-evidence-graph.md`](personal-evidence-graph.md) (product spec) and [`surfaces-and-flows.md`](surfaces-and-flows.md) (Graph UI). **This doc owns schema, entity types, edges, provenance, extraction contracts, and how adapters/agents consume the graph.** Product decisions that depend on the model should link here rather than inventing schema in the product doc.
 
 Status: **v1 draft locked for implementation planning** (not code yet). Guideline-first: structured and detailed, soft on user overrides.
 
@@ -170,7 +170,7 @@ Immutable raw intake. Re-extract links to new/updated entities; do not rewrite c
 | `source_type` | yes | enum | `typed` \| `resume_import` \| `linkedin_import` \| `github_import` \| `other_import` (voice later) |
 | `source_meta?` | no | object | filename, URL, repo, import batch id |
 | `captured_at` | yes | datetime | When the life note/event is *about* (user-facing time; may be backdated) |
-| `created_at` | yes | datetime | When this Capture row was written in Stilva |
+| `created_at` | yes | datetime | When this Capture row was written in Acta |
 
 Often equal for a live typed yap; can differ for imports or “note about last week.”
 
@@ -680,7 +680,7 @@ User attaches `audio` demo walkthrough to a tech `role`. Kind profile did not su
 
 | Item | Why |
 | --- | --- |
-| **Values / Goals as entities** | Not relevant to Stilva’s job. Culture-fit / “who I am” comes from Stories, Lessons, Endeavors, tags — not a values taxonomy. Goals are ephemeral recruiting intent, not durable graph SoT. Essay value-signaling is out of product scope. |
+| **Values / Goals as entities** | Not relevant to Acta’s job. Culture-fit / “who I am” comes from Stories, Lessons, Endeavors, tags — not a values taxonomy. Goals are ephemeral recruiting intent, not durable graph SoT. Essay value-signaling is out of product scope. |
 | Hard evidence/field allowlist rejects | Guideline profiles only |
 | Multi-user / coach-share | Solo user v1 |
 | Storage engine | **Settled: Supabase (Postgres)** — typed tables + `edges` + `ext` jsonb; Auth + Storage for evidence blobs. Not Firebase/Firestore; not a graph DB for v1. |
@@ -725,6 +725,7 @@ User attaches `audio` demo walkthrough to a tech `role`. Kind profile did not su
 
 ## Changelog
 
+- **2026-07-14:** Product brand → **Acta** (working name; see product spec Naming).
 - **2026-07-13:** Aligned with surfaces IA — Graph-home canvas draws **Endeavors only**; Skills/People/Orgs remain stored entities but are not canvas physics nodes (orgs redundant with role/education + `at_org`); skill/people/org “projections” = filter/highlight endeavors.
 - **2026-07-10:** Storage settled as **Supabase/Postgres** (not Firebase; not graph DB for v1).
 - **2026-07-10:** `ext` promotion rule — only when a key is used across 3+ kinds; open questions fully resolved.

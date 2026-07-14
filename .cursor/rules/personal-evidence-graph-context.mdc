@@ -3,9 +3,9 @@ description: Keep personal-evidence-graph.md as the living planning source of tr
 alwaysApply: true
 ---
 
-# Stilva — Personal Evidence Graph Planning Context
+# Acta — Personal Evidence Graph Planning Context
 
-Working brand: **Stilva** (still × vita / distill a life). Project folder: `Stilva/`.
+Working brand: **Acta** (Latin *acta* — deeds / record of what was done). Project folder may still be `Stilva/` until renamed.
 
 Canonical docs (`docs/`):
 
@@ -13,7 +13,13 @@ Canonical docs (`docs/`):
 - `docs/data-model.md` — data model / schema (entities, edges, captures, provenance). Own this separately; don't invent schema only in chat or only in the product doc.
 - `docs/surfaces-and-flows.md` — IA / surfaces + core interaction flows
 - `docs/agent-interaction-model.md` — agents, confirm vs auto, pending proposals, write policy
+- `docs/brand-design-system.md` — brand + visual system (**U-A**): tokens, type, color, motion, graph chrome
 - `docs/building-plan.md` — build roadmap. **Units are `U-A`…`U-J`** (say “U-D”, never bare “D” for roadmap items). See Doc conventions in that file. **U-J** = technical implementation plan (HOW).
+
+When this conversation involves brand, visual identity, design tokens, type, color, motion, or Graph chrome aesthetics:
+
+1. **Read/update `docs/brand-design-system.md`** as the source of truth for **U-A**.
+2. Keep product Naming summary in `docs/personal-evidence-graph.md`; don’t duplicate full token tables there.
 
 When this conversation involves product vision, scope, wedge, relevance, capture, competitive landscape, positioning, or open product questions:
 

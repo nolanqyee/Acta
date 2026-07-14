@@ -1,8 +1,8 @@
 # Personal Evidence Graph — Planning Context
 
-Last updated: 2026-07-13 Update whenever planning decisions, scope, or open questions change.
+Last updated: 2026-07-14 Update whenever planning decisions, scope, or open questions change.
 
-**Active ideation thread:** brand = **Stilva** (still × vita / distill a life). Next deep work: `data-model.md`.
+**Active ideation thread:** working brand = **Acta**. **U-A** visual system → [`brand-design-system.md`](brand-design-system.md).
 
 **Doc altitude:** this is a **product spec** (what / why / scope). Detailed UI, UX, and user flows come later — capture product intent and capabilities here, not screen-level design.
 
@@ -10,7 +10,7 @@ Last updated: 2026-07-13 Update whenever planning decisions, scope, or open ques
 
 ## One-liner
 
-A **personal evidence graph** (working brand **Stilva** — still × vita / *distill a life*): capture anything about yourself over time, structure it into reusable entities/stories, score relevance for a given ask + life stage, and compile grounded artifacts. Not a resume tool. Not a college essay writer.
+A **personal evidence graph** (working brand **Acta**): capture anything about yourself over time, structure it into reusable entities/stories, score relevance for a given ask + life stage, and compile grounded artifacts. Not a resume tool. Not a college essay writer.
 
 ---
 
@@ -288,7 +288,7 @@ Deepen over time (not a gate): project + role deep-dives first
 Imports = skeleton. Broad pass = usable entry. Deep-dives = muscle over time. Ongoing capture = compounding.
 
 **MVP import sources:** resume + LinkedIn + GitHub.  
-**Later:** full kitchen sink (docs, transcripts, READMEs, activity lists, Slack, calendar, email, etc.) **+ agent connectors** (Claude / other coding agents → **chat histories** so Stilva can recover what the agent did for **specific features / projects** into capture → extract).
+**Later:** full kitchen sink (docs, transcripts, READMEs, activity lists, Slack, calendar, email, etc.) **+ agent connectors** (Claude / other coding agents → **chat histories** so Acta can recover what the agent did for **specific features / projects** into capture → extract).
 
 **Deepening priority (settled):** **project deep-dives + role deep-dives first.** Interview/STAR stories can often be extrapolated from rich project/role nodes; the reverse is weaker (a canned STAR rarely reconstructs the full project graph).
 
@@ -349,7 +349,7 @@ Common pushback: “Does this have value if I don’t feel accomplished?” That
 **Settled framing:** both, sequenced —
 
 - **Messaging for everyone:** you can extract more value from your experiences than you think (experiences ≠ only trophy wins).
-- **Product reality:** denser, better-captured graphs get more recombination value. Stilva doesn’t require feeling accomplished to start; it rewards building a real graph.
+- **Product reality:** denser, better-captured graphs get more recombination value. Acta doesn’t require feeling accomplished to start; it rewards building a real graph.
 
 **Not a separate product feature:** “undersell detection” is **mostly messaging**. Deepen + relevance + broad corpus already surface what’s usable — no dedicated undersell-flagging system needed.
 
@@ -441,9 +441,9 @@ Recruiting is the **wedge**, not the ceiling.
 
 ### Positioning / naming
 
-- [x] Brand: **Stilva** (still × vita / distill a life). **Stiva** was soft candidate; **Stilva** chosen for marketability + meaning (see Naming)
+- [x] Brand: **Acta** (Latin *acta* — deeds / record of what was done). Supersedes **Stilva** / **Stiva** (see Naming)
 - [x] Category language (internal): **personal evidence graph**
-- [ ] Domain / ccTLD — working name Stilva; domain still TBD
+- [ ] Domain / ccTLD — working name Acta; domain still TBD (naked `acta.*` crowded)
 
 ---
 
@@ -486,7 +486,7 @@ Recruiting is the **wedge**, not the ceiling.
 33. **Sharing:** solo user for now; parent/counselor out of scope until later.
 34. **Personal site / MCP:** post-MVP experiment / future adapter — not a near-term commit.
 35. **Essay ideas:** parked — unspecified until post-internship expansion (if ever).
-36. **Brand:** **Stilva** (still × vita / distill a life). **Stiva** was soft candidate; **Stilva** chosen for marketability + meaning.
+36. **Brand:** **Acta** (Latin *acta* — deeds / record of what was done). Working lock 2026-07-14; domain/trademark still TBD. **Stilva** / **Stiva** superseded.
 37. **Wedge / backfill:** college internship stage partly because past is still portably small; **not** solving large mid-career full-life backfill as the point.
 38. **“Not impressive enough”:** messaging = you can extract more value from experiences than you think; denser graphs still get more value underneath. Undersell handling = existing deepen/relevance/corpus — **not** a separate feature.
 
@@ -498,54 +498,34 @@ Recruiting is the **wedge**, not the ceiling.
 
 Internal category: **personal evidence graph**.
 
-**Meaning we want:** distill a life (still/distill × vita/life).
+**Working brand (locked for now): Acta** — Latin *acta* (deeds / acts / the record of what was done). Pronunciation: **AK-tuh**. Passes “update my Acta” / “look at my Acta.” Practical, evidence-shaped; not life-root or dreamy distill branding. Tagline deferred (audience-specific).
 
-**Working brand (locked): Stilva** — still × vita; chosen over **Stiva** (soft candidate) for marketability + clearer vita signal (see research below). Domain still TBD.
+**Why Acta (2026-07-14):**  
+- Meaning fit: record of deeds ↔ personal evidence graph  
+- Mouthfeel: short, clean, college-peer sayable  
+- Tradeoff accepted: mid-high name crowding (academic *Acta …* journals; several SaaS Actas including [acta.ai](https://acta.ai/) meeting notes) — better than naked **Atlas**, clearer than **Stele** pronunciation, stronger meaning than **Ariadne**  
+- Domain: naked `acta.*` largely taken; qualifier / compound domain TBD  
+- **Not a legal clearance** — trademark/domain counsel before shipping
 
-**Stiva** — strong surface, but mostly reads as *still*; *vita* is nearly invisible. Kept as a passed-through candidate, not the working name.
+**Finalist compare (U-A naming pass):**
 
-### Candidates around “distill a life”
+| Name | Meaning | Sayability | Crowd | Notes |
+| --- | --- | --- | --- | --- |
+| **Acta** | Excellent (deeds/record) | Excellent | Mid-high | **Working lock** |
+| **Atlas** | Best metaphor (map + titan) | Excellent | Worst | Loved; cut on Atlassian/Mongo/SEO |
+| **Stele** | Excellent (inscribed record) | Weak (steel/steal) | Mid | Cool meaning; pronunciation tax |
+| **Ariadne** | Weak (thread/maze) | Mid (long) | Mid | Sound-liked; thin product tie |
+| **Stilva** | Forced blend | Awkward | Low | Cut — mouthfeel + unclear vita |
 
-| Name | How both halves show | Notes |
-| --- | --- | --- |
-| **Stiva** | still + (vi)ta | Soft on vita — previous favorite |
-| **Vilist** | vita + still (reversed) | Clearer both; maybe clunkier |
-| **Vistil** | vita + still | Both audible; a bit clinical? |
-| **Stillvita** | literal | Too long / not invented |
-| **Vitill** | vita + still | Punchy; “vit-ill” misread risk |
-| **Distiva** | distill + vita | Meaning on the nose; longer |
-| **Stilva** | still + vita (swap) | vita’s *va* clearer than Stiva? |
-| **Vistill** | vita + still | Soft; 2-ish syllables if said fast |
-| **Livest** | live + still? | Wrong vibe maybe |
-| **Elvita** / **Alvita** | el + vita | Vita clear; distill lost |
-| **Stillor** / **Virel** | other mutations | Drift from the phrase |
+### Superseded: Stilva / Stiva (“distill a life”)
 
-*(Expand in chat — Stilva locked as working brand; domain TBD.)*
+Earlier working brand **Stilva** (still × vita) and soft candidate **Stiva** — locked 2026-07-09, cut 2026-07-14. Research (Stiva vs Stilva collisions, stevia/silva traps) kept only as history in the changelog. Project folder may still be `Stilva/` until renamed.
 
-### Marketability: Stiva vs Stilva (2026-07-09 research)
+### Brand taste (carry forward into U-A visual)
 
-| Dimension | **Stiva** | **Stilva** |
-| --- | --- | --- |
-| Say / spell | Easier — 2 clean syllables (`STI-va`) | Slightly denser (`STIL-va`); risk of typing **Stiva** or **Silva** |
-| Meaning signal | Mostly *still*; *vita* weak | *still* + *va* — closer to “distill a life” |
-| Tech / consumer collisions | **Heavier:** [stiva.app](https://www.stiva.app/) read-later app (launching); StivaSoft PHP tools; Grupo STIVA (`stiva.com`, MX real estate) | **Lighter for SaaS:** Stilva Colors, matcha set, small EU entities — no clear competing consumer app |
-| Phonetic traps | Near **Stevia** (sweetener) — SEO/voice confusion | Near **Silva** (common name) — spelling confusion |
-| `.com` reality | `stiva.com` taken (Grupo STIVA) | Likely contested / not clean either (verify before lock) |
-| SEO / Googleability | Crowded (stevia + apps + real estate) | Quieter search landscape for software |
-
-**Lean from research (→ decision):** **Stilva** chosen as working brand — fewer direct software collisions, better vita signal, closer to “distill a life.” **Stiva** wins on mouthfeel but pays a real collision tax (`stiva.app` especially).
-
-**Not a legal clearance** — just marketability scan. Domain/trademark counsel still needed before shipping.
-
-### Brand taste (how we got here)
-
-- Vercel-like: funky surface, meaning in the lore
-- Roots OK; surface should feel invented (not straight CJK romanization)
-- ccTLD excitement remains
-
-### Rejected / passed-through directions
-
-Straight romanizations (Akashi, Suji, Luli…), literal English (Ledger, Vault), other invented shortlist (Sujel, Zurel, Evashi, Oriva, Vetra, Myven, Keivo, Akeso…) — kept in changelog/history only if needed. **Stiva** was soft candidate; **Stilva** is the working brand.
+- Oblique-iconic names were tried (Slack/Obsidian pattern); nothing stuck — product-adjacent Latin/Greek won  
+- Prefer practical tool energy over wellness / “life” poetry  
+- Visual system (**U-A** remainder) still open
 
 ---
 
@@ -616,13 +596,14 @@ Straight romanizations (Akashi, Suji, Luli…), literal English (Ledger, Vault),
 - ~~Dedicated data-model spec~~ → `data-model.md` v1 draft
 - ~~IA + core flows~~ → [`surfaces-and-flows.md`](surfaces-and-flows.md) locked
 - ~~Agent write policy (**U-D**)~~ → [`agent-interaction-model.md`](agent-interaction-model.md) locked
-- **Next:** brand (**U-A**) → technical implementation plan (**U-J**) → **capture + render** → **U-E** — see [`building-plan.md`](building-plan.md)
-- Remaining light product Qs: domain (Stilva locked)
+- **Next:** brand visual system (**U-A**) in [`brand-design-system.md`](brand-design-system.md) → technical implementation plan (**U-J**) → **capture + render** → **U-E** — see [`building-plan.md`](building-plan.md)
+- Remaining light product Qs: domain for **Acta**
 
 ---
 
 ## Changelog
 
+- **2026-07-14:** Working brand → **Acta** (Latin *acta* — deeds/record). Cut **Stilva**. Finalists: Atlas, Stele, Ariadne. Domain TBD. **U-A** scaffold → [`brand-design-system.md`](brand-design-system.md).
 - **2026-07-13:** **U-D locked.** **U-J** (technical implementation plan) added to roadmap. Next = **U-A**.
 - **2026-07-13:** Building-plan units = **U-A…U-J**. Deepen backlog.
 - **2026-07-13:** Deepen UX = **backlog panel** (“stuff to fill”), not notifications/Today — see [`surfaces-and-flows.md`](surfaces-and-flows.md).

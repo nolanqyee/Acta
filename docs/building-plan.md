@@ -1,6 +1,6 @@
-# Stilva — Building Plan
+# Acta — Building Plan
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 Overarching **build** roadmap (not business/GTM). Companion to:
 
@@ -10,6 +10,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | [`data-model.md`](data-model.md) | Schema, edges, extract/provenance contracts |
 | [`surfaces-and-flows.md`](surfaces-and-flows.md) | IA / surfaces + core interaction flows |
 | [`agent-interaction-model.md`](agent-interaction-model.md) | Agents, confirm vs auto, pending proposals, write policy |
+| [`brand-design-system.md`](brand-design-system.md) | Brand + visual system (**U-A**) |
 | [`technical-implementation-plan.md`](technical-implementation-plan.md) | **HOW** to implement locked plan docs (created in **U-J**) |
 | **This doc** | What to harden next: brand, IA, flows, agents, tech plan, auth |
 
@@ -45,11 +46,11 @@ Scaffold code exists (Next.js + in-memory graph). Treat UI as prototype until **
 
 | Layer | Status |
 | --- | --- |
-| Product vision / wedge | Locked — Stilva; college tech internship recruiting |
+| Product vision / wedge | Locked — **Acta**; college tech internship recruiting |
 | Data model | **v1 draft locked** — [`data-model.md`](data-model.md) |
 | IA + core flows (**U-B** + **U-C**) | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | Agent write policy (**U-D**) | **Locked** — [`agent-interaction-model.md`](agent-interaction-model.md) |
-| Brand / visual (**U-A**) | Not started — **next** |
+| Brand / visual (**U-A**) | Name locked (**Acta**); visual system **next** |
 | Tech implementation plan (**U-J**) | Queued — after U-A (before heavy capture+render coding) |
 | Persistence / auth (**U-E**) | Sketched (migration + clients); not default path |
 | Code | Prototype scaffold — list/heuristic extract; **not** the locked Graph canvas IA |
@@ -79,7 +80,7 @@ Scaffold code exists (Next.js + in-memory graph). Treat UI as prototype until **
 | **U-B** | **IA & primary surfaces** | Screens + jobs | **Done (locked)** |
 | **U-C** | **Core interaction flows** | Flow contracts | **Done (locked)** |
 | **U-D** | **Agent / system interaction model** | Extract/deepen/explore/synth write policy; confirm vs auto; pending | **Done (locked)** |
-| **U-A** | **Brand & visual system** | Force-graph WOW needs one composition language | **Next** |
+| **U-A** | **Brand & visual system** | Force-graph WOW needs one composition language | **In progress** — name = **Acta**; visual next |
 | **U-J** | **Technical implementation plan** | Turn locked what/why docs into a concrete HOW (stack choices, modules, sequencing, risks) | Queued — after U-A |
 | **U-E** | **Persistence & auth** | Real user + Supabase graph survives refresh | Queued — with/after first capture+render slice per U-J |
 
@@ -105,9 +106,13 @@ Monetization, GTM, domain/legal, B2B/coach-share, essay adapters, voice, kitchen
 
 ## Now — detail & exit criteria
 
-### U-A. Brand & visual system — **next**
+### U-A. Brand & visual system — **in progress**
 
-**Deliverable:** short brand + UI foundation (tokens, type, color, motion principles, do/don’t). Enough that Graph home (force canvas, sidebars, hover cards, pending states) doesn’t invent a new look per screen.
+**Deliverable:** [`brand-design-system.md`](brand-design-system.md) — brand + UI foundation (tokens, type, color, motion, graph chrome, do/don’t). Enough that Graph home doesn’t invent a new look per screen. Scaffold in place; fill section-by-section.
+
+**Name (locked for now):** **Acta** — Latin *acta* (deeds / record of what was done). Supersedes Stilva. Domain TBD. See product Naming + brand doc §1.
+
+**Still open in U-A:** personality, tokens, graph chrome, motion, do/don’t — see brand doc exit checklist.
 
 **Exit when:** one composition language + CSS variables (or design tokens) exist; dogfood UI can be restyled to match without redesigning IA.
 
@@ -183,7 +188,7 @@ Practical order: **U-A** → **U-J** → **implement capture+render** → **U-E*
 
 | Unit | Status |
 | --- | --- |
-| U-A Brand & visual | **Next** |
+| U-A Brand & visual | **In progress** — name **Acta**; visual next |
 | U-B IA & surfaces | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | U-C Core flows | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | U-D Agent model | **Locked** — [`agent-interaction-model.md`](agent-interaction-model.md) |
@@ -201,6 +206,7 @@ Code scaffold: exists; align to locked IA via **capture + render** after **U-A**
 
 ## Changelog
 
+- **2026-07-14:** Working brand → **Acta**. U-A scaffold → [`brand-design-system.md`](brand-design-system.md). Name locked; visual sections open. Then U-J → capture+render → U-E.
 - **2026-07-13:** **U-D locked.** Added **U-J** technical implementation plan (HOW for locked plan docs). Next = **U-A**, then U-J, then capture+render → U-E.
 - **2026-07-13:** Status snapshot — U-B/U-C locked; U-D co-design; units **U-A…U-I**.
 - **2026-07-13:** Building-plan units renamed to **U-A…U-I** (doc/agent convention). Thin adapter citation UX owned by U-D; rich provenance remains U-G.
