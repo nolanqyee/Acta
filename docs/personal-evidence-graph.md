@@ -624,7 +624,7 @@ Straight romanizations (Akashi, Suji, Luli…), literal English (Ledger, Vault),
 ## Changelog
 
 - **2026-07-13:** **U-D locked.** **U-J** (technical implementation plan) added to roadmap. Next = **U-A**.
-- **2026-07-13:** Building-plan units = **U-A…U-I**. Deepen backlog; agent model (**U-D**) in co-design.
+- **2026-07-13:** Building-plan units = **U-A…U-J**. Deepen backlog.
 - **2026-07-13:** Deepen UX = **backlog panel** (“stuff to fill”), not notifications/Today — see [`surfaces-and-flows.md`](surfaces-and-flows.md).
 - **2026-07-13:** Agent interaction model (**U-D**) drafted for co-design in [`agent-interaction-model.md`](agent-interaction-model.md).
 - **2026-07-13:** Agent connectors locked to **after classic MVP** (resume/LinkedIn/GitHub first). Surfaces IA open questions for Graph home resolved.
