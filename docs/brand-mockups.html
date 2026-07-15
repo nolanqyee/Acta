@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Acta — Graph home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Charis+SIL:ital,wght@0,400;0,700;1,400;1,700&family=Figtree:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --font-serif: "Charis SIL", Georgia, serif;
+      --font-sans: "Figtree", system-ui, sans-serif;
+      --accent: #2aa77d;
+      --accent-soft: color-mix(in oklab, var(--accent) 18%, transparent);
+      --accent-text: #1e8a66;
+      --bg-canvas: #f5f0e4;
+      --bg-chrome: #f8f3e9;
+      --bg-elevated: #fffdf8;
+      --text: #1e1c18;
+      --text-muted: #6e695f;
+      --node: #2a2824;
+      --node-dim: #a89f8f;
+      --edge: color-mix(in oklab, var(--text) 14%, transparent);
+      --edge-hot: color-mix(in oklab, var(--accent) 55%, transparent);
+      --pending: #6bc4a0;
+      --glass: color-mix(in oklab, var(--bg-elevated) 74%, transparent);
+      --shadow: 0 12px 40px color-mix(in oklab, #000 12%, transparent);
+      --shadow-soft: 0 4px 16px color-mix(in oklab, #000 8%, transparent);
+      --ctl: 40px;
+      --radius-ctl: 12px;
+      --radius-panel: 14px;
+      --radius-soft: 10px;
+    }
+    html[data-mode="dark"] {
+      --accent-text: #5ed4a8;
+      --bg-canvas: #141414;
+      --bg-chrome: #1a1a1a;
+      --bg-elevated: #222222;
+      --text: #ececec;
+      --text-muted: #8f8f8f;
+      --node: #e4e4e4;
+      --node-dim: #565656;
+      --edge: color-mix(in oklab, #fff 10%, transparent);
+      --edge-hot: color-mix(in oklab, var(--accent) 70%, transparent);
+      --pending: #2aa77d;
+      --glass: color-mix(in oklab, #1c1c1c 80%, transparent);
+      --shadow: 0 16px 48px color-mix(in oklab, #000 55%, transparent);
+      --shadow-soft: 0 6px 20px color-mix(in oklab, #000 40%, transparent);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-canvas);
+      color: var(--text);
+      overflow: hidden;
+      transition: background 260ms ease, color 260ms ease;
+    }
+
+    /* —— Canvas —— */
+    .canvas { position: fixed; inset: 0; z-index: 0; }
+    /* subtle radial vignette to give the plane depth without framing it */
+    .canvas::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(120% 90% at 50% 42%,
+        transparent 55%,
+        color-mix(in oklab, var(--text) 5%, transparent) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #edgeLayer, #nodeLayer { position: absolute; inset: 0; width: 100%; height: 100%; }
+    #edgeLayer line {
+      stroke: var(--edge);
+      stroke-width: 0.75;
+      stroke-linecap: round;
+      transition: stroke 160ms ease, opacity 160ms ease, stroke-width 160ms ease;
+    }
+    #edgeLayer line.hot { stroke: var(--edge-hot); stroke-width: 1.2; }
+    body.dimming #edgeLayer line:not(.hot) { opacity: 0.25; }
+
+    .node {
+      position: absolute;
+      top: 0; left: 0;
+      width: 11px;
+      height: 11px;
+      margin: -5.5px 0 0 -5.5px;
+      border-radius: 50%;
+      background: var(--node-dim);
+      cursor: pointer;
+      z-index: 1;
+      transition: background 160ms ease, box-shadow 160ms ease, opacity 160ms ease, width 120ms ease, height 120ms ease, margin 120ms ease;
+      will-change: transform;
+    }
+    .node.hub { width: 15px; height: 15px; margin: -7.5px 0 0 -7.5px; background: var(--node); }
+    /* Pending recipe (locked): dashed neutral outline + lower opacity + soft pulse — NOT accent/color */
+    .node.pending {
+      background: transparent;
+      border: 1.5px dashed var(--text-muted);
+      opacity: 0.62;
+      box-shadow: none;
+      animation: pendingPulse 2.4s ease-in-out infinite;
+    }
+    @keyframes pendingPulse {
+      0%, 100% { box-shadow: 0 0 0 3px color-mix(in oklab, var(--text-muted) 8%, transparent); }
+      50% { box-shadow: 0 0 0 8px color-mix(in oklab, var(--text-muted) 12%, transparent); }
+    }
+    .node:hover, .node.hot {
+      background: var(--accent);
+      box-shadow: 0 0 0 8px var(--accent-soft);
+      z-index: 3;
+    }
+    body.dimming .node:not(.hit) { opacity: 0.28; }
+    body.dimming .node.hit { box-shadow: 0 0 0 7px var(--accent-soft); background: var(--accent); }
+
+    .node-label {
+      position: absolute;
+      left: 50%;
+      top: 12px;
+      transform: translateX(-50%);
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      pointer-events: none;
+      letter-spacing: -0.01em;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 160ms ease, color 160ms ease;
+      text-shadow: 0 1px 2px var(--bg-canvas), 0 0 6px var(--bg-canvas);
+    }
+    .node.show-label .node-label { opacity: 1; }
+    .node:hover .node-label, .node.hot .node-label { opacity: 1; color: var(--accent-text); }
+    .node.pending .node-label { opacity: 1; color: var(--text-muted); font-style: italic; }
+    .node.pending .node-label::before { content: "+ "; font-weight: 700; }
+
+    /* —— Hover card: header image + straddling title —— */
+    .hover-card {
+      position: absolute;
+      width: 250px;
+      border-radius: var(--radius-panel);
+      background: var(--bg-elevated);
+      box-shadow: var(--shadow);
+      z-index: 6;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(4px) scale(0.98);
+      transition: opacity 120ms ease, transform 120ms ease;
+    }
+    .hover-card.show { opacity: 1; transform: none; }
+    .hover-card .hero {
+      height: 92px;
+      border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+    }
+    .hover-card .title {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      top: 64px;
+      margin: 0;
+      font-family: var(--font-serif);
+      font-size: 1.22rem;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 20px rgba(0,0,0,.4);
+      line-height: 1.12;
+    }
+    .hover-card .body { padding: 30px 14px 14px; }
+    .hover-card .kind {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--accent-text); margin-bottom: 7px;
+    }
+    .hover-card .kind i { width: 6px; height: 6px; border-radius: 2px; background: var(--accent); }
+    .hover-card .body p { margin: 0; font-size: 0.76rem; color: var(--text-muted); line-height: 1.42; }
+    .hover-card .meta {
+      margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .hover-card .tag {
+      font-size: 0.64rem; font-weight: 600; color: var(--text-muted);
+      background: color-mix(in oklab, var(--text) 7%, transparent);
+      padding: 3px 7px; border-radius: 7px;
+    }
+
+    /* —— Shared control language —— */
+    .overlay { position: fixed; z-index: 10; }
+    .ctl {
+      width: var(--ctl); height: var(--ctl);
+      border: 0; border-radius: var(--radius-ctl);
+      background: var(--glass);
+      backdrop-filter: blur(18px) saturate(1.2);
+      -webkit-backdrop-filter: blur(18px) saturate(1.2);
+      box-shadow: var(--shadow-soft);
+      color: var(--text);
+      display: grid; place-items: center;
+      cursor: pointer; padding: 0; flex: 0 0 auto;
+      transition: background 140ms ease, transform 140ms ease;
+    }
+    .ctl:hover { background: color-mix(in oklab, var(--accent) 14%, var(--glass)); }
+    .ctl:active { transform: scale(0.94); }
+    .ctl svg { display: block; }
+
+    .ctl-pill {
+      height: var(--ctl); border: 0; border-radius: var(--radius-ctl);
+      background: var(--glass);
+      backdrop-filter: blur(18px) saturate(1.2);
+      -webkit-backdrop-filter: blur(18px) saturate(1.2);
+      box-shadow: var(--shadow-soft);
+      color: var(--text);
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 0 12px 0 6px;
+      font: 600 0.8rem var(--font-sans);
+      cursor: pointer;
+      transition: background 140ms ease;
+    }
+    .ctl-pill:hover { background: color-mix(in oklab, var(--accent) 12%, var(--glass)); }
+
+    /* Top left */
+    .top-left { top: 20px; left: 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+    .brand-row { display: flex; align-items: center; gap: 10px; padding-left: 2px; }
+    .wordmark { font-family: var(--font-serif); font-size: 1.6rem; letter-spacing: -0.02em; line-height: 1; }
+
+    .burger-wrap { position: relative; }
+    .adapters {
+      position: absolute; top: 0; left: calc(var(--ctl) + 8px);
+      min-width: 196px; padding: 6px;
+      border-radius: var(--radius-panel);
+      background: var(--glass);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      box-shadow: var(--shadow);
+      opacity: 0; pointer-events: none; transform: translateX(-6px);
+      transition: opacity 140ms ease, transform 140ms ease;
+    }
+    .burger-wrap:hover .adapters, .burger-wrap.open .adapters { opacity: 1; pointer-events: auto; transform: none; }
+    .adapters .adapters-head {
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-muted); padding: 6px 10px 4px;
+    }
+    .adapters button {
+      display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+      border: 0; background: transparent; color: var(--text);
+      border-radius: var(--radius-soft); padding: 9px 10px;
+      font: 600 0.84rem var(--font-sans); cursor: pointer;
+    }
+    .adapters button:hover { background: var(--accent-soft); color: var(--accent-text); }
+    .adapters button svg { color: var(--text-muted); flex: 0 0 auto; }
+    .adapters button:hover svg { color: var(--accent-text); }
+
+    /* Top right */
+    .top-right { top: 16px; right: 16px; display: flex; align-items: center; gap: 8px; }
+    .capture {
+      display: inline-flex; align-items: stretch; height: var(--ctl);
+      border-radius: var(--radius-ctl); overflow: hidden; box-shadow: var(--shadow-soft);
+    }
+    .capture .cta {
+      border: 0; background: var(--accent); color: #fff; padding: 0 14px;
+      display: inline-flex; align-items: center; gap: 7px;
+      font: 700 0.8rem var(--font-sans); cursor: pointer;
+      transition: background 140ms ease;
+    }
+    .capture .cta:hover { background: color-mix(in oklab, var(--accent) 88%, #fff); }
+    .capture .mic {
+      border: 0; background: color-mix(in oklab, var(--accent) 76%, #000); color: #fff;
+      width: 38px; display: grid; place-items: center; cursor: pointer;
+    }
+    .capture .mic:hover { background: color-mix(in oklab, var(--accent) 66%, #000); }
+
+    /* Theme icons: CSS-driven so state can't flake */
+    .icon-sun { display: none; }
+    .icon-moon { display: block; }
+    html[data-mode="dark"] .icon-sun { display: block; }
+    html[data-mode="dark"] .icon-moon { display: none; }
+
+    .ctl.badge-wrap { position: relative; }
+    .ctl .badge {
+      position: absolute; top: -4px; right: -4px;
+      min-width: 16px; height: 16px; padding: 0 4px;
+      border-radius: 999px; background: var(--accent); color: #fff;
+      font: 700 0.62rem var(--font-sans); display: grid; place-items: center;
+    }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(145deg, var(--accent), #176b52);
+      display: grid; place-items: center; color: #fff;
+      font: 700 0.72rem var(--font-sans); flex: 0 0 auto;
+    }
+
+    /* Bottom cluster */
+    .bottom {
+      left: 50%; bottom: 24px; transform: translateX(-50%);
+      width: min(660px, calc(100vw - 40px));
+      display: flex; align-items: center; gap: 8px; z-index: 12;
+    }
+    .ask {
+      flex: 1; height: 46px; display: flex; align-items: center; gap: 10px;
+      padding: 0 8px 0 14px; border-radius: var(--radius-ctl);
+      background: var(--glass);
+      backdrop-filter: blur(22px) saturate(1.25); -webkit-backdrop-filter: blur(22px) saturate(1.25);
+      box-shadow: var(--shadow);
+    }
+    .ask input {
+      flex: 1; border: 0; outline: 0; background: transparent;
+      font: 500 0.92rem var(--font-sans); color: var(--text);
+    }
+    .ask input::placeholder { color: var(--text-muted); }
+    .ask .send {
+      width: 32px; height: 32px; border: 0; border-radius: 9px;
+      background: var(--accent); color: #fff; display: grid; place-items: center;
+      cursor: pointer; flex: 0 0 auto;
+    }
+
+    .flyout {
+      position: absolute; bottom: calc(100% + 10px);
+      width: min(300px, 82vw); padding: 12px;
+      border-radius: var(--radius-panel);
+      background: var(--glass);
+      backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+      box-shadow: var(--shadow);
+      display: none; text-align: left;
+    }
+    #filterTool .flyout { left: 0; }
+    #settingsTool .flyout { right: 0; }
+    .tool { position: relative; }
+    .tool.open .flyout { display: block; }
+    .flyout h5 {
+      margin: 0 0 8px; font-size: 0.63rem; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--text-muted); font-weight: 700;
+    }
+    .flyout .section + .section { margin-top: 14px; }
+    .facet-list { display: flex; flex-direction: column; gap: 2px; max-height: 150px; overflow: auto; }
+    .facet {
+      display: flex; align-items: center; gap: 8px; padding: 7px 8px;
+      border-radius: var(--radius-soft); font-size: 0.8rem; font-weight: 600;
+      color: var(--text); cursor: pointer;
+    }
+    .facet:hover { background: var(--accent-soft); }
+    .facet input { accent-color: var(--accent); }
+    .facet .count { margin-left: auto; font-size: 0.7rem; color: var(--text-muted); font-weight: 500; }
+    .active-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .active-filters:empty { display: none; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px;
+      border-radius: 8px; background: var(--accent-soft); color: var(--accent-text);
+      font-size: 0.7rem; font-weight: 700;
+    }
+    .pill button { border: 0; background: transparent; color: inherit; cursor: pointer; padding: 0 0 0 2px; font-size: 0.9rem; line-height: 1; }
+    .search-mini {
+      width: 100%; border: 0; border-radius: var(--radius-soft);
+      background: color-mix(in oklab, var(--text) 6%, transparent); color: var(--text);
+      padding: 8px 10px; font: 500 0.78rem var(--font-sans); margin-bottom: 6px; outline: none;
+    }
+    .settings-row {
+      display: grid; gap: 5px; margin-bottom: 12px; font-size: 0.75rem;
+      color: var(--text-muted); font-weight: 600;
+    }
+    .settings-row .val { color: var(--accent-text); font-variant-numeric: tabular-nums; }
+    .settings-row .lbl { display: flex; justify-content: space-between; }
+    .settings-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+    /* Floating right panel — diff-skim / explore (no hairlines) */
+    .panel {
+      top: 72px; right: 16px;
+      width: min(300px, calc(100vw - 32px));
+      max-height: calc(100vh - 170px);
+      padding: 14px; border-radius: var(--radius-panel);
+      background: var(--glass);
+      backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15);
+      box-shadow: var(--shadow);
+      display: flex; flex-direction: column; gap: 9px; overflow: auto; z-index: 11;
+      opacity: 0; transform: translateX(12px); pointer-events: none;
+      transition: opacity 300ms cubic-bezier(0.22,1,0.36,1), transform 300ms cubic-bezier(0.22,1,0.36,1);
+    }
+    body.panel-open .panel { opacity: 1; transform: none; pointer-events: auto; }
+    .panel .panel-head { display: flex; align-items: center; justify-content: space-between; }
+    .panel h4 {
+      margin: 0; font-size: 0.64rem; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--text-muted); font-weight: 700;
+    }
+    .panel .close-x {
+      width: 22px; height: 22px; border: 0; border-radius: 7px; background: transparent;
+      color: var(--text-muted); cursor: pointer; font-size: 1rem; line-height: 1;
+    }
+    .panel .close-x:hover { background: color-mix(in oklab, var(--text) 8%, transparent); }
+    .changelog {
+      font-size: 0.82rem; line-height: 1.4; padding: 11px 12px;
+      border-radius: var(--radius-soft); background: var(--accent-soft);
+    }
+    .changelog strong { color: var(--accent-text); }
+    .panel-item {
+      padding: 10px 11px; border-radius: var(--radius-soft);
+      background: color-mix(in oklab, var(--text) 5%, transparent); cursor: pointer;
+      transition: background 140ms ease;
+    }
+    .panel-item:hover, .panel-item.active { background: var(--accent-soft); }
+    .panel-item strong { display: block; font-size: 0.84rem; margin-bottom: 2px; }
+    .panel-item span { font-size: 0.72rem; color: var(--text-muted); }
+    .panel-actions { display: flex; gap: 8px; margin-top: 4px; }
+    .panel-actions button {
+      flex: 1; height: 38px; border: 0; border-radius: var(--radius-ctl);
+      font: 700 0.8rem var(--font-sans); cursor: pointer;
+    }
+    .panel-actions .confirm { background: var(--accent); color: #fff; }
+    .panel-actions .confirm:hover { background: color-mix(in oklab, var(--accent) 88%, #fff); }
+    .panel-actions .discard { background: color-mix(in oklab, var(--text) 8%, transparent); color: var(--text-muted); }
+    .panel-actions .discard:hover { background: color-mix(in oklab, var(--text) 14%, transparent); }
+
+    /* Node modal */
+    .modal-scrim {
+      position: fixed; inset: 0;
+      background: color-mix(in oklab, #000 34%, transparent);
+      backdrop-filter: blur(2px);
+      z-index: 30; display: none; place-items: center; padding: 24px;
+    }
+    .modal-scrim.show { display: grid; }
+    .modal {
+      width: min(540px, 100%); border-radius: var(--radius-panel);
+      background: var(--bg-elevated);
+      box-shadow: 0 30px 90px color-mix(in oklab, #000 45%, transparent);
+      position: relative;
+      animation: modalIn 240ms cubic-bezier(0.22,1,0.36,1);
+    }
+    @keyframes modalIn { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+    .modal-hero { height: 176px; border-radius: var(--radius-panel) var(--radius-panel) 0 0; }
+    .modal-title {
+      position: absolute; left: 24px; right: 24px; top: 128px; margin: 0;
+      font-family: var(--font-serif); font-size: 1.9rem; letter-spacing: -0.02em;
+      color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.5), 0 10px 26px rgba(0,0,0,.45);
+    }
+    .modal-body { padding: 54px 24px 24px; }
+    .modal-body .kind {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--accent-text); margin-bottom: 10px;
+    }
+    .modal-body p { margin: 0 0 16px; color: var(--text-muted); font-size: 0.92rem; line-height: 1.55; }
+    .modal-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .modal-meta .tag {
+      font-size: 0.72rem; font-weight: 600; color: var(--text);
+      background: color-mix(in oklab, var(--text) 7%, transparent);
+      padding: 5px 10px; border-radius: 8px;
+    }
+    .modal-meta .tag.accent { background: var(--accent-soft); color: var(--accent-text); }
+    .modal-close {
+      position: absolute; top: 12px; right: 12px; width: 32px; height: 32px;
+      border: 0; border-radius: var(--radius-ctl);
+      background: color-mix(in oklab, #000 30%, transparent); color: #fff;
+      cursor: pointer; font-size: 1.1rem;
+    }
+
+    .hint {
+      position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%);
+      font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;
+      pointer-events: none; z-index: 9; letter-spacing: 0.01em;
+    }
+  </style>
+</head>
+<body class="panel-open">
+  <div class="canvas" id="canvas">
+    <svg id="edgeLayer" aria-hidden="true"></svg>
+    <div id="nodeLayer"></div>
+  </div>
+
+  <div class="hover-card" id="hoverCard">
+    <div class="hero"></div>
+    <h3 class="title"></h3>
+    <div class="body">
+      <div class="kind"><i></i> <span></span></div>
+      <p></p>
+      <div class="meta"></div>
+    </div>
+  </div>
+
+  <div class="overlay top-left">
+    <div class="brand-row">
+      <div class="wordmark">Acta</div>
+    </div>
+    <div class="burger-wrap" id="burgerWrap">
+      <button class="ctl" type="button" id="burgerBtn" aria-label="Adapters" aria-expanded="false">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+      <div class="adapters" role="menu">
+        <div class="adapters-head">Adapters</div>
+        <button type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="2"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="2"/></svg>
+          Resume
+        </button>
+        <button type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          Interview stories
+        </button>
+        <button type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 17h.01" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+          App questions
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay top-right">
+    <div class="capture">
+      <button class="cta" type="button" id="captureBtn">
+        Capture
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+        </svg>
+      </button>
+      <button class="mic" type="button" title="Voice (soon)" aria-label="Voice capture">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="2" />
+          <path d="M6 11a6 6 0 0 0 12 0M12 17v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+    <button class="ctl badge-wrap" type="button" title="To deepen" aria-label="Deepen backlog">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M4 13h4l2 3h4l2-3h4" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+        <path d="M5.5 5h13a1 1 0 0 1 1 1.2l-1.6 6.8M5.5 5 3.9 13M5.5 5 4 4" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+      </svg>
+      <span class="badge">4</span>
+    </button>
+    <button class="ctl" type="button" id="themeBtn" aria-label="Toggle theme">
+      <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2" />
+        <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+      </svg>
+    </button>
+    <button class="ctl-pill" type="button">
+      <span class="avatar" aria-hidden="true">N</span>
+      Nolan
+    </button>
+  </div>
+
+  <aside class="overlay panel" id="diffPanel" aria-label="Diff-skim">
+    <div class="panel-head">
+      <h4>Diff-skim · from capture</h4>
+      <button class="close-x" type="button" id="panelClose" aria-label="Close">×</button>
+    </div>
+    <div class="changelog">
+      <strong>+2 endeavors</strong>, update Bubble intern summary, <strong>+3 skills</strong> linked.
+    </div>
+    <div class="panel-item active" data-node="latency">
+      <strong>+ Latency writeup</strong>
+      <span>New endeavor · linked to Redis caching</span>
+    </div>
+    <div class="panel-item" data-node="metrics">
+      <strong>+ Metrics pack</strong>
+      <span>New endeavor · linked to DB course</span>
+    </div>
+    <div class="panel-item" data-node="bubble">
+      <strong>Update · Bubble intern</strong>
+      <span>Summary + 2 achievements</span>
+    </div>
+    <div class="panel-actions">
+      <button class="discard" type="button" id="discardBtn">Discard</button>
+      <button class="confirm" type="button" id="confirmBtn">Confirm</button>
+    </div>
+  </aside>
+
+  <div class="overlay bottom">
+    <div class="tool" id="filterTool">
+      <button class="ctl" type="button" aria-label="Filters">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+      <div class="flyout" id="filterFlyout">
+        <div class="active-filters" id="activeFilters"></div>
+        <div class="section">
+          <h5>Kind</h5>
+          <div class="facet-list" id="kindFacets"></div>
+        </div>
+        <div class="section">
+          <h5>Skills</h5>
+          <input class="search-mini" id="skillSearch" type="search" placeholder="Filter by a skill…" />
+          <div class="facet-list" id="skillFacets"></div>
+        </div>
+        <div class="section">
+          <h5>People</h5>
+          <div class="facet-list" id="peopleFacets"></div>
+        </div>
+        <div class="section">
+          <h5>Orgs</h5>
+          <div class="facet-list" id="orgFacets"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ask">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="opacity:.45;flex:0 0 auto">
+        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+        <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      <input type="text" id="askInput" placeholder="Ask your graph — “what have I done with Redis?”" />
+      <button class="send" type="button" aria-label="Ask">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <div class="tool" id="settingsTool">
+      <button class="ctl" type="button" aria-label="Graph settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" stroke="currentColor" stroke-width="2" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+        </svg>
+      </button>
+      <div class="flyout">
+        <h5>Physics &amp; display</h5>
+        <div class="settings-row"><span class="lbl">Center gravity <span class="val" id="v-center">34</span></span><input id="s-center" type="range" min="0" max="100" value="34" /></div>
+        <div class="settings-row"><span class="lbl">Link distance <span class="val" id="v-link">130</span></span><input id="s-link" type="range" min="40" max="240" value="130" /></div>
+        <div class="settings-row"><span class="lbl">Repel force <span class="val" id="v-charge">70</span></span><input id="s-charge" type="range" min="10" max="100" value="70" /></div>
+        <div class="settings-row"><span class="lbl">Node size <span class="val" id="v-size">42</span></span><input id="s-size" type="range" min="0" max="100" value="42" /></div>
+        <div class="settings-row"><span class="lbl">Label density <span class="val" id="v-label">45</span></span><input id="s-label" type="range" min="0" max="100" value="45" /></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hint" id="hint">Drag a node · hover for a peek · click to open</div>
+
+  <div class="modal-scrim" id="modal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <button class="modal-close" type="button" id="modalClose" aria-label="Close">×</button>
+      <div class="modal-hero" id="modalHero"></div>
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <div class="modal-body">
+        <div class="kind" id="modalKind"></div>
+        <p id="modalDesc"></p>
+        <div class="modal-meta" id="modalMeta"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ————————————————— Theme ————————————————— */
+    const root = document.documentElement;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    let themePinned = false;
+    const applyMode = (m) => { root.dataset.mode = m; };
+    applyMode(mq.matches ? "dark" : "light");
+    mq.addEventListener("change", (e) => { if (!themePinned) applyMode(e.matches ? "dark" : "light"); });
+    document.getElementById("themeBtn").addEventListener("click", () => {
+      themePinned = true;
+      applyMode(root.dataset.mode === "dark" ? "light" : "dark");
+    });
+
+    /* ————————————————— Header-image skins (kind presets) —————————————————
+       Muted, mostly neutral/teal — signals "there is a header-image system"
+       without turning into rainbow kind hues. */
+    const skins = {
+      role:       "linear-gradient(135deg,#1c3a33,#2aa77d 62%,#7fcdb0)",
+      project:    "linear-gradient(135deg,#15343d,#2f8f9d 58%,#8ecfd7)",
+      education:  "linear-gradient(135deg,#33301f,#8a7c4e 60%,#d6c79a)",
+      leadership: "linear-gradient(135deg,#262138,#5a4f86 60%,#b3a9d2)",
+      event:      "linear-gradient(135deg,#33242c,#96596a 60%,#d4a3af)",
+      research:   "linear-gradient(135deg,#20302a,#4d795d 60%,#a5c6b1)",
+      opensource: "linear-gradient(135deg,#2b2b2b,#585858 60%,#a4a4a4)"
+    };
+    const kindLabels = {
+      role: "Role", project: "Project", education: "Education",
+      leadership: "Leadership", event: "Event", research: "Research", opensource: "Open source"
+    };
+    const heroBg = (kind) =>
+      `linear-gradient(180deg, transparent 42%, var(--bg-elevated) 100%), ${skins[kind] || skins.project}`;
+
+    /* ————————————————— Graph data: Endeavors only ————————————————— */
+    let nodes = [
+      { id:"bubble",  label:"Bubble internship", kind:"role", hub:true,
+        summary:"Full-stack intern on the collaboration team. Shipped realtime + performance work across two quarters.",
+        meta:["Bubble","2024","Alex Chen"], skills:["TypeScript","Redis","React"] },
+      { id:"redis",   label:"Redis caching", kind:"project",
+        summary:"Introduced a read-through cache and fixed a lock-scope race. Cut p95 latency ~60%.",
+        meta:["Bubble","Redis","Systems"], skills:["Redis","Systems"] },
+      { id:"collab",  label:"Realtime collab", kind:"project",
+        summary:"CRDT-backed multiplayer editing for shared boards; presence + conflict resolution.",
+        meta:["Bubble","TypeScript"], skills:["TypeScript","Systems"] },
+      { id:"onboard", label:"Onboarding rewrite", kind:"project",
+        summary:"Rebuilt the first-run flow; activation up on the new cohort.",
+        meta:["Bubble","React"], skills:["React"] },
+      { id:"support", label:"Support tooling", kind:"project",
+        summary:"Internal triage dashboard that cut handle time for the support team.",
+        meta:["Bubble","React"], skills:["React","TypeScript"] },
+      { id:"cache2",  label:"Cache dashboards", kind:"project",
+        summary:"Grafana panels for cache hit-rate and eviction pressure.",
+        meta:["Bubble","Redis"], skills:["Redis"] },
+
+      { id:"cs",      label:"CS @ State", kind:"education", hub:true,
+        summary:"BS in Computer Science. Focus on distributed systems and databases.",
+        meta:["State University","2022–2026"], skills:["Systems","Postgres"] },
+      { id:"dist",    label:"Distributed systems", kind:"education",
+        summary:"Graduate seminar; built a Raft implementation for the term project.",
+        meta:["State University","Systems"], skills:["Systems"] },
+      { id:"db",      label:"DB course project", kind:"education",
+        summary:"Query planner + B-tree storage engine in the databases course.",
+        meta:["State University","Postgres"], skills:["Postgres","Systems"] },
+      { id:"os",      label:"OS project", kind:"education",
+        summary:"Threaded scheduler and virtual memory subsystem.",
+        meta:["State University","C"], skills:["Systems"] },
+      { id:"ra",      label:"Research assistant", kind:"research", hub:true,
+        summary:"Systems lab RA — profiling storage engines under mixed workloads.",
+        meta:["State University","Priya N."], skills:["Systems","Postgres"] },
+      { id:"paper",   label:"Workshop paper", kind:"research",
+        summary:"Co-authored a short paper on adaptive caching heuristics.",
+        meta:["Research","Priya N."], skills:["Systems"] },
+
+      { id:"hack",    label:"Hack Club lead", kind:"leadership", hub:true,
+        summary:"Ran the campus Hack Club: weekly workshops, two hackathons, mentoring.",
+        meta:["Hack Club","2023–2025","Sam Ortiz"], skills:["React"] },
+      { id:"fall",    label:"Fall hackathon", kind:"event",
+        summary:"Organized a 150-person overnight hackathon; ran logistics + judging.",
+        meta:["Hack Club","Event"], skills:[] },
+      { id:"work",    label:"Workshop series", kind:"event",
+        summary:"Six-week intro-to-web workshop for first-years.",
+        meta:["Hack Club","React"], skills:["React"] },
+      { id:"recruit", label:"Recruiting night", kind:"event",
+        summary:"Employer mixer connecting members with local startups.",
+        meta:["Hack Club","Event"], skills:[] },
+      { id:"circle",  label:"Mentorship circle", kind:"leadership",
+        summary:"Peer-mentoring cohort pairing upperclassmen with newcomers.",
+        meta:["Hack Club","Sam Ortiz"], skills:[] },
+
+      { id:"oss",     label:"Open-source PRs", kind:"opensource", hub:true,
+        summary:"Merged fixes to a popular caching library and a TS type util.",
+        meta:["Open source","Redis","TypeScript"], skills:["TypeScript","Redis"] },
+      { id:"site",    label:"Personal site", kind:"project",
+        summary:"Static site + writing; small experiments and notes.",
+        meta:["Personal","React"], skills:["React"] },
+      { id:"cli",     label:"CLI tool", kind:"opensource",
+        summary:"A tiny CLI for scaffolding TS projects; a few hundred stars.",
+        meta:["Open source","TypeScript"], skills:["TypeScript"] },
+      { id:"blog",    label:"Systems writeups", kind:"project",
+        summary:"Long-form posts explaining the caching + Raft work.",
+        meta:["Personal","Systems"], skills:["Systems"] },
+      { id:"design",  label:"Design experiments", kind:"project",
+        summary:"UI explorations and a small component kit.",
+        meta:["Personal","React"], skills:["React"] },
+      { id:"data",    label:"Data viz side project", kind:"project",
+        summary:"Interactive charts over public transit data.",
+        meta:["Personal","TypeScript"], skills:["TypeScript"] },
+      { id:"teach",   label:"TA · Intro CS", kind:"role",
+        summary:"Teaching assistant for the intro programming course.",
+        meta:["State University","2024"], skills:[] },
+      { id:"grant",   label:"Undergrad grant", kind:"research",
+        summary:"Small research grant funding the caching study.",
+        meta:["State University","Research"], skills:[] },
+      { id:"club2",   label:"Reading group", kind:"leadership",
+        summary:"Distributed-systems paper reading group.",
+        meta:["State University","Systems"], skills:["Systems"] },
+
+      // Pending (from a fresh capture — shown during diff-skim)
+      { id:"latency", label:"Latency writeup", kind:"project", pending:true,
+        summary:"Draft writeup on the p95 win from the Redis work — proposed from your capture.",
+        meta:["Bubble","Redis"], skills:["Redis","Systems"] },
+      { id:"metrics", label:"Metrics pack", kind:"project", pending:true,
+        summary:"Reusable latency/throughput dashboards — proposed from your capture.",
+        meta:["Bubble","Postgres"], skills:["Postgres"] },
+    ];
+
+    let edges = [
+      // Bubble internship cluster
+      ["bubble","redis"],["bubble","collab"],["bubble","onboard"],["bubble","support"],["bubble","cache2"],["bubble","teach"],
+      ["redis","cache2"],["redis","latency"],["redis","blog"],
+      // CS @ State cluster
+      ["cs","dist"],["cs","db"],["cs","os"],["cs","teach"],["cs","club2"],["cs","grant"],["cs","ra"],
+      ["db","metrics"],["club2","dist"],
+      // Research
+      ["ra","paper"],["ra","grant"],["ra","dist"],
+      // Hack Club cluster
+      ["hack","fall"],["hack","work"],["hack","recruit"],["hack","circle"],["hack","site"],
+      // Open source / personal cluster
+      ["oss","cli"],["oss","site"],["site","design"],["site","data"],["data","cli"],
+      // a few intentional bridges between clusters
+      ["redis","oss"],
+    ];
+
+    /* cluster membership → cleaner seeding = fewer edge crossings */
+    const groups = {
+      bubble: ["bubble","redis","collab","onboard","support","cache2","teach","latency","blog"],
+      cs:     ["cs","dist","db","os","club2","grant","metrics"],
+      ra:     ["ra","paper"],
+      hack:   ["hack","fall","work","recruit","circle"],
+      oss:    ["oss","cli","site","design","data"],
+    };
+    const groupOf = {};
+    Object.entries(groups).forEach(([g, ids]) => ids.forEach(id => groupOf[id] = g));
+
+    /* degree for label priority */
+    function computeDegree() {
+      nodes.forEach(n => n.degree = 0);
+      const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
+      edges.forEach(([a,b]) => { if (byId[a]) byId[a].degree++; if (byId[b]) byId[b].degree++; });
+    }
+
+    /* ————————————————— Force simulation ————————————————— */
+    const canvas = document.getElementById("canvas");
+    const edgeLayer = document.getElementById("edgeLayer");
+    const nodeLayer = document.getElementById("nodeLayer");
+    const els = new Map();       // id -> node element
+    const lineEls = new Map();   // "a|b" -> line element
+    let byId = {};
+
+    const sim = {
+      alpha: 1, alphaMin: 0.02, alphaDecay: 0.012,
+      center: 0.036, linkDist: 118, linkStrength: 0.045,
+      charge: 4400, damping: 0.86, sizeScale: 1, labelDensity: 45,
+    };
+    let W = window.innerWidth, H = window.innerHeight;
+    let dragNode = null;
+
+    function seedPositions() {
+      const cx = W * 0.5, cy = H * 0.5;
+      const gk = Object.keys(groups);
+      const R = Math.min(W, H) * 0.27;
+      const anchors = {};
+      gk.forEach((g, i) => {
+        const a = (i / gk.length) * Math.PI * 2 - Math.PI / 2;
+        anchors[g] = { x: cx + Math.cos(a) * R, y: cy + Math.sin(a) * R };
+      });
+      nodes.forEach((n) => {
+        if (n.x === undefined) {
+          const anc = anchors[groupOf[n.id]] || { x: cx, y: cy };
+          n.x = anc.x + (Math.random() - 0.5) * 90;
+          n.y = anc.y + (Math.random() - 0.5) * 90;
+          n.vx = 0; n.vy = 0;
+        }
+      });
+    }
+
+    function reheat(a = 0.6) { sim.alpha = Math.max(sim.alpha, a); }
+
+    function centerTarget() {
+      // shift center of gravity left when the floating panel is open
+      const shift = document.body.classList.contains("panel-open") ? 0.40 : 0.5;
+      return { cx: W * shift, cy: H * 0.5 };
+    }
+
+    function physicsTick(a) {
+      byId = Object.fromEntries(nodes.map(n => [n.id, n]));
+      const { cx, cy } = centerTarget();
+
+      // centering
+      for (const n of nodes) {
+        n.vx += (cx - n.x) * sim.center * a;
+        n.vy += (cy - n.y) * sim.center * a;
+      }
+      // repulsion + collision (O(n^2), fine for this size)
+      const minSep = 34 * sim.sizeScale; // keep nodes (and their labels) from stacking
+      for (let i = 0; i < nodes.length; i++) {
+        const p = nodes[i];
+        for (let j = i + 1; j < nodes.length; j++) {
+          const q = nodes[j];
+          let dx = p.x - q.x, dy = p.y - q.y;
+          let d2 = dx*dx + dy*dy;
+          if (d2 < 1) { dx = (Math.random()-0.5); dy = (Math.random()-0.5); d2 = dx*dx+dy*dy; }
+          let d = Math.sqrt(d2);
+          if (d2 < 144) d2 = 144;            // clamp charge blowups at very close range
+          const f = (sim.charge / d2) * a;
+          const ux = dx / d, uy = dy / d;
+          p.vx += ux * f; p.vy += uy * f; q.vx -= ux * f; q.vy -= uy * f;
+          // hard-ish collision: positional push so nodes never overlap
+          if (d < minSep) {
+            const push = (minSep - d) * 0.5;
+            if (p !== dragNode) { p.x += ux * push; p.y += uy * push; }
+            if (q !== dragNode) { q.x -= ux * push; q.y -= uy * push; }
+          }
+        }
+      }
+      // link springs
+      for (const [ai, bi] of edges) {
+        const p = byId[ai], q = byId[bi];
+        if (!p || !q) continue;
+        let dx = q.x - p.x, dy = q.y - p.y;
+        const d = Math.sqrt(dx*dx + dy*dy) || 0.01;
+        const diff = ((d - sim.linkDist) / d) * sim.linkStrength * a;
+        const fx = dx * diff, fy = dy * diff;
+        p.vx += fx; p.vy += fy; q.vx -= fx; q.vy -= fy;
+      }
+      // integrate
+      const pad = 56;
+      for (const n of nodes) {
+        if (n === dragNode) { n.vx = 0; n.vy = 0; continue; }
+        n.x += n.vx; n.y += n.vy;
+        n.vx *= sim.damping; n.vy *= sim.damping;
+        n.x = Math.max(pad, Math.min(W - pad, n.x));
+        n.y = Math.max(pad + 40, Math.min(H - pad - 70, n.y));
+      }
+    }
+
+    function warmup(iters = 420) {
+      for (let k = 0; k < iters; k++) {
+        const a = Math.max(0.08, 1 - k / iters);
+        physicsTick(a);
+      }
+      sim.alpha = sim.alphaMin; // land settled; drag/resize can reheat
+    }
+
+    function step() {
+      if (sim.alpha > sim.alphaMin) {
+        physicsTick(sim.alpha);
+        sim.alpha *= (1 - sim.alphaDecay);
+      } else {
+        byId = Object.fromEntries(nodes.map(n => [n.id, n]));
+      }
+      draw();
+      requestAnimationFrame(step);
+    }
+
+    /* ————————————————— DOM sync + draw ————————————————— */
+    function syncDOM() {
+      computeDegree();
+      // nodes
+      const ids = new Set(nodes.map(n => n.id));
+      for (const [id, el] of els) if (!ids.has(id)) { el.remove(); els.delete(id); }
+      for (const n of nodes) {
+        let el = els.get(n.id);
+        if (!el) {
+          el = document.createElement("div");
+          el.dataset.id = n.id;
+          el.innerHTML = `<span class="node-label"></span>`;
+          bindNode(el, n);
+          nodeLayer.appendChild(el);
+          els.set(n.id, el);
+        }
+        el.className = "node"
+          + (n.hub ? " hub" : "")
+          + (n.pending ? " pending" : "")
+          + (n.hot ? " hot" : "");
+        el.querySelector(".node-label").textContent = n.label;
+      }
+      // edges
+      const wanted = new Set(edges.map(([a,b]) => a + "|" + b));
+      for (const [k, el] of lineEls) if (!wanted.has(k)) { el.remove(); lineEls.delete(k); }
+      for (const [a,b] of edges) {
+        const k = a + "|" + b;
+        if (!lineEls.has(k)) {
+          const ln = document.createElementNS("http://www.w3.org/2000/svg","line");
+          edgeLayer.appendChild(ln);
+          lineEls.set(k, ln);
+        }
+      }
+      updateLabels();
+    }
+
+    function updateLabels() {
+      const d = sim.labelDensity;
+      for (const n of nodes) {
+        const el = els.get(n.id);
+        if (!el) continue;
+        // hubs + high-degree show first; slider reveals more
+        const show = n.hub || n.pending || (n.degree * 12 + d) >= 78;
+        el.classList.toggle("show-label", show);
+      }
+    }
+
+    function draw() {
+      byId = Object.fromEntries(nodes.map(n => [n.id, n]));
+      for (const [k, ln] of lineEls) {
+        const [a,b] = k.split("|");
+        const p = byId[a], q = byId[b];
+        if (!p || !q) continue;
+        ln.setAttribute("x1", p.x); ln.setAttribute("y1", p.y);
+        ln.setAttribute("x2", q.x); ln.setAttribute("y2", q.y);
+      }
+      for (const n of nodes) {
+        const el = els.get(n.id);
+        if (!el) continue;
+        const s = n === dragNode ? 1.12 : 1;
+        el.style.transform = `translate(${n.x}px, ${n.y}px) scale(${sim.sizeScale * s})`;
+      }
+      if (hoverNode) positionHover(hoverNode);
+    }
+
+    /* ————————————————— Node interactions ————————————————— */
+    let hoverNode = null;
+    const hoverCard = document.getElementById("hoverCard");
+
+    function bindNode(el, n) {
+      el.addEventListener("pointerenter", () => showHover(n));
+      el.addEventListener("pointerleave", () => { if (dragNode !== n) hideHover(); });
+      el.addEventListener("pointerdown", (e) => startDrag(e, n, el));
+      el.addEventListener("click", (e) => { if (!moved) openModal(n); });
+    }
+
+    let moved = false;
+    function startDrag(e, n, el) {
+      e.preventDefault();
+      dragNode = n; moved = false;
+      el.setPointerCapture(e.pointerId);
+      hideHover();
+      const move = (ev) => {
+        moved = true;
+        n.x = ev.clientX; n.y = ev.clientY;
+        n.vx = 0; n.vy = 0;
+        reheat(0.5);
+      };
+      const up = (ev) => {
+        el.releasePointerCapture(e.pointerId);
+        el.removeEventListener("pointermove", move);
+        el.removeEventListener("pointerup", up);
+        dragNode = null; reheat(0.4);
+        setTimeout(() => { moved = false; }, 0);
+      };
+      el.addEventListener("pointermove", move);
+      el.addEventListener("pointerup", up);
+    }
+
+    function showHover(n) {
+      hoverNode = n;
+      hoverCard.querySelector(".hero").style.background = heroBg(n.kind);
+      hoverCard.querySelector(".title").textContent = n.label;
+      hoverCard.querySelector(".kind span").textContent = kindLabels[n.kind] || n.kind;
+      hoverCard.querySelector(".body p").textContent = n.summary;
+      hoverCard.querySelector(".meta").innerHTML =
+        (n.meta || []).slice(0,3).map(m => `<span class="tag">${m}</span>`).join("");
+      positionHover(n);
+      hoverCard.classList.add("show");
+    }
+    function hideHover() { hoverNode = null; hoverCard.classList.remove("show"); }
+    function positionHover(n) {
+      const cw = 250, ch = hoverCard.offsetHeight || 190;
+      let left = n.x + 18, top = n.y + 14;
+      if (left + cw > W - 12) left = n.x - cw - 18;
+      if (top + ch > H - 12) top = H - ch - 12;
+      if (top < 12) top = 12;
+      hoverCard.style.left = left + "px";
+      hoverCard.style.top = top + "px";
+    }
+
+    /* ————————————————— Modal ————————————————— */
+    const modal = document.getElementById("modal");
+    function openModal(n) {
+      document.getElementById("modalHero").style.background = heroBg(n.kind);
+      document.getElementById("modalTitle").textContent = n.label;
+      document.getElementById("modalKind").textContent =
+        (kindLabels[n.kind] || n.kind) + (n.meta && n.meta[0] ? " · " + n.meta[0] : "");
+      document.getElementById("modalDesc").textContent = n.summary;
+      const tags = [...(n.meta||[]), ...(n.skills||[])];
+      document.getElementById("modalMeta").innerHTML =
+        [...new Set(tags)].map((t,i) => `<span class="tag${i < (n.meta||[]).length ? "" : " accent"}">${t}</span>`).join("");
+      modal.classList.add("show");
+      modal.setAttribute("aria-hidden","false");
+    }
+    function closeModal() { modal.classList.remove("show"); modal.setAttribute("aria-hidden","true"); }
+    document.getElementById("modalClose").addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+    /* ————————————————— Burger / adapters ————————————————— */
+    const burgerWrap = document.getElementById("burgerWrap");
+    const burgerBtn = document.getElementById("burgerBtn");
+    burgerBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = burgerWrap.classList.toggle("open");
+      burgerBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    document.addEventListener("click", (e) => {
+      if (!burgerWrap.contains(e.target)) {
+        burgerWrap.classList.remove("open");
+        burgerBtn.setAttribute("aria-expanded","false");
+      }
+    });
+
+    /* ————————————————— Bottom tools (filter / settings) ————————————————— */
+    ["filterTool","settingsTool"].forEach((id) => {
+      const el = document.getElementById(id);
+      el.querySelector(".ctl").addEventListener("click", (e) => {
+        e.stopPropagation();
+        const was = el.classList.contains("open");
+        document.querySelectorAll(".tool").forEach(t => t.classList.remove("open"));
+        if (!was) el.classList.add("open");
+      });
+      el.querySelector(".flyout").addEventListener("click", (e) => e.stopPropagation());
+    });
+    document.addEventListener("click", () => {
+      document.querySelectorAll(".tool").forEach(t => t.classList.remove("open"));
+    });
+
+    /* ————————————————— Graph settings sliders ————————————————— */
+    const bind = (id, key, fn) => {
+      const s = document.getElementById(id);
+      const v = document.getElementById(id.replace("s-","v-"));
+      const apply = () => {
+        v.textContent = s.value;
+        fn(+s.value);
+        reheat(0.4);
+      };
+      s.addEventListener("input", apply);
+      apply();
+    };
+    bind("s-center","center", (x) => sim.center = 0.0015 + (x/100) * 0.02);
+    bind("s-link","link", (x) => sim.linkDist = x);
+    bind("s-charge","charge", (x) => sim.charge = 2500 + (x/100) * 9000);
+    bind("s-size","size", (x) => { sim.sizeScale = 0.7 + (x/100) * 0.9; });
+    bind("s-label","label", (x) => { sim.labelDensity = x; updateLabels(); });
+
+    /* ————————————————— Filters (specific facet values) ————————————————— */
+    const filterState = { kinds:new Set(), skills:new Set(), people:new Set(), orgs:new Set() };
+    const kindOptions = [
+      ["role","Roles",3],["project","Projects",11],["education","Education",4],
+      ["leadership","Leadership",3],["event","Events",3],["research","Research",3],["opensource","Open source",2],
+    ];
+    const skillOptions = [["Redis",5],["TypeScript",7],["Postgres",3],["React",6],["Systems",8]];
+    const peopleOptions = [["Alex Chen",2],["Priya N.",3],["Sam Ortiz",2]];
+    const orgOptions = [["Bubble",6],["State University",9],["Hack Club",5]];
+
+    function renderFacets() {
+      const facetHTML = (group, opts, has) => opts.map(o => {
+        const [val, ...rest] = o;
+        const label = rest.length === 2 ? rest[0] : val;
+        const count = rest.length === 2 ? rest[1] : rest[0];
+        return `<label class="facet"><input type="checkbox" data-group="${group}" value="${val}" ${has.has(val)?"checked":""}/> ${label}<span class="count">${count}</span></label>`;
+      }).join("");
+
+      document.getElementById("kindFacets").innerHTML = facetHTML("kinds", kindOptions, filterState.kinds);
+      const q = (document.getElementById("skillSearch").value || "").toLowerCase();
+      document.getElementById("skillFacets").innerHTML =
+        facetHTML("skills", skillOptions.filter(([n]) => n.toLowerCase().includes(q)), filterState.skills);
+      document.getElementById("peopleFacets").innerHTML = facetHTML("people", peopleOptions, filterState.people);
+      document.getElementById("orgFacets").innerHTML = facetHTML("orgs", orgOptions, filterState.orgs);
+
+      const pills = [];
+      filterState.kinds.forEach(k => pills.push(["kinds",k, kindOptions.find(x=>x[0]===k)?.[1]||k]));
+      filterState.skills.forEach(k => pills.push(["skills",k,k]));
+      filterState.people.forEach(k => pills.push(["people",k,k]));
+      filterState.orgs.forEach(k => pills.push(["orgs",k,k]));
+      document.getElementById("activeFilters").innerHTML = pills.map(([g,v,l]) =>
+        `<span class="pill">${l}<button type="button" data-remove-group="${g}" data-remove-value="${v}" aria-label="Remove">×</button></span>`).join("");
+
+      document.querySelectorAll("#filterFlyout input[type=checkbox]").forEach(input => {
+        input.addEventListener("change", () => {
+          const set = filterState[input.dataset.group];
+          input.checked ? set.add(input.value) : set.delete(input.value);
+          renderFacets(); applyFilterHighlight();
+        });
+      });
+      document.querySelectorAll("#activeFilters button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          filterState[btn.dataset.removeGroup].delete(btn.dataset.removeValue);
+          renderFacets(); applyFilterHighlight();
+        });
+      });
+    }
+    document.getElementById("skillSearch").addEventListener("input", renderFacets);
+
+    /* Highlight/dim: shared language for ask + filters (slice endeavors) */
+    function applyFilterHighlight() {
+      const anyKind = filterState.kinds.size, anySkill = filterState.skills.size;
+      const anyPerson = filterState.people.size, anyOrg = filterState.orgs.size;
+      const active = anyKind || anySkill || anyPerson || anyOrg;
+      document.body.classList.toggle("dimming", !!active);
+      if (!active) { hits.clear(); paintHits(); return; }
+      hits.clear();
+      for (const n of nodes) {
+        const tagset = new Set([...(n.meta||[]), ...(n.skills||[])]);
+        const okKind = !anyKind || filterState.kinds.has(n.kind);
+        const okSkill = !anySkill || [...filterState.skills].some(s => tagset.has(s));
+        const okPerson = !anyPerson || [...filterState.people].some(p => tagset.has(p));
+        const okOrg = !anyOrg || [...filterState.orgs].some(o => tagset.has(o));
+        if (okKind && okSkill && okPerson && okOrg) hits.add(n.id);
+      }
+      paintHits();
+    }
+    const hits = new Set();
+    function paintHits() {
+      for (const [id, el] of els) el.classList.toggle("hit", hits.has(id));
+      for (const [k, ln] of lineEls) {
+        const [a,b] = k.split("|");
+        ln.classList.toggle("hot", hits.has(a) && hits.has(b));
+      }
+    }
+
+    /* Ask bar → same highlight language + open explore panel */
+    const askInput = document.getElementById("askInput");
+    function runAsk() {
+      const q = askInput.value.trim().toLowerCase();
+      if (!q) return;
+      hits.clear();
+      for (const n of nodes) {
+        const hay = (n.label + " " + n.summary + " " + (n.meta||[]).join(" ") + " " + (n.skills||[]).join(" ")).toLowerCase();
+        if (q.split(/\s+/).some(t => t.length > 2 && hay.includes(t))) hits.add(n.id);
+      }
+      document.body.classList.toggle("dimming", hits.size > 0);
+      paintHits();
+    }
+    askInput.addEventListener("keydown", (e) => { if (e.key === "Enter") runAsk(); });
+    document.querySelector(".ask .send").addEventListener("click", runAsk);
+
+    /* ————————————————— Diff-skim panel actions ————————————————— */
+    const diffPanel = document.getElementById("diffPanel");
+    function closePanel() {
+      document.body.classList.remove("panel-open");
+      reheat(0.5); // recenter graph
+    }
+    document.getElementById("panelClose").addEventListener("click", closePanel);
+    document.getElementById("confirmBtn").addEventListener("click", () => {
+      nodes.forEach(n => { if (n.pending) n.pending = false; });
+      syncDOM(); closePanel();
+    });
+    document.getElementById("discardBtn").addEventListener("click", () => {
+      const drop = new Set(nodes.filter(n => n.pending).map(n => n.id));
+      nodes = nodes.filter(n => !drop.has(n.id));
+      edges = edges.filter(([a,b]) => !drop.has(a) && !drop.has(b));
+      syncDOM(); closePanel();
+    });
+    document.getElementById("captureBtn").addEventListener("click", () => {
+      document.body.classList.add("panel-open");
+      reheat(0.6);
+    });
+    // hover panel item → highlight matching node
+    diffPanel.querySelectorAll(".panel-item").forEach(item => {
+      item.addEventListener("pointerenter", () => {
+        const n = byId[item.dataset.node];
+        if (n) { showHover(n); }
+      });
+      item.addEventListener("pointerleave", hideHover);
+    });
+
+    /* ————————————————— Boot ————————————————— */
+    function resize() {
+      const w = window.innerWidth, h = window.innerHeight;
+      if (W) { const sx = w/W, sy = h/H; nodes.forEach(n => { n.x *= sx; n.y *= sy; }); }
+      W = w; H = h;
+      edgeLayer.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      edgeLayer.setAttribute("width", w);
+      edgeLayer.setAttribute("height", h);
+      reheat(0.3);
+    }
+    window.addEventListener("resize", resize);
+
+    seedPositions();
+    resize();
+    syncDOM();
+    warmup();          // land the graph already settled into a calm radial spread
+    renderFacets();
+    applyFilterHighlight();
+    requestAnimationFrame(step);
+
+    // fade the hint out after a moment
+    setTimeout(() => { const h = document.getElementById("hint"); if (h) h.style.transition = "opacity 600ms ease", h.style.opacity = "0"; }, 5200);
+  </script>
+</body>
+</html>

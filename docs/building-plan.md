@@ -1,6 +1,6 @@
 # Acta — Building Plan
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
 
 Overarching **build** roadmap (not business/GTM). Companion to:
 
@@ -11,10 +11,10 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | [`surfaces-and-flows.md`](surfaces-and-flows.md) | IA / surfaces + core interaction flows |
 | [`agent-interaction-model.md`](agent-interaction-model.md) | Agents, confirm vs auto, pending proposals, write policy |
 | [`brand-design-system.md`](brand-design-system.md) | Brand + visual system (**U-A**) |
-| [`technical-implementation-plan.md`](technical-implementation-plan.md) | **HOW** to implement locked plan docs (created in **U-J**) |
+| [`technical-implementation-plan.md`](technical-implementation-plan.md) | **HOW** to implement locked plan docs (**U-J** — locked) |
 | **This doc** | What to harden next: brand, IA, flows, agents, tech plan, auth |
 
-Scaffold code exists (Next.js + in-memory graph). Treat UI as prototype until **U-A–U-E** (+ **U-J**) land against the locked IA.
+**No app scaffold in this repo** — old Next prototype removed 2026-07-15. Design tokens live at [`styles/tokens.css`](../styles/tokens.css). Greenfield = **separate FE + BE repos** per **U-J** (not a monorepo revive here).
 
 ---
 
@@ -42,7 +42,7 @@ Scaffold code exists (Next.js + in-memory graph). Treat UI as prototype until **
 
 ---
 
-## Where we are (2026-07-13)
+## Where we are (2026-07-15)
 
 | Layer | Status |
 | --- | --- |
@@ -50,23 +50,23 @@ Scaffold code exists (Next.js + in-memory graph). Treat UI as prototype until **
 | Data model | **v1 draft locked** — [`data-model.md`](data-model.md) |
 | IA + core flows (**U-B** + **U-C**) | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | Agent write policy (**U-D**) | **Locked** — [`agent-interaction-model.md`](agent-interaction-model.md) |
-| Brand / visual (**U-A**) | Name locked (**Acta**); visual system **next** |
-| Tech implementation plan (**U-J**) | Queued — after U-A (before heavy capture+render coding) |
-| Persistence / auth (**U-E**) | Sketched (migration + clients); not default path |
-| Code | Prototype scaffold — list/heuristic extract; **not** the locked Graph canvas IA |
+| Brand / visual (**U-A**) | **Look locked** — [`brand-design-system.md`](brand-design-system.md) + [`styles/tokens.css`](../styles/tokens.css); motion/a11y trail |
+| Tech implementation plan (**U-J**) | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
+| Persistence / auth (**U-E**) | **In first build wave** — thin Supabase Auth/Postgres + proposals from U-J U2; extras (export, connectors) still queued |
+| Code | **None in this repo** — bootstrap `acta-web` + `acta-api` per U-J |
 
-**Docs layout:** planning specs under `docs/`. Building-plan units **U-A…U-J**.
+**Docs layout:** planning specs under `docs/`; tokens under `styles/`. Building-plan units **U-A…U-J**.
 
-**First product loop to ship in code:** **capture + render** (force-directed endeavors, right-sidebar incremental diff-skim, pending nodes) — after **U-A** + **U-J**.
+**First product loop to ship in code:** **capture + render** (force-directed endeavors, floating-panel incremental diff-skim, pending nodes) — after **U-J**.
 
 ### Locked IA highlights (build against these)
 
-- Home = Graph; force-directed; **Endeavors only** on canvas (no skill/person/org physics nodes)
-- Browser-like ask bar + **separate** filter chips; Explore = right sidebar + highlight
-- Diff-skim = right sidebar + changelog + **incremental** pending nodes (proposals **stored until confirm/discard**)
-- Node = centered Notion-like modal; kind-rich compact hover cards
-- Deepen = **backlog** panel (pull queue), not notifications
-- Generate = left sidebar → adapter pages + expandable mini-graph peek; adapters are a **family** with thin citation UX
+- Home = Graph; **full-bleed** force-directed canvas (Endeavors only); chrome **overlays** canvas
+- Bottom liquid-glass ask + **filter button** (menu) + **graph settings** (physics/display); Explore = floating right panel + highlight
+- Diff-skim = floating right panel + changelog + **incremental** pending nodes (proposals **stored until confirm/discard**)
+- Node = centered modal with **header image** + title straddling image/body; kind-rich hover cards
+- Deepen = top-right inbox-like control + badge → backlog panel (pull queue)
+- Generate = top-left **hamburger** → adapter pages + expandable mini-graph peek; adapters are a **family** with thin citation UX
 - Agent chat-history connectors = **after** classic MVP imports
 
 ---
@@ -80,9 +80,9 @@ Scaffold code exists (Next.js + in-memory graph). Treat UI as prototype until **
 | **U-B** | **IA & primary surfaces** | Screens + jobs | **Done (locked)** |
 | **U-C** | **Core interaction flows** | Flow contracts | **Done (locked)** |
 | **U-D** | **Agent / system interaction model** | Extract/deepen/explore/synth write policy; confirm vs auto; pending | **Done (locked)** |
-| **U-A** | **Brand & visual system** | Force-graph WOW needs one composition language | **In progress** — name = **Acta**; visual next |
-| **U-J** | **Technical implementation plan** | Turn locked what/why docs into a concrete HOW (stack choices, modules, sequencing, risks) | Queued — after U-A |
-| **U-E** | **Persistence & auth** | Real user + Supabase graph survives refresh | Queued — with/after first capture+render slice per U-J |
+| **U-A** | **Brand & visual system** | Force-graph WOW needs one composition language | **Done (look locked)** — trailers deferred |
+| **U-J** | **Technical implementation plan** | Turn locked what/why docs into a concrete HOW (stack choices, modules, sequencing, risks) | **Done (locked)** |
+| **U-E** | **Persistence & auth** | Real user + Supabase graph survives refresh | **Started via U-J** — thin Auth/DB/proposals in first slice; remaining polish queued |
 
 ### After core loop works on real graph
 
@@ -106,15 +106,15 @@ Monetization, GTM, domain/legal, B2B/coach-share, essay adapters, voice, kitchen
 
 ## Now — detail & exit criteria
 
-### U-A. Brand & visual system — **in progress**
+### U-A. Brand & visual system — **done (look locked)**
 
-**Deliverable:** [`brand-design-system.md`](brand-design-system.md) — brand + UI foundation (tokens, type, color, motion, graph chrome, do/don’t). Enough that Graph home doesn’t invent a new look per screen. Scaffold in place; fill section-by-section.
+**Deliverable:** [`brand-design-system.md`](brand-design-system.md) + [`styles/tokens.css`](../styles/tokens.css) — brand + UI foundation (tokens, type, color, graph chrome, do/don’t). HTML decision/mock tools under `docs/`.
 
-**Name (locked for now):** **Acta** — Latin *acta* (deeds / record of what was done). Supersedes Stilva. Domain TBD. See product Naming + brand doc §1.
+**Name (locked for now):** **Acta** — Latin *acta* (deeds / record of what was done). Supersedes Stilva. Domain TBD.
 
-**Still open in U-A:** personality, tokens, graph chrome, motion, do/don’t — see brand doc exit checklist.
+**Deferred trailers:** motion choreography, full a11y audit, app consuming tokens (no app yet). Keep updating §12 Do/don’t.
 
-**Exit when:** one composition language + CSS variables (or design tokens) exist; dogfood UI can be restyled to match without redesigning IA.
+**Exit met for planning:** composition language + token file exist; agents should not invent look. Greenfield UI after **U-J** imports `styles/tokens.css`.
 
 ### U-B. IA & primary surfaces — **complete**
 
@@ -134,28 +134,21 @@ Monetization, GTM, domain/legal, B2B/coach-share, essay adapters, voice, kitchen
 
 **Exit:** implementers can add an agent without inventing write policy in chat — **met** (locked 2026-07-13).
 
-### U-J. Technical implementation plan
+### U-J. Technical implementation plan — **done (locked)**
 
 **Deliverable:** [`technical-implementation-plan.md`](technical-implementation-plan.md) — the **HOW** for implementing what the locked plan docs already specify (product, data model, surfaces/flows, agent model), without re-litigating product IA.
 
-Should cover, at minimum:
+**Locked highlights:** separate `acta-web` + `acta-api` repos (separately hosted); Vite SPA + Hono + Supabase + `react-force-graph-2d` + fetch-SSE + AI SDK/Zod; real LLM Extract in first slice; thin Supabase Auth/Postgres/proposals from day one (not memory-first); defaults with escape hatches.
 
-1. **System map** — packages/modules vs docs (domain, graph repo, extract pipeline, UI surfaces).
-2. **Capture + render slice** — force canvas library/approach, pending proposal store, right-sidebar diff-skim, incremental emit.
-3. **Data & persistence path** — Zod ↔ Postgres/Supabase mapping; when memory repo yields to **U-E**.
-4. **Agent/runtime approach** — where LLMs plug in vs heuristics; tool boundaries from U-D.
-5. **Sequenced build milestones** — ordered PRs/milestones from scaffold → dogfoodable Graph home → auth.
-6. **Risks / open tech choices** — explicitly listed (graph lib, streaming transport, proposal schema, etc.).
-
-**Exit when:** a builder can implement capture+render (and see the path to U-E / Explore / thin Generate) without inventing architecture in chat; remaining tech forks are listed as decisions, not vague TBD.
+**Exit met:** a builder can implement capture+render (and see the path to Explore / thin Generate / **U-E** extras) without inventing architecture in chat; remaining forks are named open questions / escape hatches.
 
 **Altitude:** engineering plan — not brand pixels (**U-A**) and not full adapter editors (**U-F**).
 
 ### U-E. Persistence & auth
 
-**Deliverable:** Supabase Auth + Postgres graph (migrations already sketched) as default; RLS; demo/memory only as fallback or gone. Includes persisted ExtractProposals until confirm/discard.
+**Deliverable:** Supabase Auth + Postgres graph + RLS + persisted ExtractProposals. **Thin path is in U-J milestones U2–U5** (not a later memory→DB swap). Remaining: export, hard-delete UX, connector OAuth, proposal archive polish.
 
-**Exit when:** refresh keeps the user’s graph (and mid-skim proposals); `user_id` = auth subject.
+**Exit when:** refresh keeps the user’s graph (and mid-skim proposals); `user_id` = auth subject — targeted by first dogfood gate in U-J.
 
 ---
 
@@ -165,20 +158,20 @@ Should cover, at minimum:
 U-B Surfaces ──► U-C Flows ──► U-D Agents     ✅ locked
                                     │
                                     ▼
-                               U-A Brand          ← next
+                               U-A Brand          ✅ look locked
                                     │
                                     ▼
-                               U-J Tech plan      (HOW for locked docs)
+                               U-J Tech plan      ✅ locked
                                     │
                                     ▼
-         Capture + render implementation
-         (force canvas + right diff-skim + pending)
+         Capture + render (new FE + BE repos)
+         + thin Supabase Auth/DB/proposals (U-E core)
                                     │
                                     ▼
-                               U-E Auth/DB
+         Explore / thin Generate / U-E extras → U-F…
 ```
 
-Practical order: **U-A** → **U-J** → **implement capture+render** → **U-E** → Explore polish / thin Generate → **U-F**.
+Practical order: **implement U-J milestones U1–U5** → Explore polish / thin Generate → **U-F**.
 
 **U-F → U-G → U-H → U-I** only after capture→graph→explore→thin-generate works on real persistence.
 
@@ -188,24 +181,27 @@ Practical order: **U-A** → **U-J** → **implement capture+render** → **U-E*
 
 | Unit | Status |
 | --- | --- |
-| U-A Brand & visual | **In progress** — name **Acta**; visual next |
+| U-A Brand & visual | **Done (look locked)** — tokens [`styles/tokens.css`](../styles/tokens.css) |
 | U-B IA & surfaces | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | U-C Core flows | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | U-D Agent model | **Locked** — [`agent-interaction-model.md`](agent-interaction-model.md) |
-| U-E Persistence & auth | Queued |
+| U-E Persistence & auth | **Thin path in U-J U2–U5**; extras queued |
 | U-F Adapter editors | Deferred (after core) |
 | U-G Provenance UX | Later |
 | U-H Empty/thin polish | Later |
 | U-I Copy system | Later |
-| U-J Technical implementation plan | Queued — after U-A; doc TBD |
+| U-J Technical implementation plan | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 
 Data model: **v1 draft locked** in `data-model.md`.  
-Code scaffold: exists; align to locked IA via **capture + render** after **U-A** + **U-J**.
+Code: none in this repo. Next = bootstrap FE/BE per **U-J**.
 
 ---
 
 ## Changelog
 
+- **2026-07-15:** **U-J locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md). Polyrepo FE/BE; thin Supabase + real LLM in first slice. Next = implement capture+render.
+- **2026-07-15:** **U-A look locked**; Next prototype removed; tokens at `styles/tokens.css`. **Next = U-J**.
+- **2026-07-15:** Graph-home chrome aligned to founder sketch (full-bleed canvas, bottom ask, floating panels, hamburger adapters). See [`surfaces-and-flows.md`](surfaces-and-flows.md).
 - **2026-07-14:** Working brand → **Acta**. U-A scaffold → [`brand-design-system.md`](brand-design-system.md). Name locked; visual sections open. Then U-J → capture+render → U-E.
 - **2026-07-13:** **U-D locked.** Added **U-J** technical implementation plan (HOW for locked plan docs). Next = **U-A**, then U-J, then capture+render → U-E.
 - **2026-07-13:** Status snapshot — U-B/U-C locked; U-D co-design; units **U-A…U-I**.

@@ -500,6 +500,8 @@ Internal category: **personal evidence graph**.
 
 **Working brand (locked for now): Acta** — Latin *acta* (deeds / acts / the record of what was done). Pronunciation: **AK-tuh**. Passes “update my Acta” / “look at my Acta.” Practical, evidence-shaped; not life-root or dreamy distill branding. Tagline deferred (audience-specific).
 
+**Secondary lore (liked):** **A Call To Action** — the name also reads as inspiration to keep doing things so there’s more worth capturing into Acta. Latin remains the primary etymology; CTA is brand/story energy, not a legal expansion of the word.
+
 **Why Acta (2026-07-14):**  
 - Meaning fit: record of deeds ↔ personal evidence graph  
 - Mouthfeel: short, clean, college-peer sayable  
@@ -603,6 +605,7 @@ Earlier working brand **Stilva** (still × vita) and soft candidate **Stiva** �
 
 ## Changelog
 
+- **2026-07-15:** Brand lore — Acta secondary reading **A Call To Action** (inspire deeds → capture). Visual system still in U-A via [`brand-design-system.md`](brand-design-system.md).
 - **2026-07-14:** Working brand → **Acta** (Latin *acta* — deeds/record). Cut **Stilva**. Finalists: Atlas, Stele, Ariadne. Domain TBD. **U-A** scaffold → [`brand-design-system.md`](brand-design-system.md).
 - **2026-07-13:** **U-D locked.** **U-J** (technical implementation plan) added to roadmap. Next = **U-A**.
 - **2026-07-13:** Building-plan units = **U-A…U-J**. Deepen backlog.

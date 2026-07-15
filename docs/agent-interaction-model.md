@@ -1,6 +1,6 @@
 # Acta — Agent / System Interaction Model
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
 
 **Owns:** capture **pipeline** vs reasoning **agents**; read vs write; confirm vs auto; pending proposals; what must not be invented; how proposals become graph state.
 
@@ -105,14 +105,14 @@ Capture saved (immutable)
 - Hover pending node → per-node diff; sidebar changelog is the primary skim path.
 - Pending nodes are not queryable as canonical for Explore/Adapters until merge.
 
-**Pending persistence (locked):** ExtractProposals are **stored until confirm or discard** (survive refresh). Scaffold may keep them in memory; production (**U-E**) persists Proposal rows (or equivalent) per user. After merge/discard, drop or archive the proposal. Captures remain immutable either way.
+**Pending persistence (locked):** ExtractProposals are **stored until confirm or discard** (survive refresh). **U-J:** thin Supabase `extract_proposals` from the first build wave (not memory-first). After merge/discard, drop or archive the proposal. Captures remain immutable either way. See [`technical-implementation-plan.md`](technical-implementation-plan.md).
 
 **Streaming extract (locked): incremental.** As Extract emits (or the user edits/confirms pieces), **pending endeavor nodes animate in/update** and the changelog grows. Partial proposals are first-class; mid-stream dedup may refine pending ghosts (merge/replace) with animation — don’t block the UI on a complete proposal.
 
 **Implement lean (so this isn’t heroic):**
 - Emit/append pending endeavors in chunks; changelog is append-only + patch rows, not a full rewrite every token.
 - Global force re-layout can be cheap/throttled; prefer local spawn + light settle over constant full physics restart.
-- User confirm of a chunk (onboarding live-build) may merge that slice while other pendings stay pending — optional v1; minimum is incremental *preview*, batch confirm still OK for small yaps.
+- User confirm of a chunk (onboarding live-build) may merge that slice while other pendings stay pending — **optional later**; **v1 (U-J) = batch confirm after stream `ready` only**. Minimum is incremental *preview*; small yaps still use the same path.
 - Small yaps will often look “single-shot” simply because Extract finishes fast — same incremental path, not a second mode.
 
 ---
@@ -281,7 +281,7 @@ Details: [`surfaces-and-flows.md`](surfaces-and-flows.md). Schemas: [`data-model
 
 ## Open questions
 
-- [x] Proposal persistence: **store until confirm/discard** (survive refresh); memory OK in scaffold, persisted with **U-E**
+- [x] Proposal persistence: **store until confirm/discard** (survive refresh); **U-J** = Supabase proposals in first slice (not memory-first)
 - [x] Streaming extract: **incremental** — pending nodes/changelog animate as proposals (and user decisions) land; same path for small yaps (just finishes fast). Implement lean: chunked append, throttled layout, batch confirm still OK
 - [x] Adapter citation UX: **thin UX** — inline marks + click → focus endeavor / node modal (+ optional mini-graph pulse). `citations[]` ids required. Richer provenance = **U-G**
 
@@ -291,6 +291,7 @@ Details: [`surfaces-and-flows.md`](surfaces-and-flows.md). Schemas: [`data-model
 
 ## Changelog
 
+- **2026-07-15:** Proposal persistence aligned to **U-J** — thin Supabase from first slice (not memory-first scaffold).
 - **2026-07-14:** Product brand → **Acta**.
 - **2026-07-13:** **U-D locked** for implementation planning.
 - **2026-07-13:** Locked thin citation UX (inline + click-to-node). Open questions cleared. Building-plan units = **U-A…U-I**.

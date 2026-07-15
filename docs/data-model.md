@@ -1,6 +1,6 @@
 # Acta — Data Model Spec
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
 
 Product: **Acta** — personal evidence graph. Companion to [`personal-evidence-graph.md`](personal-evidence-graph.md) (product spec) and [`surfaces-and-flows.md`](surfaces-and-flows.md) (Graph UI). **This doc owns schema, entity types, edges, provenance, extraction contracts, and how adapters/agents consume the graph.** Product decisions that depend on the model should link here rather than inventing schema in the product doc.
 
@@ -573,6 +573,10 @@ LLM (or import parser) proposes a batch:
 
 **Kind profiles as priors:** extract should *prefer* suggested fields/evidence for the inferred kind; must not refuse to emit unusual links if the source text clearly has them.
 
+### ExtractProposal persistence (physical lean)
+
+Logical emit shape above is normative. **Physical storage** (building-plan **U-J** / **U-E**): Postgres `extract_proposals` (name indicative) with `user_id`, `capture_ids`, `status` (`streaming` | `ready` | `failed` | `merging` | `confirmed` | `discarded`), `payload` jsonb (full proposal), UI-facing `changelog` / `pending_endeavor_previews`, timestamps. RLS user-scoped. Survive refresh until confirm/discard. Details and state-machine rules: [`technical-implementation-plan.md`](technical-implementation-plan.md).
+
 ### Merge / re-extract
 
 - Captures stay immutable.
@@ -725,6 +729,7 @@ User attaches `audio` demo walkthrough to a tech `role`. Kind profile did not su
 
 ## Changelog
 
+- **2026-07-15:** ExtractProposal **persistence lean** added (physical table + statuses); points at U-J for state machine.
 - **2026-07-14:** Product brand → **Acta** (working name; see product spec Naming).
 - **2026-07-13:** Aligned with surfaces IA — Graph-home canvas draws **Endeavors only**; Skills/People/Orgs remain stored entities but are not canvas physics nodes (orgs redundant with role/education + `at_org`); skill/people/org “projections” = filter/highlight endeavors.
 - **2026-07-10:** Storage settled as **Supabase/Postgres** (not Firebase; not graph DB for v1).
