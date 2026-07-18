@@ -8,7 +8,7 @@ origin: docs/building-plan.md (U-J); locked companions: personal-evidence-graph.
 
 # feat: Acta technical implementation plan (U-J)
 
-**Last updated:** 2026-07-15
+**Last updated:** 2026-07-17
 
 **Owns:** HOW to implement locked product docs — stack defaults, module map, capture+render slice, persistence/auth path, agent/runtime seams, sequenced milestones, risks. Does **not** re-litigate product IA, schema kinds, or brand look.
 
@@ -20,7 +20,7 @@ origin: docs/building-plan.md (U-J); locked companions: personal-evidence-graph.
 
 ## Summary
 
-Greenfield Acta as **two separately hosted repos** (Vite React SPA + Hono API) on **thin Supabase Auth/Postgres from day one**, with **real LLM Extract** streaming into persisted proposals and an Obsidian-class force canvas. This plan commits recommended defaults with documented escape hatches so capture+render can ship without inventing architecture in chat.
+Greenfield Acta as **one repo (the existing `Acta` repo) with `acta-web` / `acta-api` / `acta-contracts` subfolders and `docs/` at root** (a workspace monorepo), still **deployed to separate hosts with secrets backend-only** (Vite React SPA + Hono API) on **thin Supabase Auth/Postgres from day one**, with **real LLM Extract** streaming into persisted proposals and an Obsidian-class force canvas. This plan commits recommended defaults with documented escape hatches so capture+render can ship without inventing architecture in chat.
 
 ---
 
@@ -32,7 +32,7 @@ Product, data model, Graph IA, agent write policy, brand look, and graph-physics
 
 ## Requirements
 
-- R1. Frontend and backend live in **separate repos** and are **separately hosted**; provider keys and Supabase service role exist only on the backend.
+- R1. Frontend and backend live in **one repo as separate subfolders** (`acta-web`, `acta-api`) but are **deployed to separate hosts**; provider keys and Supabase service role exist only on the backend deploy env and are never bundled into the FE build. (Monorepo is a source-layout choice; the security boundary is the *host/build* split, not the git split.)
 - R2. First dogfoodable loop is **typed Capture → real LLM Extract (incremental) → floating diff-skim + pending Endeavor ghosts → confirm/discard → force canvas of confirmed Endeavors**.
 - R3. **Thin Supabase** (Auth + Postgres + RLS) is in the first loop — Captures, graph entities needed for canvas, and ExtractProposals persist across refresh.
 - R4. Extract writes **proposals only** until confirm; Capture auto-save is the only silent write (see origin: `agent-interaction-model.md`).
@@ -48,14 +48,14 @@ Product, data model, Graph IA, agent write policy, brand look, and graph-physics
 
 | ID | Decision | Rationale |
 | --- | --- | --- |
-| KTD1 | **Two repos + separate hosts** — `acta-web` (FE) and `acta-api` (BE); this Stilva folder remains the **docs/specs + tokens** home until renamed | User security requirement; docs stay the single product SoT |
+| KTD1 | **One repo, subfolder workspace + separate hosts** — the existing `Acta` repo holds `acta-web` (FE), `acta-api` (BE), `acta-contracts` (shared), and `docs/` at root; FE and BE still **deploy to separate hosts** with secrets backend-only | Founder wants one clone to pull across laptops; keeps docs + code together as one SoT. Security boundary preserved via separate deploy/build envs, not a git split. **Escape:** split into separate repos later if independent release cadence / access control demands it |
 | KTD2 | **FE = Vite + React SPA** (React Router or TanStack Router) | Canvas-first, auth-gated app; avoids putting secrets on a Next host via Server Actions. **Escape:** Next App Router mostly `"use client"` if marketing SSR is needed later |
 | KTD3 | **BE = Hono on Node 22** (`@hono/node-server`) | Web-standard Request/Response → SSE streams; small surface for solo founder. **Escape:** Fastify if OpenAPI/Pino plugins wanted day one |
 | KTD4 | **Hosting:** FE on Vercel (or Netlify); BE on Fly.io or Railway; data/Auth on Supabase | Keeps CDN FE off long-lived LLM process. **Escape:** collocate FE+BE on one host only if ops pain wins — still never put service role in the browser |
 | KTD5 | **Force canvas = `react-force-graph-2d`** | warmupTicks, `d3Force` for CoG/tunable physics, custom `nodeCanvasObject` for pending. **Escape:** custom `d3-force` + canvas if wrapper fights cluster-seed / incremental identity |
 | KTD6 | **Streaming = `fetch` + SSE `ReadableStream`** (not browser `EventSource`) | POST + `Authorization` Bearer; unidirectional extract chunks. **Escape:** NDJSON stream if framing is noise; WebSocket only if mid-stream bidirectional becomes core |
 | KTD7 | **LLM = Vercel AI SDK** (`streamText` + `Output.object` / `Output.array`) **+ Zod**; provider via adapter (OpenAI or Anthropic) | Partial object stream for UI; final Zod validation before mergeable. Prefer `Output.array` + element stream for endeavor chunks. **Escape:** direct provider SDK + Zod |
-| KTD8 | **Shared contracts = `@acta/contracts`** (Zod + types). **U1 default:** `file:` / workspace path alias (or temporary duplicate Zod). **After U5:** publish private package (GitHub Packages) and pin versions | Avoid Packages blocking week-one bootstrap. **Escape:** OpenAPI codegen once routes stabilize |
+| KTD8 | **Shared contracts = `@acta/contracts`** (Zod + types) as a **workspace package** (`acta-contracts/`) wired via npm/pnpm workspaces from a root `package.json`; FE and BE both depend on `@acta/contracts` by workspace resolution — no publish needed while in one repo | Monorepo makes shared types trivial (single install, no version skew). **Escape:** publish a private package (GitHub Packages) only if/when repos split; OpenAPI codegen once routes stabilize |
 | KTD9 | **Supabase early, not memory-first** — dual clients: user JWT + RLS for interactive reads/PATCH; **service role + explicit `user_id` filter** for Extract job persistence and confirm merge (after JWT identity at job start / confirm) | Proposals survive refresh; Extract continues if the browser JWT expires mid-stream |
 | KTD10 | **Capture slice state machine** (defaults) — see High-Level Technical Design. **v1 = batch confirm only** after `ready`; U-D optional chunk-confirm deferred | Closes races without reopening product IA |
 | KTD11 | **Salvage former scaffold as patterns only** — port from git `5bece5b`: `src/domain/{common,entities,edges,extract,tags}.ts`, `src/server/graph/types.ts` (+ merge ideas from memory-repository), `supabase/migrations/20260710120000_init_graph.sql`. Do not revive the Next monolith | Blueprint paths, not a restore target |
@@ -173,36 +173,36 @@ Revive and extend former `supabase/migrations/20260710120000_init_graph.sql` pat
 
 ## Output Structure
 
-Expected greenfield layout (names indicative):
+Expected layout (names indicative) — **one repo (`Acta`), workspace subfolders**:
 
 ```text
-# acta-web (new repo)
-src/
-  app/                 # router + Graph home shell
-  features/graph/      # force canvas, physics settings, pending overlays
-  features/capture/    # composer + diff-skim panel
-  lib/api/             # fetch + SSE client
-  lib/auth/            # Supabase browser client
-styles/                # copy or submodule tokens.css from docs repo
+Acta/                    # existing repo root (git); root package.json defines workspaces
+  package.json           # npm/pnpm workspaces: acta-web, acta-api, acta-contracts
+  docs/                  # planning SoT (this folder) — stays at root
+  styles/tokens.css      # design tokens SoT; acta-web imports/copies from here
 
-# acta-api (new repo)
-src/
-  routes/              # captures, proposals, graph bootstrap
-  agents/extract/      # AI SDK structured extract
-  graph/               # GraphRepository (Supabase)
-  auth/                # JWT middleware
-supabase/migrations/   # owned by API repo (or shared migrations package)
+  acta-contracts/        # @acta/contracts — shared Zod + types
+    src/
+      entities.ts / extract.ts / edges.ts / tags.ts
 
-# @acta/contracts (package, often published from acta-api)
-src/
-  entities.ts / extract.ts / edges.ts / tags.ts
+  acta-web/              # Vite React SPA (deploys to FE host)
+    src/
+      app/               # router + Graph home shell
+      features/graph/    # force canvas, physics settings, pending overlays
+      features/capture/  # composer + diff-skim panel
+      lib/api/           # fetch + SSE client
+      lib/auth/          # Supabase browser client
 
-# docs repo (this folder) — stays planning SoT
-docs/…
-styles/tokens.css
+  acta-api/              # Hono Node API (deploys to BE host; holds all secrets)
+    src/
+      routes/            # captures, proposals, graph bootstrap
+      agents/extract/    # AI SDK structured extract
+      graph/             # GraphRepository (Supabase)
+      auth/              # JWT middleware
+    supabase/migrations/ # DB migrations (owned by acta-api)
 ```
 
-Implementers may adjust folders; contracts and migration ownership must stay clear.
+Implementers may adjust folders; contracts and migration ownership must stay clear. FE and BE remain **separate deploy targets** even though they share one repo — the FE build must never include BE env/secrets.
 
 ---
 
@@ -210,7 +210,7 @@ Implementers may adjust folders; contracts and migration ownership must stay cle
 
 ### In scope (this plan → first build wave)
 
-- Repo scaffold FE/BE + contracts package + CI publish
+- Subfolder scaffold (`acta-web` / `acta-api` / `acta-contracts`) under the existing repo + root workspace wiring
 - Supabase project, Auth, migrations (graph + proposals), RLS
 - Capture+render dogfood loop with real LLM + SSE + force canvas
 - Path notes for Explore / thin Generate / full **U-E** polish
@@ -234,17 +234,17 @@ Implementers may adjust folders; contracts and migration ownership must stay cle
 
 ## Implementation Units
 
-### U1. Polyrepo scaffold + contracts
+### U1. Monorepo scaffold + contracts
 
-- **Goal:** Empty `acta-web`, `acta-api`, and `@acta/contracts` with Zod ExtractProposal/entity types ported from KTD11 salvage paths; FE can import contracts; tokens copied/linked into FE.
+- **Goal:** Root `package.json` with workspaces + `acta-web`, `acta-api`, and `acta-contracts` (`@acta/contracts`) subfolders in the existing `Acta` repo; Zod ExtractProposal/entity types ported from KTD11 salvage paths; FE + BE both import contracts by workspace resolution; tokens copied/linked into `acta-web`. Mirror the JSDoc doc-comment rule into `acta-web` and `acta-api` (`.cursor/rules/` or `AGENTS.md`).
 - **Requirements:** R1, R9
 - **Dependencies:** None
-- **Files:** new repos; `styles/tokens.css` (source of truth in docs repo)
-- **Approach:** Wire contracts via `file:` / path alias first (KTD8). No product UI yet beyond health checks.
+- **Files:** new subfolders under repo root; root `package.json`; `styles/tokens.css` (SoT at root)
+- **Approach:** Wire contracts via npm/pnpm **workspaces** (KTD8). No product UI yet beyond health checks. FE and BE stay independently buildable/deployable within the one repo.
 - **Test scenarios:**
   - Contracts package exports parse a minimal valid ExtractProposal and reject missing endeavor title.
-  - FE and BE resolve the same contracts source in local install.
-- **Verification:** Install works in both repos against `file:` contracts; no secrets in FE env example.
+  - FE and BE resolve the same `@acta/contracts` via workspace install.
+- **Verification:** `install` at root wires all three workspaces; FE build contains no BE secrets; FE env example has no service role / LLM keys.
 
 ### U2. Supabase Auth + schema + RLS
 
@@ -315,14 +315,14 @@ Implementers may adjust folders; contracts and migration ownership must stay cle
 - **Files:** short “Next surfaces” section below; optional no-op route stubs — prefer docs over fake UI
 - **Approach:** No Explore ranking or adapter draft logic in this unit — sequencing clarity only.
 - **Test expectation:** none — documentation / roadmap unit
-- **Verification:** Builder can start Explore or auth polish without redesigning polyrepo boundaries.
+- **Verification:** Builder can start Explore or auth polish without redesigning workspace boundaries.
 
 ---
 
 ## Phased Delivery
 
 ```text
-U1 Contracts + repos
+U1 Contracts + workspace subfolders
     → U2 Auth + schema + RLS
         → U3 Canvas bootstrap
             → U4 Capture + LLM stream + proposals
@@ -339,7 +339,7 @@ U1 Contracts + repos
 
 | Approach | Why not default |
 | --- | --- |
-| Monorepo FE+BE | Rejected for security/hosting split; contracts package gives shared types without merging deploys |
+| Separate git repos FE+BE (original U-J default) | Superseded 2026-07-17 — founder prefers one repo to pull across laptops. Monorepo keeps shared contracts trivial; the security/hosting split is preserved by **separate deploy targets + BE-only secrets**, not by separate git repos. Revisit if independent release cadence / per-repo access control is needed |
 | Next monolith with Server Actions for LLM | Re-merges secrets onto FE host; fights separate-host goal |
 | Memory repository until U-E | Rejected by founder — thin Supabase from first loop |
 | Fixture/heuristic Extract before LLM | Rejected — pay for real Extract in first slice; keep heuristic only as test double |
@@ -361,7 +361,7 @@ U1 Contracts + repos
 | Contracts version skew | Pin versions; CI fails on breaking Zod changes |
 | Docs vs code drift on proposals | Keep `data-model.md` physical lean + this plan’s KTD10 in sync when columns/statuses change |
 
-**Dependencies:** Supabase project; LLM provider account; Fly/Railway + Vercel (or equivalents); GitHub Packages (or alt) for `@acta/contracts`.
+**Dependencies:** Supabase project; LLM provider account; Fly/Railway + Vercel (or equivalents). `@acta/contracts` needs no registry while in-repo (workspace resolution); GitHub Packages only if repos later split.
 
 ---
 
@@ -370,7 +370,7 @@ U1 Contracts + repos
 - **Auth boundary:** every graph mutation is user-scoped; LLM never on client.
 - **Data lifecycle:** Captures immutable; proposals **persisted** until confirm/discard (then drop/archive) — not durable graph SoT; merged entities durable.
 - **Performance:** pre-warm + freeze-at-rest; Barnes–Hut only when node counts demand (per graph-physics).
-- **Docs repo role:** planning SoT; code lives elsewhere — update README/building-plan when repos exist.
+- **Repo role:** one repo holds planning SoT (`docs/`, `styles/`) and code (`acta-web`, `acta-api`, `acta-contracts`) — update README/building-plan as subfolders land.
 
 ---
 
@@ -389,7 +389,7 @@ U1 Contracts + repos
 - [ ] Exact LLM provider for v1 (OpenAI vs Anthropic) — either works behind AI SDK; pick at U4.
 - [ ] BE host choice Fly vs Railway — equivalent for plan; pick at first deploy.
 - [ ] Selected vs highlighted vs dimmed visual triad — brand/physics still open; don’t block U3.
-- [ ] Whether docs repo is renamed `acta` when FE/BE launch — cosmetic.
+- [x] Repo structure — **resolved 2026-07-17:** one repo (existing `Acta`), workspace subfolders `acta-web` / `acta-api` / `acta-contracts`, `docs/` at root. Not renamed.
 
 ---
 
@@ -404,5 +404,6 @@ U1 Contracts + repos
 
 ## Changelog
 
+- **2026-07-17:** **Repo structure changed from polyrepo → one repo, workspace subfolders** (`acta-web` / `acta-api` / `acta-contracts`, `docs/` at root of existing `Acta` repo). Security boundary now = separate deploy hosts + BE-only secrets, not a git split. Updated Summary, R1, KTD1, KTD8, Output Structure, U1, Alternative Approaches, Dependencies, System-Wide Impact. U1 also mirrors the JSDoc doc-comment rule into code subfolders.
 - **2026-07-15:** Confidence pass — HTTP route map; extract runtime + dual-client write rules; KTD8 `file:` first; batch-confirm v1; stronger U4 tests.
 - **2026-07-15:** U-J created — polyrepo FE/BE, thin Supabase + real LLM capture+render plan, committed defaults with escape hatches.
