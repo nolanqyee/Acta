@@ -1,6 +1,6 @@
 # Acta — Building Plan
 
-Last updated: 2026-07-15
+Last updated: 2026-07-17
 
 Overarching **build** roadmap (not business/GTM). Companion to:
 
@@ -14,7 +14,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | [`technical-implementation-plan.md`](technical-implementation-plan.md) | **HOW** to implement locked plan docs (**U-J** — locked) |
 | **This doc** | What to harden next: brand, IA, flows, agents, tech plan, auth |
 
-**No app scaffold in this repo** — old Next prototype removed 2026-07-15. Design tokens live at [`styles/tokens.css`](../styles/tokens.css). Greenfield = **separate FE + BE repos** per **U-J** (not a monorepo revive here).
+**No app scaffold yet** — old Next prototype removed 2026-07-15. Design tokens live at [`styles/tokens.css`](../styles/tokens.css). Greenfield = **this one repo with `acta-web` / `acta-api` / `acta-contracts` workspace subfolders** (`docs/` stays at root) per **U-J**; FE/BE still deploy to separate hosts with secrets backend-only. (Changed 2026-07-17 from the earlier separate-repos plan.)
 
 ---
 
@@ -53,7 +53,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | Brand / visual (**U-A**) | **Look locked** — [`brand-design-system.md`](brand-design-system.md) + [`styles/tokens.css`](../styles/tokens.css); motion/a11y trail |
 | Tech implementation plan (**U-J**) | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 | Persistence / auth (**U-E**) | **In first build wave** — thin Supabase Auth/Postgres + proposals from U-J U2; extras (export, connectors) still queued |
-| Code | **None in this repo** — bootstrap `acta-web` + `acta-api` per U-J |
+| Code | **None yet** — bootstrap `acta-web` + `acta-api` + `acta-contracts` subfolders in this repo per U-J |
 
 **Docs layout:** planning specs under `docs/`; tokens under `styles/`. Building-plan units **U-A…U-J**.
 
@@ -138,7 +138,7 @@ Monetization, GTM, domain/legal, B2B/coach-share, essay adapters, voice, kitchen
 
 **Deliverable:** [`technical-implementation-plan.md`](technical-implementation-plan.md) — the **HOW** for implementing what the locked plan docs already specify (product, data model, surfaces/flows, agent model), without re-litigating product IA.
 
-**Locked highlights:** separate `acta-web` + `acta-api` repos (separately hosted); Vite SPA + Hono + Supabase + `react-force-graph-2d` + fetch-SSE + AI SDK/Zod; real LLM Extract in first slice; thin Supabase Auth/Postgres/proposals from day one (not memory-first); defaults with escape hatches.
+**Locked highlights:** one repo with `acta-web` + `acta-api` + `acta-contracts` workspace subfolders (deployed to separate hosts, secrets backend-only); Vite SPA + Hono + Supabase + `react-force-graph-2d` + fetch-SSE + AI SDK/Zod; real LLM Extract in first slice; thin Supabase Auth/Postgres/proposals from day one (not memory-first); defaults with escape hatches.
 
 **Exit met:** a builder can implement capture+render (and see the path to Explore / thin Generate / **U-E** extras) without inventing architecture in chat; remaining forks are named open questions / escape hatches.
 
@@ -164,7 +164,7 @@ U-B Surfaces ──► U-C Flows ──► U-D Agents     ✅ locked
                                U-J Tech plan      ✅ locked
                                     │
                                     ▼
-         Capture + render (new FE + BE repos)
+         Capture + render (acta-web + acta-api subfolders)
          + thin Supabase Auth/DB/proposals (U-E core)
                                     │
                                     ▼
@@ -193,12 +193,13 @@ Practical order: **implement U-J milestones U1–U5** → Explore polish / thin 
 | U-J Technical implementation plan | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 
 Data model: **v1 draft locked** in `data-model.md`.  
-Code: none in this repo. Next = bootstrap FE/BE per **U-J**.
+Code: none yet. Next = scaffold `acta-web` / `acta-api` / `acta-contracts` subfolders in this repo per **U-J**.
 
 ---
 
 ## Changelog
 
+- **2026-07-17:** **Repo structure decision** — build in **one repo** (this `Acta` repo) with `acta-web` / `acta-api` / `acta-contracts` workspace subfolders and `docs/` at root, instead of separate FE/BE repos. FE/BE still deploy to separate hosts (secrets backend-only). U-J updated to match; JSDoc doc-comment convention added (mirrored into code subfolders at U1).
 - **2026-07-15:** **U-J locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md). Polyrepo FE/BE; thin Supabase + real LLM in first slice. Next = implement capture+render.
 - **2026-07-15:** **U-A look locked**; Next prototype removed; tokens at `styles/tokens.css`. **Next = U-J**.
 - **2026-07-15:** Graph-home chrome aligned to founder sketch (full-bleed canvas, bottom ask, floating panels, hamburger adapters). See [`surfaces-and-flows.md`](surfaces-and-flows.md).
