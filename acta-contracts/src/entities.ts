@@ -30,18 +30,18 @@ export type EndeavorKind = z.infer<typeof EndeavorKind>;
  * (e.g. a project `part_of` a role) rather than multi-kind nodes.
  */
 export const Endeavor = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
+  id: z.uuid(),
+  userId: z.uuid(),
   kind: EndeavorKind,
   title: z.string().min(1),
   summary: z.string().optional(),
   timeframe: Timeframe.optional(),
   status: EntityStatus.default("active"),
   applicationTags: z.array(ApplicationTag).default([]),
-  primaryParentId: z.string().uuid().nullable().optional(),
+  primaryParentId: z.uuid().nullable().optional(),
   ext: z.record(z.string(), z.unknown()).optional(),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: z.iso.datetime().optional(),
+  updatedAt: z.iso.datetime().optional(),
 });
 export type Endeavor = z.infer<typeof Endeavor>;
 
@@ -61,13 +61,13 @@ export type CaptureSourceType = z.infer<typeof CaptureSourceType>;
  * and re-extract.
  */
 export const Capture = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
+  id: z.uuid(),
+  userId: z.uuid(),
   text: z.string().min(1),
   sourceType: CaptureSourceType,
   sourceMeta: z.record(z.string(), z.unknown()).optional(),
-  capturedAt: z.string().datetime(),
-  createdAt: z.string().datetime().optional(),
+  capturedAt: z.iso.datetime(),
+  createdAt: z.iso.datetime().optional(),
 });
 export type Capture = z.infer<typeof Capture>;
 
@@ -77,40 +77,40 @@ export type SkillKind = z.infer<typeof SkillKind>;
 
 /** A Skill/technology/competency; deduped by name + aliases, not a canvas node. */
 export const Skill = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
+  id: z.uuid(),
+  userId: z.uuid(),
   name: z.string().min(1),
   skillKind: SkillKind,
   aliases: z.array(z.string()).optional(),
   status: EntityStatus.default("active"),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: z.iso.datetime().optional(),
+  updatedAt: z.iso.datetime().optional(),
 });
 export type Skill = z.infer<typeof Skill>;
 
 /** A concrete accomplishment statement attached to one or more endeavors. */
 export const Achievement = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
+  id: z.uuid(),
+  userId: z.uuid(),
   statement: z.string().min(1),
   detail: z.string().optional(),
   timeframe: Timeframe.optional(),
   status: EntityStatus.default("active"),
   applicationTags: z.array(ApplicationTag).default([]),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: z.iso.datetime().optional(),
+  updatedAt: z.iso.datetime().optional(),
 });
 export type Achievement = z.infer<typeof Achievement>;
 
 /** A person connected to an endeavor (teammate, manager, collaborator). */
 export const Person = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
+  id: z.uuid(),
+  userId: z.uuid(),
   name: z.string().min(1),
   notes: z.string().optional(),
   status: EntityStatus.default("active"),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: z.iso.datetime().optional(),
+  updatedAt: z.iso.datetime().optional(),
 });
 export type Person = z.infer<typeof Person>;
 
@@ -129,29 +129,29 @@ export type OrgKind = z.infer<typeof OrgKind>;
 
 /** An organization context (company/school/…); attached to endeavors via `at_org`. */
 export const Org = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
+  id: z.uuid(),
+  userId: z.uuid(),
   name: z.string().min(1),
   orgKind: OrgKind.optional(),
-  url: z.string().url().optional(),
+  url: z.url().optional(),
   status: EntityStatus.default("active"),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: z.iso.datetime().optional(),
+  updatedAt: z.iso.datetime().optional(),
 });
 export type Org = z.infer<typeof Org>;
 
 /** A quantified result/evidence value (e.g. "~60% latency reduction"). */
 export const Metric = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
+  id: z.uuid(),
+  userId: z.uuid(),
   label: z.string().min(1),
   value: z.union([z.number(), z.string()]),
   unit: z.string().optional(),
   direction: z.enum(["up", "down", "neutral"]).optional(),
   context: z.string().optional(),
   status: EntityStatus.default("active"),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: z.iso.datetime().optional(),
+  updatedAt: z.iso.datetime().optional(),
 });
 export type Metric = z.infer<typeof Metric>;
 
@@ -171,15 +171,15 @@ export type EvidenceKind = z.infer<typeof EvidenceKind>;
 
 /** A pointer to a supporting artifact (link, file, PR, doc, media). */
 export const Evidence = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
+  id: z.uuid(),
+  userId: z.uuid(),
   evidenceKind: EvidenceKind,
   title: z.string().optional(),
   uri: z.string().optional(),
   meta: z.record(z.string(), z.unknown()).optional(),
   status: EntityStatus.default("active"),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: z.iso.datetime().optional(),
+  updatedAt: z.iso.datetime().optional(),
 });
 export type Evidence = z.infer<typeof Evidence>;
 
@@ -193,8 +193,8 @@ export type SynthesisStatus = z.infer<typeof SynthesisStatus>;
  * wins and re-extract may only mark it `stale`, never clobber it.
  */
 export const Story = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
+  id: z.uuid(),
+  userId: z.uuid(),
   title: z.string().min(1),
   situation: z.string().optional(),
   task: z.string().optional(),
@@ -202,12 +202,12 @@ export const Story = z.object({
   result: z.string().optional(),
   body: z.string().optional(),
   synthesisStatus: SynthesisStatus.default("draft"),
-  sourcedFromEntityIds: z.array(z.string().uuid()).default([]),
+  sourcedFromEntityIds: z.array(z.uuid()).default([]),
   sourceFingerprint: z.string().optional(),
   applicationTags: z.array(ApplicationTag).default([]),
   status: EntityStatus.default("active"),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: z.iso.datetime().optional(),
+  updatedAt: z.iso.datetime().optional(),
 });
 export type Story = z.infer<typeof Story>;
 
@@ -216,17 +216,17 @@ export type Story = z.infer<typeof Story>;
  * Same stamp lifecycle as Story (user edits win over regeneration).
  */
 export const Lesson = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
+  id: z.uuid(),
+  userId: z.uuid(),
   title: z.string().min(1),
   whatHappened: z.string().optional(),
   whatLearned: z.string().optional(),
   synthesisStatus: SynthesisStatus.default("draft"),
-  sourcedFromEntityIds: z.array(z.string().uuid()).default([]),
+  sourcedFromEntityIds: z.array(z.uuid()).default([]),
   sourceFingerprint: z.string().optional(),
   applicationTags: z.array(ApplicationTag).default([]),
   status: EntityStatus.default("active"),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: z.iso.datetime().optional(),
+  updatedAt: z.iso.datetime().optional(),
 });
 export type Lesson = z.infer<typeof Lesson>;

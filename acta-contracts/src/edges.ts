@@ -28,14 +28,14 @@ export type EdgeType = z.infer<typeof EdgeType>;
  * the endpoints can be validated (e.g. a `part_of` edge from endeavor→endeavor).
  */
 export const Edge = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
+  id: z.uuid(),
+  userId: z.uuid(),
   type: EdgeType,
   fromType: EntityType,
-  fromId: z.string().uuid(),
+  fromId: z.uuid(),
   toType: EntityType,
-  toId: z.string().uuid(),
+  toId: z.uuid(),
   attrs: z.record(z.string(), z.unknown()).optional(),
-  createdAt: z.string().datetime().optional(),
+  createdAt: z.iso.datetime().optional(),
 });
 export type Edge = z.infer<typeof Edge>;

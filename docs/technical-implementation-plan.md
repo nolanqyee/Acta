@@ -241,6 +241,8 @@ Acta/                    # existing repo root (git); root package.json defines w
 
 Implementers may adjust folders; contracts and migration ownership must stay clear. FE and BE remain **separate deploy targets** even though they share one repo — the FE build must never include BE env/secrets.
 
+**Deploy bundling note (`@acta/contracts`):** because contracts is an unpublished workspace package (referenced as `*`), neither deploy can `npm install` just its own subfolder — the `@acta/contracts` dependency resolves only through the root workspace. Each host must therefore build from the repo root with workspaces intact: **acta-web** already inlines contracts into its bundle at build time (Vite), so its output is self-contained; **acta-api** must ship contracts with it — either build the repo with workspaces and deploy the resolved `node_modules` (incl. the `@acta/contracts` symlink/copy), or bundle the API (e.g. `tsx`/`esbuild`) so contracts is inlined. Do **not** deploy `acta-api/` alone expecting a registry install to find `@acta/contracts`. (Escape hatch per KTD8: publish contracts to a private registry if/when the repos split.)
+
 ---
 
 ## Scope Boundaries
@@ -458,6 +460,7 @@ U1 Contracts + workspace subfolders
 
 ## Changelog
 
+- **2026-07-20:** **U1 hardening pass** — modernized contracts to Zod v4 idioms (`z.uuid()` / `z.url()` / `z.iso.datetime()`); pinned **TypeScript 5.x** (ecosystem tooling doesn't yet support TS 7 native); added root **ESLint (flat) + Prettier** baseline (`lint`/`format`/`check` scripts); split acta-api into a side-effect-free app factory (`index.ts`) + runnable `server.ts` so routes are testable; added acta-api **vitest** health/meta/CORS tests. Added deploy-bundling note for `@acta/contracts` (unpublished workspace package must ship with the API build).
 - **2026-07-20:** **Added § Definition of Done + R13** — JSDoc doc-comments and unit tests are now explicit per-unit gates for *every* unit (plus typecheck/lint clean, no FE secrets, docs in sync). Testing was already per-unit via Test scenarios; this makes doc-comments a first-class gate too.
 - **2026-07-20:** **Added § Security Model & Threat Boundaries** + requirements R10–R12 and KTD12–KTD13. Codifies: authenticate the user (JWT+JWKS) not the app; RLS everywhere; anon/service-role split; rate limiting (U2) + spend caps (U4); the `X-Acta-Client` header as **defense-in-depth only** (non-secret, never gates data); and what's not achievable (provably "only my web build"). Folded JWT/RLS/rate-limit/client-header into U2.
 - **2026-07-20:** **U1 shipped** (workspaces + `@acta/contracts` + health-shell FE/API). **Design-token SoT moved to `acta-web/src/styles/tokens.css`** — root `styles/` removed; token references across docs repointed. Added CORS middleware to acta-api (WEB_ORIGIN allowlist) so the browser can reach the API.
