@@ -44,6 +44,7 @@ Product, data model, Graph IA, agent write policy, brand look, and graph-physics
 - R10. **Per-user auth is the real boundary.** Every non-public API route requires a valid Supabase JWT (verified via JWKS); unauthenticated → 401. Sensitive data is returned only to its authenticated owner. RLS (`user_id = auth.uid()`) backs this at the DB so a valid token still only sees its owner's rows.
 - R11. **Abuse controls are first-class**, not afterthoughts: rate limiting on the API (per-user when authed, per-IP otherwise) and LLM spend caps. Basic rate limiting lands in U2; per-route/spend tuning by U4.
 - R12. **Frontend client key is defense-in-depth only.** acta-web sends a static `X-Acta-Client` header (from a non-secret `VITE_ACTA_CLIENT_KEY`); acta-api may reject requests lacking it. This is a speed bump against generic/scraper traffic and a kill-switch/rotation lever — **explicitly not a security boundary** (a public SPA cannot hold a secret). It never gates sensitive data; R10 does.
+- R13. **Every unit ships with JSDoc doc-comments + unit tests** as a hard definition-of-done (see § Definition of Done and [`AGENTS.md`](../AGENTS.md)). Readable-top-to-bottom code and behavior tests are per-unit gates, not a later cleanup pass.
 
 ---
 
@@ -268,6 +269,20 @@ Implementers may adjust folders; contracts and migration ownership must stay cle
 
 ---
 
+## Definition of Done (every unit)
+
+Each unit's per-unit **Test scenarios** are the *minimum*, not the ceiling. A unit is not "done" until all of the following hold — this applies to **every** unit below, not just the ones that mention it:
+
+- **JSDoc doc-comments** on all new/changed code, per [`AGENTS.md`](../AGENTS.md): every file has a `@fileoverview`; every function/method/hook/component has a JSDoc block (summary, `@param`, `@returns`, `@throws`); exported types/Zod schemas get a one-line concept doc. Explain intent, not syntax; no narration comments in bodies.
+- **Unit tests for behavior-bearing code** — new behavior gets new tests, changed behavior gets updated tests. Cover happy path + meaningful edge/error paths, not just the listed scenarios. Pure config/styling is exempt.
+- **`npm run typecheck` clean** across affected workspaces; **lint clean**.
+- **No secrets in the FE bundle** (service-role / LLM keys never in `VITE_*` or `acta-web/dist`).
+- **Docs kept in sync** — if a decision changes, update the relevant `docs/` file + changelog in the same change.
+
+Rationale: quality is built in per unit (readable code + tests), not bolted on later. See `AGENTS.md` for the doc-comment rule detail.
+
+---
+
 ## Implementation Units
 
 ### U1. Monorepo scaffold + contracts
@@ -443,6 +458,7 @@ U1 Contracts + workspace subfolders
 
 ## Changelog
 
+- **2026-07-20:** **Added § Definition of Done + R13** — JSDoc doc-comments and unit tests are now explicit per-unit gates for *every* unit (plus typecheck/lint clean, no FE secrets, docs in sync). Testing was already per-unit via Test scenarios; this makes doc-comments a first-class gate too.
 - **2026-07-20:** **Added § Security Model & Threat Boundaries** + requirements R10–R12 and KTD12–KTD13. Codifies: authenticate the user (JWT+JWKS) not the app; RLS everywhere; anon/service-role split; rate limiting (U2) + spend caps (U4); the `X-Acta-Client` header as **defense-in-depth only** (non-secret, never gates data); and what's not achievable (provably "only my web build"). Folded JWT/RLS/rate-limit/client-header into U2.
 - **2026-07-20:** **U1 shipped** (workspaces + `@acta/contracts` + health-shell FE/API). **Design-token SoT moved to `acta-web/src/styles/tokens.css`** — root `styles/` removed; token references across docs repointed. Added CORS middleware to acta-api (WEB_ORIGIN allowlist) so the browser can reach the API.
 - **2026-07-17:** **Repo structure changed from polyrepo → one repo, workspace subfolders** (`acta-web` / `acta-api` / `acta-contracts`, `docs/` at root of existing `Acta` repo). Security boundary now = separate deploy hosts + BE-only secrets, not a git split. Updated Summary, R1, KTD1, KTD8, Output Structure, U1, Alternative Approaches, Dependencies, System-Wide Impact. U1 also mirrors the JSDoc doc-comment rule into code subfolders.
