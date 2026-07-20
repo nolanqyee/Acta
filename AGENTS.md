@@ -13,7 +13,9 @@ src/styles/tokens.css Design tokens — single source of truth (imported in the 
 
 Read [`docs/building-plan.md`](docs/building-plan.md) for the roadmap (units **U-A…U-J**) and
 [`docs/technical-implementation-plan.md`](docs/technical-implementation-plan.md) for the HOW
-(stack, milestones U1–U6). Companion specs live under `docs/`.
+(stack, milestones U1–U6). Companion specs live under `docs/`. For how to *land*
+changes (branches, commits, PRs, Definition of Done), see [`CONTRIBUTING.md`](CONTRIBUTING.md) —
+**all changes go through a branch + PR; never push to `main`.**
 
 ## Structure rules
 

@@ -32,11 +32,14 @@ npm run dev     # Next dev server (UI + /api/* on one origin)
 npm run check   # lint + typecheck + tests
 ```
 
+All changes land via PR (never push straight to `main`) — see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
 ## Layout
 
 ```
 docs/                 Planning specs + HTML mock/decision tools
 AGENTS.md             Repo conventions for humans + coding agents
+CONTRIBUTING.md       Branch / commit / PR + Definition-of-Done workflow
 src/app/              App Router: pages, root layout, and /api route handlers
 src/lib/contracts/    Shared Zod schemas + types (import via @/lib/contracts)
 src/features/         Graph canvas, capture composer + skim (client)
