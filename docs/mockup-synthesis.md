@@ -163,7 +163,7 @@ Shared visual idea:
 | Space | 4–64px scale |
 | Panel / modal | 320px panel · 520px modal max |
 | Focus | Accent ring; hover/active washes |
-| **Code** | [`styles/tokens.css`](../styles/tokens.css) |
+| **Code** | [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css) |
 
 Avoid AI-slop tells the founder already flagged: overbearing accents, vibe-coded paper that feels generic, inconsistent chrome, heavy rounding, “clever” marks that aren’t the parked star recipe.
 
@@ -205,7 +205,7 @@ Success test: at favicon size and at ~24px next to “Acta”, it should still r
 
 ## How to use this doc
 
-1. **Before redrawing** `brand-mockups.html` (or Figma / real UI): re-read this + surfaces § Graph home + [`styles/tokens.css`](../styles/tokens.css).
+1. **Before redrawing** `brand-mockups.html` (or Figma / real UI): re-read this + surfaces § Graph home + [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css).
 2. **Judge a mock** against the anti-patterns list and the spatial diagram — not against the previous HTML’s accidents.
 3. When vision changes, **edit this file** (and sync IA/brand docs if contracts or tokens change). Don’t leave the “supposed to” only in chat.
 
@@ -213,6 +213,6 @@ Success test: at favicon size and at ~24px next to “Acta”, it should still r
 
 ## Changelog
 
-- **2026-07-15:** Pointed visual locks at code reference `styles/tokens.css` (spacing, semantic hex, panel/modal widths).
+- **2026-07-15:** Pointed visual locks at code reference `acta-web/src/styles/tokens.css` (spacing, semantic hex, panel/modal widths).
 - **2026-07-15:** Synced visual locks from decision comparisons (glass family, semantic confirm, compact type, node hex, etc.).
 - **2026-07-15:** Initial synthesis from founder UI description, pencil-sketch IA, mock critique rounds, and locked brand/IA leans.

@@ -9,7 +9,23 @@
 
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { EntityType } from "@acta/contracts";
+
+/**
+ * Reads the allowed browser origins for CORS from `WEB_ORIGIN` (comma-separated),
+ * defaulting to the local Vite dev server. The acta-web bundle is cross-origin
+ * from acta-api, so without this the browser blocks every request.
+ *
+ * @returns A non-empty list of exact origins permitted to call the API.
+ */
+function resolveAllowedOrigins(): string[] {
+  const raw = (process.env.WEB_ORIGIN ?? "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  return raw.length > 0 ? raw : ["http://localhost:5173"];
+}
 
 /**
  * Builds the Hono app with the routes available at this milestone.
@@ -19,6 +35,16 @@ import { EntityType } from "@acta/contracts";
  */
 export function createApp(): Hono {
   const app = new Hono();
+  const allowedOrigins = resolveAllowedOrigins();
+
+  app.use(
+    "*",
+    cors({
+      origin: (origin) => (allowedOrigins.includes(origin) ? origin : null),
+      allowMethods: ["GET", "POST", "PATCH", "OPTIONS"],
+      allowHeaders: ["Content-Type", "Authorization"],
+    }),
+  );
 
   app.get("/", (c) => c.text("acta-api"));
 

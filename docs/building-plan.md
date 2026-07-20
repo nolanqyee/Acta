@@ -14,7 +14,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | [`technical-implementation-plan.md`](technical-implementation-plan.md) | **HOW** to implement locked plan docs (**U-J** — locked) |
 | **This doc** | What to harden next: brand, IA, flows, agents, tech plan, auth |
 
-**No app scaffold yet** — old Next prototype removed 2026-07-15. Design tokens live at [`styles/tokens.css`](../styles/tokens.css). Greenfield = **this one repo with `acta-web` / `acta-api` / `acta-contracts` workspace subfolders** (`docs/` stays at root) per **U-J**; FE/BE still deploy to separate hosts with secrets backend-only. (Changed 2026-07-17 from the earlier separate-repos plan.)
+**No app scaffold yet** — old Next prototype removed 2026-07-15. Design tokens live at [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css). Greenfield = **this one repo with `acta-web` / `acta-api` / `acta-contracts` workspace subfolders** (`docs/` stays at root) per **U-J**; FE/BE still deploy to separate hosts with secrets backend-only. (Changed 2026-07-17 from the earlier separate-repos plan.)
 
 ---
 
@@ -50,7 +50,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | Data model | **v1 draft locked** — [`data-model.md`](data-model.md) |
 | IA + core flows (**U-B** + **U-C**) | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | Agent write policy (**U-D**) | **Locked** — [`agent-interaction-model.md`](agent-interaction-model.md) |
-| Brand / visual (**U-A**) | **Look locked** — [`brand-design-system.md`](brand-design-system.md) + [`styles/tokens.css`](../styles/tokens.css); motion/a11y trail |
+| Brand / visual (**U-A**) | **Look locked** — [`brand-design-system.md`](brand-design-system.md) + [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css); motion/a11y trail |
 | Tech implementation plan (**U-J**) | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 | Persistence / auth (**U-E**) | **In first build wave** — thin Supabase Auth/Postgres + proposals from U-J U2; extras (export, connectors) still queued |
 | Code | **None yet** — bootstrap `acta-web` + `acta-api` + `acta-contracts` subfolders in this repo per U-J |
@@ -108,13 +108,13 @@ Monetization, GTM, domain/legal, B2B/coach-share, essay adapters, voice, kitchen
 
 ### U-A. Brand & visual system — **done (look locked)**
 
-**Deliverable:** [`brand-design-system.md`](brand-design-system.md) + [`styles/tokens.css`](../styles/tokens.css) — brand + UI foundation (tokens, type, color, graph chrome, do/don’t). HTML decision/mock tools under `docs/`.
+**Deliverable:** [`brand-design-system.md`](brand-design-system.md) + [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css) — brand + UI foundation (tokens, type, color, graph chrome, do/don’t). HTML decision/mock tools under `docs/`.
 
 **Name (locked for now):** **Acta** — Latin *acta* (deeds / record of what was done). Supersedes Stilva. Domain TBD.
 
 **Deferred trailers:** motion choreography, full a11y audit, app consuming tokens (no app yet). Keep updating §12 Do/don’t.
 
-**Exit met for planning:** composition language + token file exist; agents should not invent look. Greenfield UI after **U-J** imports `styles/tokens.css`.
+**Exit met for planning:** composition language + token file exist; agents should not invent look. Greenfield UI after **U-J** imports `acta-web/src/styles/tokens.css`.
 
 ### U-B. IA & primary surfaces — **complete**
 
@@ -181,7 +181,7 @@ Practical order: **implement U-J milestones U1–U5** → Explore polish / thin 
 
 | Unit | Status |
 | --- | --- |
-| U-A Brand & visual | **Done (look locked)** — tokens [`styles/tokens.css`](../styles/tokens.css) |
+| U-A Brand & visual | **Done (look locked)** — tokens [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css) |
 | U-B IA & surfaces | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | U-C Core flows | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | U-D Agent model | **Locked** — [`agent-interaction-model.md`](agent-interaction-model.md) |
@@ -199,9 +199,10 @@ Code: none yet. Next = scaffold `acta-web` / `acta-api` / `acta-contracts` subfo
 
 ## Changelog
 
+- **2026-07-20:** **U-J U1 scaffold shipped** — npm workspaces + `@acta/contracts` (ported Zod domain) + Hono/Vite health shells. Design-token SoT moved into `acta-web/src/styles/tokens.css`; repo-root `styles/` folder removed.
 - **2026-07-17:** **Repo structure decision** — build in **one repo** (this `Acta` repo) with `acta-web` / `acta-api` / `acta-contracts` workspace subfolders and `docs/` at root, instead of separate FE/BE repos. FE/BE still deploy to separate hosts (secrets backend-only). U-J updated to match; JSDoc doc-comment convention added (mirrored into code subfolders at U1).
 - **2026-07-15:** **U-J locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md). Polyrepo FE/BE; thin Supabase + real LLM in first slice. Next = implement capture+render.
-- **2026-07-15:** **U-A look locked**; Next prototype removed; tokens at `styles/tokens.css`. **Next = U-J**.
+- **2026-07-15:** **U-A look locked**; Next prototype removed; tokens at `acta-web/src/styles/tokens.css`. **Next = U-J**.
 - **2026-07-15:** Graph-home chrome aligned to founder sketch (full-bleed canvas, bottom ask, floating panels, hamburger adapters). See [`surfaces-and-flows.md`](surfaces-and-flows.md).
 - **2026-07-14:** Working brand → **Acta**. U-A scaffold → [`brand-design-system.md`](brand-design-system.md). Name locked; visual sections open. Then U-J → capture+render → U-E.
 - **2026-07-13:** **U-D locked.** Added **U-J** technical implementation plan (HOW for locked plan docs). Next = **U-A**, then U-J, then capture+render → U-E.

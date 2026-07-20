@@ -4,10 +4,9 @@ This is the **single repo** for Acta. It holds planning docs and (soon) code:
 
 ```
 docs/            Planning SoT (product, data-model, surfaces, agents, brand, graph-physics, building-plan, tech plan)
-styles/          Design tokens (styles/tokens.css) — imported by acta-web
-acta-contracts/  @acta/contracts — shared Zod schemas + types   (created at U-J U1)
-acta-web/        Vite React SPA — Graph canvas + chrome          (created at U-J U1)
-acta-api/        Hono API — capture/extract/graph + Supabase     (created at U-J U1)
+acta-contracts/  @acta/contracts — shared Zod schemas + types
+acta-web/        Vite React SPA — Graph canvas + chrome; design tokens SoT at acta-web/src/styles/tokens.css
+acta-api/        Hono API — capture/extract/graph + Supabase (all secrets)
 ```
 
 Read [`docs/building-plan.md`](docs/building-plan.md) for the roadmap (units **U-A…U-J**) and
@@ -22,6 +21,8 @@ Read [`docs/building-plan.md`](docs/building-plan.md) for the roadmap (units **U
   independent deploy targets. **Secrets (Supabase service role, LLM keys) live only in the
   backend deploy env** and must never be bundled into the FE build or committed.
 - `@acta/contracts` is resolved via workspaces (no registry publish while in-repo).
+- **Design tokens** live only at `acta-web/src/styles/tokens.css` (SoT). There is no
+  repo-root `styles/` folder.
 
 ## Code documentation style (required)
 

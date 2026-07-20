@@ -20,7 +20,7 @@ Planning docs live in [`docs/`](docs/). Building-plan units are **U-A…U-J** (s
 | [`docs/building-plan.md`](docs/building-plan.md) | Build roadmap |
 | [`docs/technical-implementation-plan.md`](docs/technical-implementation-plan.md) | **HOW** (**U-J** — locked) |
 
-**Design tokens (code reference):** [`styles/tokens.css`](styles/tokens.css)
+**Design tokens (source of truth):** [`acta-web/src/styles/tokens.css`](acta-web/src/styles/tokens.css)
 
 **Where we are:** product + data model + Graph IA (**U-B/U-C**) + agent model (**U-D**) + brand look/tokens (**U-A**) + tech plan (**U-J**) locked. **Next: scaffold `acta-web` + `acta-api` + `acta-contracts` subfolders** in this repo (workspaces; FE/BE deploy to separate hosts, secrets backend-only) — capture + render with thin Supabase + real LLM Extract.
 
@@ -30,10 +30,9 @@ The old Next.js prototype was removed so planning isn’t fighting dead UI. App 
 
 ```
 docs/                 Planning specs + HTML mock/decision tools
-styles/tokens.css     Acta design tokens (imported by acta-web once bootstrapped)
 AGENTS.md             Repo conventions for humans + coding agents
-acta-contracts/       @acta/contracts — shared Zod + types   (created at U-J U1)
-acta-web/             Vite React SPA — Graph canvas + chrome  (created at U-J U1)
-acta-api/             Hono API — capture/extract/graph + DB   (created at U-J U1)
+acta-contracts/       @acta/contracts — shared Zod + types
+acta-web/             Vite React SPA — Graph canvas + chrome; design tokens SoT at src/styles/tokens.css
+acta-api/             Hono API — capture/extract/graph + DB (all secrets)
 .cursor/              Agent rules (local; not committed)
 ```

@@ -12,7 +12,7 @@ origin: docs/building-plan.md (U-J); locked companions: personal-evidence-graph.
 
 **Owns:** HOW to implement locked product docs — stack defaults, module map, capture+render slice, persistence/auth path, agent/runtime seams, sequenced milestones, risks. Does **not** re-litigate product IA, schema kinds, or brand look.
 
-**Companions:** [`building-plan.md`](building-plan.md) (roadmap), [`data-model.md`](data-model.md) (schema), [`agent-interaction-model.md`](agent-interaction-model.md) (write policy), [`surfaces-and-flows.md`](surfaces-and-flows.md) (chrome/flows), [`graph-physics.md`](graph-physics.md) (canvas behavior), [`brand-design-system.md`](brand-design-system.md) + [`styles/tokens.css`](../styles/tokens.css) (visual).
+**Companions:** [`building-plan.md`](building-plan.md) (roadmap), [`data-model.md`](data-model.md) (schema), [`agent-interaction-model.md`](agent-interaction-model.md) (write policy), [`surfaces-and-flows.md`](surfaces-and-flows.md) (chrome/flows), [`graph-physics.md`](graph-physics.md) (canvas behavior), [`brand-design-system.md`](brand-design-system.md) + [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css) (visual).
 
 **Note on IDs:** Implementation units below (`U1`…) are **build milestones inside this plan**. Building-plan roadmap units remain **`U-A`…`U-J`**.
 
@@ -37,7 +37,7 @@ Product, data model, Graph IA, agent write policy, brand look, and graph-physics
 - R3. **Thin Supabase** (Auth + Postgres + RLS) is in the first loop — Captures, graph entities needed for canvas, and ExtractProposals persist across refresh.
 - R4. Extract writes **proposals only** until confirm; Capture auto-save is the only silent write (see origin: `agent-interaction-model.md`).
 - R5. Canvas follows [`graph-physics.md`](graph-physics.md): Endeavors only, cluster-seed + pre-warm, CoG shift via force center (not CSS translate), pending styling per brand.
-- R6. FE imports [`styles/tokens.css`](../styles/tokens.css); Graph chrome overlays full-bleed canvas per [`surfaces-and-flows.md`](surfaces-and-flows.md).
+- R6. FE tokens live at [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css) (SoT); Graph chrome overlays full-bleed canvas per [`surfaces-and-flows.md`](surfaces-and-flows.md).
 - R7. Capture-pipeline logical tools from U-D map to HTTP (`create_capture`, `update_proposal`, `confirm_proposal`, `discard_proposal`, plus `retry_extract`); `extract_capture` is the **server-side** job started after Capture (not a separate FE-required call). Graph home also has `GET /graph` bootstrap (convenience over `list_endeavors` + edges — not a U-D tool name).
 - R8. Explore, Deepen, adapters, fat onboarding import, and agent chat-history connectors are **path-documented**, not built in the first milestones.
 - R9. Stack choices are **committed defaults with escape hatches** — changeable without rewriting product docs.
@@ -70,7 +70,7 @@ Product, data model, Graph IA, agent write policy, brand look, and graph-physics
 flowchart LR
   subgraph docsRepo ["docs repo (this folder)"]
     Specs[Locked specs]
-    Tokens[styles/tokens.css]
+    Tokens[acta-web/src/styles/tokens.css]
   end
 
   subgraph fe ["acta-web — Vite SPA"]
@@ -177,16 +177,16 @@ Expected layout (names indicative) — **one repo (`Acta`), workspace subfolders
 
 ```text
 Acta/                    # existing repo root (git); root package.json defines workspaces
-  package.json           # npm/pnpm workspaces: acta-web, acta-api, acta-contracts
+  package.json           # npm workspaces: acta-web, acta-api, acta-contracts
   docs/                  # planning SoT (this folder) — stays at root
-  styles/tokens.css      # design tokens SoT; acta-web imports/copies from here
 
   acta-contracts/        # @acta/contracts — shared Zod + types
     src/
-      entities.ts / extract.ts / edges.ts / tags.ts
+      common.ts / tags.ts / entities.ts / edges.ts / extract.ts / index.ts
 
   acta-web/              # Vite React SPA (deploys to FE host)
     src/
+      styles/tokens.css  # design tokens — single source of truth
       app/               # router + Graph home shell
       features/graph/    # force canvas, physics settings, pending overlays
       features/capture/  # composer + diff-skim panel
@@ -236,10 +236,10 @@ Implementers may adjust folders; contracts and migration ownership must stay cle
 
 ### U1. Monorepo scaffold + contracts
 
-- **Goal:** Root `package.json` with workspaces + `acta-web`, `acta-api`, and `acta-contracts` (`@acta/contracts`) subfolders in the existing `Acta` repo; Zod ExtractProposal/entity types ported from KTD11 salvage paths; FE + BE both import contracts by workspace resolution; tokens copied/linked into `acta-web`. Mirror the JSDoc doc-comment rule into `acta-web` and `acta-api` (`.cursor/rules/` or `AGENTS.md`).
+- **Goal:** Root `package.json` with workspaces + `acta-web`, `acta-api`, and `acta-contracts` (`@acta/contracts`) subfolders in the existing `Acta` repo; Zod ExtractProposal/entity types ported from KTD11 salvage paths; FE + BE both import contracts by workspace resolution; design tokens live at `acta-web/src/styles/tokens.css` (SoT). Mirror the JSDoc doc-comment rule into `acta-web` and `acta-api` (`.cursor/rules/` or `AGENTS.md`).
 - **Requirements:** R1, R9
 - **Dependencies:** None
-- **Files:** new subfolders under repo root; root `package.json`; `styles/tokens.css` (SoT at root)
+- **Files:** new subfolders under repo root; root `package.json`; `acta-web/src/styles/tokens.css` (tokens SoT)
 - **Approach:** Wire contracts via npm/pnpm **workspaces** (KTD8). No product UI yet beyond health checks. FE and BE stay independently buildable/deployable within the one repo.
 - **Test scenarios:**
   - Contracts package exports parse a minimal valid ExtractProposal and reject missing endeavor title.
@@ -404,6 +404,7 @@ U1 Contracts + workspace subfolders
 
 ## Changelog
 
+- **2026-07-20:** **U1 shipped** (workspaces + `@acta/contracts` + health-shell FE/API). **Design-token SoT moved to `acta-web/src/styles/tokens.css`** — root `styles/` removed; token references across docs repointed. Added CORS middleware to acta-api (WEB_ORIGIN allowlist) so the browser can reach the API.
 - **2026-07-17:** **Repo structure changed from polyrepo → one repo, workspace subfolders** (`acta-web` / `acta-api` / `acta-contracts`, `docs/` at root of existing `Acta` repo). Security boundary now = separate deploy hosts + BE-only secrets, not a git split. Updated Summary, R1, KTD1, KTD8, Output Structure, U1, Alternative Approaches, Dependencies, System-Wide Impact. U1 also mirrors the JSDoc doc-comment rule into code subfolders.
 - **2026-07-15:** Confidence pass — HTTP route map; extract runtime + dual-client write rules; KTD8 `file:` first; batch-confirm v1; stronger U4 tests.
 - **2026-07-15:** U-J created — polyrepo FE/BE, thin Supabase + real LLM capture+render plan, committed defaults with escape hatches.
