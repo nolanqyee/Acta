@@ -1,0 +1,32 @@
+# CI for the Acta Next.js app. Runs the same gate as local `npm run check`
+# (lint + typecheck + tests) plus a production `next build`, on every PR to main
+# and on pushes to main. The `check` job name is the required status context that
+# branch protection enforces before a PR can merge.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Cancel superseded runs on the same ref so only the latest commit's CI matters.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
