@@ -4,9 +4,9 @@
 *.pem
 .cursor/
 
-# Future app bootstrap (ignore when reintroduced)
-/node_modules
-/.next/
+# App / monorepo build artifacts
+node_modules/
+dist/
 /out/
 /build
 /coverage

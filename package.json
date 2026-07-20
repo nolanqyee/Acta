@@ -1,0 +1,25 @@
+{
+  "name": "acta",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Acta — personal evidence graph. Monorepo: acta-web (FE), acta-api (BE), acta-contracts (shared).",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "acta-contracts",
+    "acta-api",
+    "acta-web"
+  ],
+  "scripts": {
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "dev:api": "npm run dev --workspace @acta/api",
+    "dev:web": "npm run dev --workspace @acta/web"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
