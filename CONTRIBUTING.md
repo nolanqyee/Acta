@@ -82,10 +82,19 @@ A change isn't done until all of these hold — this mirrors
 
 ## CI
 
-Not configured yet. **Until a GitHub Action exists, run `npm run check &&
-npm run build` locally before merging any PR.** (First `ci` PR should add a
-workflow that runs exactly that on every PR — then "wait for CI green" becomes
-the gate.)
+Live: `.github/workflows/ci.yml` runs `npm ci`, `npm run check`, and
+`npm run build` on every PR to `main` and on pushes to `main`. The job is named
+`check`, and `main` is protected so that **PRs cannot merge until `check` is
+green** (branch is also required to be up to date with `main`). Still run
+`npm run check && npm run build` locally first so you don't burn a CI cycle.
+
+### `main` branch protection
+
+- Changes land via PR only — no direct pushes.
+- Required status check: `check` (must pass; branch must be up to date).
+- Linear history required; force-pushes and deletions are blocked.
+- Approvals required: 0 (solo), and admin enforcement is off so you can
+  self-merge / override in a pinch.
 
 ## Running it locally
 
