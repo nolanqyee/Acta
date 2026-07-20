@@ -1,9 +1,10 @@
 /**
- * @fileoverview Root ESLint flat config for the Acta monorepo. Applies a shared
- * baseline across all workspaces: ESLint + typescript-eslint recommended rules,
- * React Hooks rules for acta-web, and eslint-config-prettier last so formatting
- * is owned by Prettier (ESLint checks correctness, Prettier checks style).
- * Type-aware linting is intentionally deferred — this is the fast baseline.
+ * @fileoverview Root ESLint flat config for the Acta Next.js app. Applies the
+ * baseline: ESLint + typescript-eslint recommended rules, React Hooks rules for
+ * the app's client components under `src/`, and eslint-config-prettier last so
+ * formatting is owned by Prettier (ESLint checks correctness, Prettier checks
+ * style). Type-aware linting and the Next plugin are intentionally deferred —
+ * this is the fast baseline.
  */
 
 import js from "@eslint/js";
@@ -13,7 +14,13 @@ import prettier from "eslint-config-prettier";
 
 export default tseslint.config(
   {
-    ignores: ["**/dist/**", "**/coverage/**", "**/node_modules/**"],
+    ignores: [
+      "**/.next/**",
+      "**/dist/**",
+      "**/coverage/**",
+      "**/node_modules/**",
+      "next-env.d.ts",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -29,7 +36,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["acta-web/**/*.{ts,tsx}"],
+    files: ["src/**/*.{ts,tsx}"],
     plugins: { "react-hooks": reactHooks },
     rules: {
       ...reactHooks.configs.recommended.rules,

@@ -8,11 +8,11 @@ origin: docs/building-plan.md (U-J); locked companions: personal-evidence-graph.
 
 # feat: Acta technical implementation plan (U-J)
 
-**Last updated:** 2026-07-17
+**Last updated:** 2026-07-20
 
 **Owns:** HOW to implement locked product docs — stack defaults, module map, capture+render slice, persistence/auth path, agent/runtime seams, sequenced milestones, risks. Does **not** re-litigate product IA, schema kinds, or brand look.
 
-**Companions:** [`building-plan.md`](building-plan.md) (roadmap), [`data-model.md`](data-model.md) (schema), [`agent-interaction-model.md`](agent-interaction-model.md) (write policy), [`surfaces-and-flows.md`](surfaces-and-flows.md) (chrome/flows), [`graph-physics.md`](graph-physics.md) (canvas behavior), [`brand-design-system.md`](brand-design-system.md) + [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css) (visual).
+**Companions:** [`building-plan.md`](building-plan.md) (roadmap), [`data-model.md`](data-model.md) (schema), [`agent-interaction-model.md`](agent-interaction-model.md) (write policy), [`surfaces-and-flows.md`](surfaces-and-flows.md) (chrome/flows), [`graph-physics.md`](graph-physics.md) (canvas behavior), [`brand-design-system.md`](brand-design-system.md) + [`src/styles/tokens.css`](../src/styles/tokens.css) (visual).
 
 **Note on IDs:** Implementation units below (`U1`…) are **build milestones inside this plan**. Building-plan roadmap units remain **`U-A`…`U-J`**.
 
@@ -20,30 +20,30 @@ origin: docs/building-plan.md (U-J); locked companions: personal-evidence-graph.
 
 ## Summary
 
-Greenfield Acta as **one repo (the existing `Acta` repo) with `acta-web` / `acta-api` / `acta-contracts` subfolders and `docs/` at root** (a workspace monorepo), still **deployed to separate hosts with secrets backend-only** (Vite React SPA + Hono API) on **thin Supabase Auth/Postgres from day one**, with **real LLM Extract** streaming into persisted proposals and an Obsidian-class force canvas. This plan commits recommended defaults with documented escape hatches so capture+render can ship without inventing architecture in chat.
+Greenfield Acta as **one Next.js (App Router) app in the existing `Acta` repo** — UI + route-handler API in a **single Vercel deployment**, with `docs/` at the repo root and shared contracts folded into `src/lib/contracts`. Secrets stay **server-only** (route handlers / Server Components; guarded by the `server-only` package and the `NEXT_PUBLIC_` prefix boundary), on **thin Supabase Auth/Postgres from day one**, with **real LLM Extract** streaming into persisted proposals and an Obsidian-class force canvas. This plan commits recommended defaults with documented escape hatches so capture+render can ship without inventing architecture in chat.
 
 ---
 
 ## Problem Frame
 
-Product, data model, Graph IA, agent write policy, brand look, and graph-physics doctrine are locked. The old Next monolith was removed so planning isn’t fighting dead UI. Remaining blockers before code: choose a stack that keeps LLM keys and service role off the client, map modules to docs, and sequence a dogfoodable **capture → extract → diff-skim → merge → canvas** loop with refresh-surviving proposals.
+Product, data model, Graph IA, agent write policy, brand look, and graph-physics doctrine are locked. Remaining blockers before code: keep LLM keys and the Supabase service role off the client (server-only in Next), map modules to docs, and sequence a dogfoodable **capture → extract → diff-skim → merge → canvas** loop with refresh-surviving proposals. (An earlier planning cycle removed a stale Next prototype and briefly targeted a Vite SPA + separate Hono API; that was reversed on 2026-07-20 — see KTD2 — back to a single Next app because founder velocity on Next/Vercel + one integrated deploy outweighs the backend-portability edge at this stage.)
 
 ---
 
 ## Requirements
 
-- R1. Frontend and backend live in **one repo as separate subfolders** (`acta-web`, `acta-api`) but are **deployed to separate hosts**; provider keys and Supabase service role exist only on the backend deploy env and are never bundled into the FE build. (Monorepo is a source-layout choice; the security boundary is the *host/build* split, not the git split.)
+- R1. Frontend and API live in **one Next.js app, one deployment**. The security boundary is the **server/client build split, not a separate host**: provider keys and the Supabase service role exist only in server code (route handlers / Server Components / server actions) and env vars *without* a `NEXT_PUBLIC_` prefix, and are never bundled into client JS. Server-only modules `import "server-only"` as a hard, build-enforced guard.
 - R2. First dogfoodable loop is **typed Capture → real LLM Extract (incremental) → floating diff-skim + pending Endeavor ghosts → confirm/discard → force canvas of confirmed Endeavors**.
 - R3. **Thin Supabase** (Auth + Postgres + RLS) is in the first loop — Captures, graph entities needed for canvas, and ExtractProposals persist across refresh.
 - R4. Extract writes **proposals only** until confirm; Capture auto-save is the only silent write (see origin: `agent-interaction-model.md`).
 - R5. Canvas follows [`graph-physics.md`](graph-physics.md): Endeavors only, cluster-seed + pre-warm, CoG shift via force center (not CSS translate), pending styling per brand.
-- R6. FE tokens live at [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css) (SoT); Graph chrome overlays full-bleed canvas per [`surfaces-and-flows.md`](surfaces-and-flows.md).
+- R6. Design tokens live at [`src/styles/tokens.css`](../src/styles/tokens.css) (SoT), imported once in the root layout; Graph chrome overlays full-bleed canvas per [`surfaces-and-flows.md`](surfaces-and-flows.md).
 - R7. Capture-pipeline logical tools from U-D map to HTTP (`create_capture`, `update_proposal`, `confirm_proposal`, `discard_proposal`, plus `retry_extract`); `extract_capture` is the **server-side** job started after Capture (not a separate FE-required call). Graph home also has `GET /graph` bootstrap (convenience over `list_endeavors` + edges — not a U-D tool name).
 - R8. Explore, Deepen, adapters, fat onboarding import, and agent chat-history connectors are **path-documented**, not built in the first milestones.
 - R9. Stack choices are **committed defaults with escape hatches** — changeable without rewriting product docs.
 - R10. **Per-user auth is the real boundary.** Every non-public API route requires a valid Supabase JWT (verified via JWKS); unauthenticated → 401. Sensitive data is returned only to its authenticated owner. RLS (`user_id = auth.uid()`) backs this at the DB so a valid token still only sees its owner's rows.
 - R11. **Abuse controls are first-class**, not afterthoughts: rate limiting on the API (per-user when authed, per-IP otherwise) and LLM spend caps. Basic rate limiting lands in U2; per-route/spend tuning by U4.
-- R12. **Frontend client key is defense-in-depth only.** acta-web sends a static `X-Acta-Client` header (from a non-secret `VITE_ACTA_CLIENT_KEY`); acta-api may reject requests lacking it. This is a speed bump against generic/scraper traffic and a kill-switch/rotation lever — **explicitly not a security boundary** (a public SPA cannot hold a secret). It never gates sensitive data; R10 does.
+- R12. **Same-origin removes the CORS/client-key concern.** With UI and API in one origin there is no cross-origin browser boundary and no static client key to ship — those defense-in-depth hacks (`X-Acta-Client`, CORS allowlist) are **retired** as unnecessary. Auth is the only real gate (R10). If a separate public marketing site is ever added on another origin, revisit CORS then.
 - R13. **Every unit ships with JSDoc doc-comments + unit tests** as a hard definition-of-done (see § Definition of Done and [`AGENTS.md`](../AGENTS.md)). Readable-top-to-bottom code and behavior tests are per-unit gates, not a later cleanup pass.
 
 ---
@@ -52,19 +52,19 @@ Product, data model, Graph IA, agent write policy, brand look, and graph-physics
 
 | ID | Decision | Rationale |
 | --- | --- | --- |
-| KTD1 | **One repo, subfolder workspace + separate hosts** — the existing `Acta` repo holds `acta-web` (FE), `acta-api` (BE), `acta-contracts` (shared), and `docs/` at root; FE and BE still **deploy to separate hosts** with secrets backend-only | Founder wants one clone to pull across laptops; keeps docs + code together as one SoT. Security boundary preserved via separate deploy/build envs, not a git split. **Escape:** split into separate repos later if independent release cadence / access control demands it |
-| KTD2 | **FE = Vite + React SPA** (React Router or TanStack Router) | Canvas-first, auth-gated app; avoids putting secrets on a Next host via Server Actions. **Escape:** Next App Router mostly `"use client"` if marketing SSR is needed later |
-| KTD3 | **BE = Hono on Node 22** (`@hono/node-server`) | Web-standard Request/Response → SSE streams; small surface for solo founder. **Escape:** Fastify if OpenAPI/Pino plugins wanted day one |
-| KTD4 | **Hosting:** FE on Vercel (or Netlify); BE on Fly.io or Railway; data/Auth on Supabase | Keeps CDN FE off long-lived LLM process. **Escape:** collocate FE+BE on one host only if ops pain wins — still never put service role in the browser |
+| KTD1 | **One repo, one Next.js app at repo root** — the existing `Acta` repo is the Next app (`src/app`, `src/lib`, `src/server`, …) with `docs/` at root; shared contracts folded into `src/lib/contracts`. One deployment | Founder is fluent in Next/Vercel; one clone, one deploy, no CORS, no workspace wiring. Security boundary preserved via the server/client build split (below), not a separate host. **Escape:** peel a heavy job into a separate worker/service later (see KTD3) without un-Nexting the app |
+| KTD2 | **Next.js (App Router) for UI + API** — client components for the canvas island; route handlers (`src/app/api/*`) + server actions for the API; Server Components for non-canvas surfaces | **Reversed from Vite+Hono on 2026-07-20.** Founder velocity on Next/Vercel + one integrated app beats the backend-portability edge at this stage; AI SDK streaming is first-class on Next; `@supabase/ssr` gives **httpOnly cookie** sessions (safer than an SPA's in-JS token). **Escape:** the app stays plain React — a future Vite/other-host split is possible but not planned |
+| KTD3 | **API = Next route handlers + server actions; domain logic in `src/server/*` behind `import "server-only"`** | Keeps HTTP plumbing thin and the real logic (GraphRepository, extract agent, merge) testable and isolated from client bundles. **Escape:** when a task outgrows the request cycle (bulk adapter imports, embeddings backfill), move *that job* to Vercel Cron / a queue (QStash/Inngest/Trigger.dev) or a dedicated worker — a partial peel, not a rewrite |
+| KTD4 | **Hosting:** one **Vercel** project (UI + API); data/Auth on Supabase | Single deploy target; server code + secrets live server-side on Vercel, never in client JS. **Escape:** self-host Next on a Node container (Fly/Railway) if Vercel function limits bite for long-running work — or offload that work per KTD3 |
 | KTD5 | **Force canvas = `react-force-graph-2d`** | warmupTicks, `d3Force` for CoG/tunable physics, custom `nodeCanvasObject` for pending. **Escape:** custom `d3-force` + canvas if wrapper fights cluster-seed / incremental identity |
-| KTD6 | **Streaming = `fetch` + SSE `ReadableStream`** (not browser `EventSource`) | POST + `Authorization` Bearer; unidirectional extract chunks. **Escape:** NDJSON stream if framing is noise; WebSocket only if mid-stream bidirectional becomes core |
+| KTD6 | **Streaming = route handler returning a `ReadableStream`** consumed via `fetch` (not browser `EventSource`) | Same-origin `fetch` with the cookie session; unidirectional extract chunks. **Escape:** NDJSON stream if framing is noise; WebSocket only if mid-stream bidirectional becomes core |
 | KTD7 | **LLM = Vercel AI SDK** (`streamText` + `Output.object` / `Output.array`) **+ Zod**; provider via adapter (OpenAI or Anthropic) | Partial object stream for UI; final Zod validation before mergeable. Prefer `Output.array` + element stream for endeavor chunks. **Escape:** direct provider SDK + Zod |
-| KTD8 | **Shared contracts = `@acta/contracts`** (Zod + types) as a **workspace package** (`acta-contracts/`) wired via npm/pnpm workspaces from a root `package.json`; FE and BE both depend on `@acta/contracts` by workspace resolution — no publish needed while in one repo | Monorepo makes shared types trivial (single install, no version skew). **Escape:** publish a private package (GitHub Packages) only if/when repos split; OpenAPI codegen once routes stabilize |
+| KTD8 | **Shared contracts folded into `src/lib/contracts`** (Zod + types), imported by both client and server code via the `@/lib/contracts` path alias | One app = one consumer; an internal module is simpler than a workspace package and there's no version skew. Schemas stay pure (no secrets, safe to import client-side). **Escape:** extract back into a published package only if a second consumer (e.g. native app) appears |
 | KTD9 | **Supabase early, not memory-first** — dual clients: user JWT + RLS for interactive reads/PATCH; **service role + explicit `user_id` filter** for Extract job persistence and confirm merge (after JWT identity at job start / confirm) | Proposals survive refresh; Extract continues if the browser JWT expires mid-stream |
 | KTD10 | **Capture slice state machine** (defaults) — see High-Level Technical Design. **v1 = batch confirm only** after `ready`; U-D optional chunk-confirm deferred | Closes races without reopening product IA |
-| KTD11 | **Salvage former scaffold as patterns only** — port from git `5bece5b`: `src/domain/{common,entities,edges,extract,tags}.ts`, `src/server/graph/types.ts` (+ merge ideas from memory-repository), `supabase/migrations/20260710120000_init_graph.sql`. Do not revive the Next monolith | Blueprint paths, not a restore target |
-| KTD12 | **JWT-as-the-key, layered auth** — authenticate the *user* (Supabase JWT verified via JWKS), never the *app*. RLS everywhere + anon/service-role key split. CORS + static client header are hygiene/speed-bumps, not boundaries | A public SPA can't hold a secret; per-user identity is the only real gate for per-user data. See § Security Model |
-| KTD13 | **Rate limiting in-process at U2** (keyed by user id when authed, else IP) with LLM spend caps by U4 | Cheap Hono middleware first; protects the LLM bill. **Escape:** move to a shared store (Upstash/Redis) when BE scales beyond one node |
+| KTD11 | **Salvage former scaffold as patterns only** — port from git `5bece5b`: `src/domain/{common,entities,edges,extract,tags}.ts`, `src/server/graph/types.ts` (+ merge ideas from memory-repository), `supabase/migrations/20260710120000_init_graph.sql`. Reuse the shapes, not the old wiring | Blueprint paths, not a wholesale restore target |
+| KTD12 | **Authenticate the *user*, layered auth** — Supabase session via `@supabase/ssr` (**httpOnly cookies**), verified in Next `middleware.ts` + per-route; RLS everywhere + anon/service-role key split. The secret boundary is server-only code + the `NEXT_PUBLIC_` prefix | Per-user identity (not any app-held key) is the only real gate for per-user data; httpOnly cookies keep the token out of JS. Same-origin means no CORS/client-header layer to maintain. See § Security Model |
+| KTD13 | **Rate limiting at U2** in the API layer (keyed by user id when authed, else IP) with LLM spend caps by U4 | Protects the LLM bill. In-process is fine on a single Vercel region for MVP. **Escape:** a shared store (Upstash/Redis) once serverless instances fan out (in-process counters don't share state across lambdas) |
 
 ---
 
@@ -74,22 +74,20 @@ Product, data model, Graph IA, agent write policy, brand look, and graph-physics
 
 ```mermaid
 flowchart LR
-  subgraph docsRepo ["docs repo (this folder)"]
-    Specs[Locked specs]
-    Tokens[acta-web/src/styles/tokens.css]
-  end
-
-  subgraph fe ["acta-web — Vite SPA"]
-    AuthUI[Supabase Auth client]
-    GraphUI[Force canvas + chrome]
-    Skim[Diff-skim panel]
-  end
-
-  subgraph be ["acta-api — Hono Node"]
-    API[HTTP + SSE]
-    Extract[Extract agent]
-    Merge[Confirm merge]
-    Repo[GraphRepository]
+  subgraph app ["Acta — one Next.js app (Vercel)"]
+    subgraph client ["Client components (browser bundle)"]
+      GraphUI[Force canvas + chrome]
+      Skim[Diff-skim panel]
+      AuthUI[Supabase browser client]
+    end
+    subgraph server ["Server (route handlers + src/server, server-only)"]
+      API[Route handlers + server actions]
+      Extract[Extract agent]
+      Merge[Confirm merge]
+      Repo[GraphRepository]
+    end
+    Contracts["src/lib/contracts (shared Zod)"]
+    Tokens[src/styles/tokens.css]
   end
 
   subgraph cloud ["Supabase"]
@@ -101,14 +99,14 @@ flowchart LR
     Model[Structured extract]
   end
 
-  Specs -.->|contracts mirror| Contracts["@acta/contracts"]
   Tokens --> GraphUI
-  AuthUI -->|JWT Bearer| API
-  GraphUI --> API
+  Contracts -.-> client
+  Contracts -.-> server
+  GraphUI -->|same-origin fetch + cookie| API
   Skim --> API
+  AuthUI --> Auth
   API --> Repo
   Repo --> PG
-  AuthUI --> Auth
   Extract --> Model
   Extract --> Repo
   Merge --> Repo
@@ -116,11 +114,11 @@ flowchart LR
 
 | Concern | Lives in | Doc owner |
 | --- | --- | --- |
-| Entity/edge Zod + ExtractProposal shape | `@acta/contracts` (+ BE persist) | `data-model.md` |
-| Capture → Extract → Proposal → Merge | `acta-api` | `agent-interaction-model.md` |
-| Force canvas, overlays, skim chrome | `acta-web` | `surfaces-and-flows.md`, `graph-physics.md` |
-| Tokens / visual | `acta-web` imports tokens | `brand-design-system.md` |
-| Auth session | FE client + BE JWT verify | **U-E** detail inside this plan’s early milestones |
+| Entity/edge Zod + ExtractProposal shape | `src/lib/contracts` (+ server persist) | `data-model.md` |
+| Capture → Extract → Proposal → Merge | `src/server/*` (route handlers call it) | `agent-interaction-model.md` |
+| Force canvas, overlays, skim chrome | `src/features/*` (client) | `surfaces-and-flows.md`, `graph-physics.md` |
+| Tokens / visual | `src/styles/tokens.css` (imported in root layout) | `brand-design-system.md` |
+| Auth session | browser client + `middleware.ts` cookie verify | **U-E** detail inside this plan’s early milestones |
 
 ### Capture / proposal state machine (KTD10)
 
@@ -140,6 +138,8 @@ Statuses: `streaming` → `ready` | `failed`; `ready` → `merging` → `confirm
 
 ### HTTP route map (capture slice)
 
+Paths below are logical; as Next route handlers they live under `/api/` (e.g. `POST /api/captures`) and authenticate via the httpOnly cookie session, same-origin.
+
 | Method | Path | Notes |
 | --- | --- | --- |
 | `POST` | `/captures` | Create Capture; **auto-starts** Extract; returns `capture_id` + `proposal_id` |
@@ -147,7 +147,7 @@ Statuses: `streaming` → `ready` | `failed`; `ready` → `merging` → `confirm
 | `GET` | `/graph` | Bootstrap confirmed endeavors + edges (+ optional `open_proposal` summary) |
 | `GET` | `/proposals/open` | Open proposal for hydrate (0..1 in v1) |
 | `GET` | `/proposals/:id` | Full proposal snapshot (reattach) |
-| `GET` | `/proposals/:id/events` | SSE; `?cursor=` for resume; Bearer auth via `fetch` (not EventSource) |
+| `GET` | `/proposals/:id/events` | SSE; `?cursor=` for resume; cookie-session auth via `fetch` (not EventSource) |
 | `PATCH` | `/proposals/:id` | User inline fixes (user JWT + RLS) |
 | `POST` | `/proposals/:id/confirm` | Merge transaction; idempotent |
 | `POST` | `/proposals/:id/discard` | Drop proposal; keep Capture |
@@ -158,13 +158,13 @@ SSE events (names indicative): `proposal_upsert`, `endeavor_preview_upsert`, `ch
 
 ### Auth & secrets
 
-| Location | Allowed |
+| Context | Allowed |
 | --- | --- |
-| FE | Supabase URL + **publishable/anon** key, API base URL, **non-secret** `VITE_ACTA_CLIENT_KEY` (client header) |
-| BE | LLM keys, Supabase **service role** (Extract job writes + confirm merge), JWT verification via JWKS / `@supabase/server`, `ACTA_CLIENT_KEY` (expected client header) |
-| Never | Service role or LLM keys in `VITE_*` / public bundles |
+| Client (browser bundle) | `NEXT_PUBLIC_SUPABASE_URL` + **publishable/anon** key only |
+| Server (route handlers / Server Components / `src/server/*`) | LLM keys, Supabase **service role** (Extract job writes + confirm merge), session verification via `@supabase/ssr` — all from non-`NEXT_PUBLIC_` env |
+| Never | Service role or LLM keys in `NEXT_PUBLIC_*` or any client-imported module |
 
-CORS: allowlist FE origin; auth middleware must not 401 `OPTIONS`. See § Security Model & Threat Boundaries for the full model.
+Same-origin, so no CORS layer. Secret isolation is enforced by the `NEXT_PUBLIC_` prefix + `import "server-only"` on server modules. See § Security Model & Threat Boundaries.
 
 ### Persistence lean
 
@@ -179,69 +179,77 @@ Revive and extend former `supabase/migrations/20260710120000_init_graph.sql` pat
 
 ## Security Model & Threat Boundaries
 
-**Core principle: authenticate the *user*, never the *app*.** A public SPA ships all its code to the browser, so it cannot hold a secret — anything in the bundle (including any "API key") is trivially extractable. Therefore the only trustworthy gate for per-user data is a **per-user, server-minted, unforgeable credential (a Supabase JWT)**, backed by RLS at the database. Everything else is hygiene or a speed bump.
+**Core principle: authenticate the *user*, never the *app*; keep secrets in server code.** Two boundaries do the real work and both survive collapsing UI + API into one Next app:
+
+1. **The server/client build split.** Server code (route handlers, Server Components, `src/server/*`) and any env var *without* `NEXT_PUBLIC_` never ship to the browser. `import "server-only"` makes an accidental client import a **build error**. This replaces "secrets on a separate host" with a compiler-enforced boundary in one deploy.
+2. **The database boundary.** Supabase is still a separate service and **RLS is still the real gate** for per-user data — the boundary that holds even if everything else fails.
+
+The user's credential is a **Supabase session in httpOnly cookies** (`@supabase/ssr`), which the browser's JS cannot read — strictly safer than an SPA holding a token in JS-accessible storage.
 
 ### Layers (strongest → weakest)
 
 | Layer | What it enforces | Strength |
 | --- | --- | --- |
-| **RLS on every user table** (`user_id = auth.uid()`) | A valid token still only reads/writes its owner's rows; User B can't see User A's data | **Boundary** (DB-enforced) |
-| **JWT required on non-public routes** (JWKS-verified on acta-api) | Only authenticated users reach sensitive routes; unauthenticated → 401 | **Boundary** |
-| **anon/service-role key split** | Browser holds only the RLS-bound anon key; service role (bypasses RLS) is BE-only, used with an explicit `user_id` filter after identity check | **Boundary** |
+| **RLS on every user table** (`user_id = auth.uid()`) | A valid session still only reads/writes its owner's rows; User B can't see User A's data | **Boundary** (DB-enforced) |
+| **Session required on non-public routes** (verified in `middleware.ts` + per-route via `@supabase/ssr`) | Only authenticated users reach sensitive routes; unauthenticated → 401 | **Boundary** |
+| **Server/client code + env split** (`server-only`, no `NEXT_PUBLIC_` on secrets) | Service role + LLM keys never reach client JS | **Boundary** (build-enforced) |
+| **anon/service-role key split** | Browser holds only the RLS-bound anon key; service role (bypasses RLS) is server-only, used with an explicit `user_id` filter after identity check | **Boundary** |
+| **httpOnly cookie session** | Token not readable by page JS → shrinks XSS token-theft surface | Control |
 | **Rate limiting + LLM spend caps** | Caps abuse/cost even from authenticated callers | Control (not identity) |
-| **CORS allowlist** | Stops *other browser origins* from reading responses; ignored by curl/Postman | Hygiene |
-| **`X-Acta-Client` static header** (`VITE_ACTA_CLIENT_KEY`) | Deters lazy/generic scraper traffic; rotation/kill-switch lever | **Speed bump — NOT a boundary** |
-
-### The `X-Acta-Client` header (defense-in-depth, explicitly labeled)
-
-- acta-web sends `X-Acta-Client: <VITE_ACTA_CLIENT_KEY>` on API calls; acta-api may 403 requests missing/mismatching it.
-- **Value is not a secret** — it ships in the FE bundle. It cannot distinguish "my frontend" from "someone who copied the key," and it **never gates sensitive data** (RLS + JWT do). Its only jobs: cut obvious noise, and let us rotate/disable a leaked generic key without touching auth.
-- Kept only because it's near-zero cost and occasionally useful; documented this way so no one ever mistakes it for real protection.
 
 ### Not achievable (stated plainly)
 
-- **Provably "only my official web build" calls the API.** Not solvable for web SPAs. App attestation (App Attest / Play Integrity) exists only for native mobile. Realistic mitigations if abuse appears: bot protection (e.g. Cloudflare Turnstile on signup), tighter rate limits — *later*, not now.
+- **Provably "only my official web build" calls the API.** Not solvable for web apps. App attestation (App Attest / Play Integrity) exists only for native mobile. Realistic mitigations if abuse appears: bot protection (e.g. Cloudflare Turnstile on signup), tighter rate limits — *later*, not now.
 
-### `@acta/contracts` is not an attack surface
+### Retired with the Vite→Next move
 
-It is a compile-time TypeScript/Zod dependency, not a network service. "Who can call it" = who can read the package: private while in-repo; private registry (scoped access) if ever split out. Nothing to enforce at runtime.
+- **CORS allowlist** and the **`X-Acta-Client` static header** are gone: same-origin means no cross-origin browser boundary and no key to ship. They were explicitly defense-in-depth, never real boundaries, so nothing of substance is lost. Re-introduce CORS only if a separate-origin surface (e.g. a marketing site) later calls the API.
+
+### `src/lib/contracts` is not an attack surface
+
+It is compile-time TypeScript/Zod, not a network service, and holds no secrets — safe to import from client code. Nothing to enforce at runtime.
 
 ---
 
 ## Output Structure
 
-Expected layout (names indicative) — **one repo (`Acta`), workspace subfolders**:
+Expected layout (names indicative) — **one Next.js app at repo root**:
 
 ```text
-Acta/                    # existing repo root (git); root package.json defines workspaces
-  package.json           # npm workspaces: acta-web, acta-api, acta-contracts
+Acta/                    # existing repo root (git) = the Next app; one Vercel deploy
+  package.json           # next, react, zod; scripts: dev/build/start/lint/test
+  next.config.ts
+  tsconfig.json          # @/* -> ./src/*
+  middleware.ts          # Supabase session refresh + auth gating (U2)
+  .env.example           # NEXT_PUBLIC_* (client) + server-only secrets
   docs/                  # planning SoT (this folder) — stays at root
+  supabase/migrations/   # DB migrations (added at U2)
 
-  acta-contracts/        # @acta/contracts — shared Zod + types
-    src/
-      common.ts / tags.ts / entities.ts / edges.ts / extract.ts / index.ts
-
-  acta-web/              # Vite React SPA (deploys to FE host)
-    src/
-      styles/tokens.css  # design tokens — single source of truth
-      app/               # router + Graph home shell
-      features/graph/    # force canvas, physics settings, pending overlays
-      features/capture/  # composer + diff-skim panel
-      lib/api/           # fetch + SSE client
-      lib/auth/          # Supabase browser client
-
-  acta-api/              # Hono Node API (deploys to BE host; holds all secrets)
-    src/
-      routes/            # captures, proposals, graph bootstrap
+  src/
+    app/
+      layout.tsx         # root layout; imports styles/tokens.css once
+      page.tsx           # Graph home shell (client canvas island)
+      (auth)/            # login + auth callback route (U2)
+      graph/             # canvas surfaces ('use client')
+      capture/           # composer + diff-skim
+      api/               # route handlers — the API
+        health/route.ts  meta/route.ts   # (U1)
+        captures/  proposals/  graph/  extract/   # (U2–U5)
+    features/
+      graph/             # force canvas, physics settings, pending overlays
+      capture/           # composer + diff-skim panel
+    lib/
+      contracts/         # shared Zod + types (folded from @acta/contracts)
+      supabase/          # server.ts (service-role + user-scoped) / client.ts (anon)
+      api/               # client fetch + SSE helpers
+    server/              # 'server-only' domain logic
+      graph/             # GraphRepository
       agents/extract/    # AI SDK structured extract
-      graph/             # GraphRepository (Supabase)
-      auth/              # JWT middleware
-    supabase/migrations/ # DB migrations (owned by acta-api)
+      merge/             # confirm merge
+    styles/tokens.css    # design tokens — single source of truth
 ```
 
-Implementers may adjust folders; contracts and migration ownership must stay clear. FE and BE remain **separate deploy targets** even though they share one repo — the FE build must never include BE env/secrets.
-
-**Deploy bundling note (`@acta/contracts`):** because contracts is an unpublished workspace package (referenced as `*`), neither deploy can `npm install` just its own subfolder — the `@acta/contracts` dependency resolves only through the root workspace. Each host must therefore build from the repo root with workspaces intact: **acta-web** already inlines contracts into its bundle at build time (Vite), so its output is self-contained; **acta-api** must ship contracts with it — either build the repo with workspaces and deploy the resolved `node_modules` (incl. the `@acta/contracts` symlink/copy), or bundle the API (e.g. `tsx`/`esbuild`) so contracts is inlined. Do **not** deploy `acta-api/` alone expecting a registry install to find `@acta/contracts`. (Escape hatch per KTD8: publish contracts to a private registry if/when the repos split.)
+Implementers may adjust folders; contract ownership and the `server-only` boundary must stay clear. There is **one deploy**; the security boundary is the server/client split — client-imported modules must never pull in secrets or `src/server/*`.
 
 ---
 
@@ -249,7 +257,7 @@ Implementers may adjust folders; contracts and migration ownership must stay cle
 
 ### In scope (this plan → first build wave)
 
-- Subfolder scaffold (`acta-web` / `acta-api` / `acta-contracts`) under the existing repo + root workspace wiring
+- Next.js app scaffold at repo root (App Router, route handlers, contracts folded into `src/lib/contracts`)
 - Supabase project, Auth, migrations (graph + proposals), RLS
 - Capture+render dogfood loop with real LLM + SSE + force canvas
 - Path notes for Explore / thin Generate / full **U-E** polish
@@ -277,8 +285,8 @@ Each unit's per-unit **Test scenarios** are the *minimum*, not the ceiling. A un
 
 - **JSDoc doc-comments** on all new/changed code, per [`AGENTS.md`](../AGENTS.md): every file has a `@fileoverview`; every function/method/hook/component has a JSDoc block (summary, `@param`, `@returns`, `@throws`); exported types/Zod schemas get a one-line concept doc. Explain intent, not syntax; no narration comments in bodies.
 - **Unit tests for behavior-bearing code** — new behavior gets new tests, changed behavior gets updated tests. Cover happy path + meaningful edge/error paths, not just the listed scenarios. Pure config/styling is exempt.
-- **`npm run typecheck` clean** across affected workspaces; **lint clean**.
-- **No secrets in the FE bundle** (service-role / LLM keys never in `VITE_*` or `acta-web/dist`).
+- **`npm run typecheck` clean**; **lint clean**; **`next build` succeeds**.
+- **No secrets in the client bundle** (service-role / LLM keys never in `NEXT_PUBLIC_*` or any client-imported module; server logic guarded by `server-only`).
 - **Docs kept in sync** — if a decision changes, update the relevant `docs/` file + changelog in the same change.
 
 Rationale: quality is built in per unit (readable code + tests), not bolted on later. See `AGENTS.md` for the doc-comment rule detail.
@@ -287,39 +295,39 @@ Rationale: quality is built in per unit (readable code + tests), not bolted on l
 
 ## Implementation Units
 
-### U1. Monorepo scaffold + contracts
+### U1. Next app scaffold + contracts
 
-- **Goal:** Root `package.json` with workspaces + `acta-web`, `acta-api`, and `acta-contracts` (`@acta/contracts`) subfolders in the existing `Acta` repo; Zod ExtractProposal/entity types ported from KTD11 salvage paths; FE + BE both import contracts by workspace resolution; design tokens live at `acta-web/src/styles/tokens.css` (SoT). Mirror the JSDoc doc-comment rule into `acta-web` and `acta-api` (`.cursor/rules/` or `AGENTS.md`).
+- **Goal:** Next.js (App Router) app at repo root; Zod ExtractProposal/entity types ported from KTD11 salvage paths into `src/lib/contracts`; both a client component and a route handler import the same contracts via the `@/lib/contracts` alias; design tokens live at `src/styles/tokens.css` (SoT), imported in the root layout. Root `AGENTS.md` + `.cursor/rules/` carry the JSDoc doc-comment rule.
 - **Requirements:** R1, R9
 - **Dependencies:** None
-- **Files:** new subfolders under repo root; root `package.json`; `acta-web/src/styles/tokens.css` (tokens SoT)
-- **Approach:** Wire contracts via npm/pnpm **workspaces** (KTD8). No product UI yet beyond health checks. FE and BE stay independently buildable/deployable within the one repo.
+- **Files:** `package.json`, `next.config.ts`, `tsconfig.json`; `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/api/{health,meta}/route.ts`; `src/lib/contracts/*`; `src/styles/tokens.css`
+- **Approach:** Single app, no workspaces (KTD1/KTD8). No product UI yet beyond a health shell + `/api/health` + `/api/meta`.
 - **Test scenarios:**
-  - Contracts package exports parse a minimal valid ExtractProposal and reject missing endeavor title.
-  - FE and BE resolve the same `@acta/contracts` via workspace install.
-- **Verification:** `install` at root wires all three workspaces; FE build contains no BE secrets; FE env example has no service role / LLM keys.
+  - Contracts exports parse a minimal valid ExtractProposal and reject missing endeavor title.
+  - Client page and `/api/meta` route resolve the same `@/lib/contracts`.
+- **Verification:** `next build` succeeds; client bundle contains no secrets; `.env.example` has no service-role / LLM keys under `NEXT_PUBLIC_`.
+- **Status:** ✅ shipped 2026-07-20 (migrated from the interim Vite+Hono U1).
 
 ### U2. Supabase Auth + schema + RLS
 
-- **Goal:** Migrations for captures, endeavors, edges (minimal canvas set), children stubs as needed for merge, and `extract_proposals`; Auth works from FE; BE verifies JWT on protected routes; RLS on all user tables; basic rate limiting + the `X-Acta-Client` header check in place (per § Security Model).
-- **Requirements:** R3, R4, R10, R11, R12
+- **Goal:** Migrations for captures, endeavors, edges (minimal canvas set), children stubs as needed for merge, and `extract_proposals`; cookie-session Auth works via `@supabase/ssr`; protected routes require a valid session; RLS on all user tables; basic rate limiting (per § Security Model).
+- **Requirements:** R3, R4, R10, R11
 - **Dependencies:** U1
-- **Files:** `acta-api/supabase/migrations/*`; `acta-api` auth + rate-limit + client-header middleware; FE auth routes/screens + API client that attaches JWT + `X-Acta-Client`
-- **Approach:** Port init SQL from git history; add proposals table; RLS on all user tables; dual Supabase clients on BE (user-scoped vs service role for merge); JWT middleware (JWKS verify) that skips `OPTIONS` and public routes; in-process rate-limit middleware keyed by user id (else IP); reject requests missing/mismatching `X-Acta-Client` (defense-in-depth only — never the auth gate).
+- **Files:** `supabase/migrations/*`; `middleware.ts` (session refresh + gating); `src/lib/supabase/{server,client}.ts`; `src/app/(auth)/*`; rate-limit helper for route handlers
+- **Approach:** Port init SQL from git history; add proposals table; RLS on all user tables; dual Supabase clients (user-scoped vs service role for merge); `@supabase/ssr` cookie sessions verified in `middleware.ts` + per protected route; rate-limit keyed by user id (else IP).
 - **Test scenarios:**
   - Authenticated user can insert own Capture; cannot read another user’s rows (`SET ROLE authenticated` style checks).
-  - Unauthenticated API call to protected route returns 401.
+  - Unauthenticated call to a protected route returns 401.
   - Proposal row with `user_id` A is invisible to user B under RLS.
-  - A valid JWT but *missing* `X-Acta-Client` is rejected (403), while a valid JWT + header succeeds — and the header alone (no JWT) never returns sensitive data.
-  - Exceeding the rate limit returns 429; `OPTIONS` preflight is never blocked by auth/limit middleware.
-- **Verification:** Sign-in on FE; BE `/me` (or equivalent) returns auth subject; migrations apply cleanly on empty project; FE bundle still contains no service-role/LLM keys.
+  - Exceeding the rate limit returns 429.
+- **Verification:** Sign-in works; a server route returns the auth subject for the session; migrations apply cleanly on empty project; client bundle still contains no service-role/LLM keys.
 
 ### U3. Graph bootstrap + force canvas (confirmed nodes)
 
 - **Goal:** Graph home full-bleed canvas renders confirmed Endeavors from API; pre-warm + cluster-seed; tokens applied; empty state = quiet canvas + Capture CTA.
 - **Requirements:** R5, R6
 - **Dependencies:** U2
-- **Files:** `acta-web` graph feature; `acta-api` `GET /graph` (or endeavors+edges) bootstrap
+- **Files:** `src/features/graph`; `GET /api/graph` (or endeavors+edges) bootstrap route
 - **Approach:** `react-force-graph-2d`; stable node object identity; CoG API ready for panel open. Seed fixture endeavors for layout dogfood before Extract lands.
 - **Execution note:** Prefer characterization of graphData identity (no remount on unrelated React state) early.
 - **Test scenarios:**
@@ -334,7 +342,7 @@ Rationale: quality is built in per unit (readable code + tests), not bolted on l
 - **Goal:** Typed yap → Capture row → BE Extract (AI SDK) streams SSE patches → proposal `streaming`→`ready`/`failed` persisted; FE shows changelog + pending ghosts incrementally.
 - **Requirements:** R2, R3, R4, R7
 - **Dependencies:** U2, U3
-- **Files:** `acta-api` capture/extract/proposal routes + agent; `acta-web` capture + skim
+- **Files:** `src/app/api/*` capture/extract/proposal routes + `src/server/agents/extract`; `src/features/capture` + skim
 - **Approach:** Auto-start Extract after Capture; `Output.array` (or object) for endeavor previews; persist partials via service role + `user_id`; final Zod validate before `ready`. Apply KTD10 concurrency/auth/runtime rules.
 - **Test scenarios:**
   - Capture exists in DB before first SSE event; empty/whitespace Capture rejected before Extract.
@@ -344,7 +352,7 @@ Rationale: quality is built in per unit (readable code + tests), not bolted on l
   - Empty model output → `failed`/`empty`; Retry/Discard only.
   - JWT refresh mid-stream then Confirm still succeeds with valid session.
   - Second Capture+ while open proposal → blocked with message.
-  - FE bundle contains no LLM API keys.
+  - Client bundle contains no LLM API keys.
 - **Verification:** End-to-end yap with real provider key on BE only; pending nodes animate in; refresh survives.
 
 ### U5. Inline edit, confirm merge, discard
@@ -377,7 +385,7 @@ Rationale: quality is built in per unit (readable code + tests), not bolted on l
 ## Phased Delivery
 
 ```text
-U1 Contracts + workspace subfolders
+U1 Next app + contracts
     → U2 Auth + schema + RLS
         → U3 Canvas bootstrap
             → U4 Capture + LLM stream + proposals
@@ -394,8 +402,8 @@ U1 Contracts + workspace subfolders
 
 | Approach | Why not default |
 | --- | --- |
-| Separate git repos FE+BE (original U-J default) | Superseded 2026-07-17 — founder prefers one repo to pull across laptops. Monorepo keeps shared contracts trivial; the security/hosting split is preserved by **separate deploy targets + BE-only secrets**, not by separate git repos. Revisit if independent release cadence / per-repo access control is needed |
-| Next monolith with Server Actions for LLM | Re-merges secrets onto FE host; fights separate-host goal |
+| **Vite SPA + separate Hono API** (interim default, 2026-07-17 → 2026-07-20) | Superseded 2026-07-20 (KTD2). Cleaner backend portability + a zero-server static FE, but it cost founder velocity (founder is fluent in Next/Vercel), added CORS + two deploys + a shared-contracts package, and forced client-side token storage. The one integrated Next app wins at this stage. **Revisit** if the backend grows into heavy long-running/multi-runtime work that a request-cycle model fights — then peel a worker per KTD3. |
+| Separate git repos FE+BE (original U-J default) | Superseded 2026-07-17, then moot under one Next app. One repo, one deploy. |
 | Memory repository until U-E | Rejected by founder — thin Supabase from first loop |
 | Fixture/heuristic Extract before LLM | Rejected — pay for real Extract in first slice; keep heuristic only as test double |
 | Edge Functions as primary backend | Wall-clock/CPU limits poor fit for long extract streams |
@@ -416,16 +424,16 @@ U1 Contracts + workspace subfolders
 | Contracts version skew | Pin versions; CI fails on breaking Zod changes |
 | Docs vs code drift on proposals | Keep `data-model.md` physical lean + this plan’s KTD10 in sync when columns/statuses change |
 
-**Dependencies:** Supabase project; LLM provider account; Fly/Railway + Vercel (or equivalents). `@acta/contracts` needs no registry while in-repo (workspace resolution); GitHub Packages only if repos later split.
+**Dependencies:** Supabase project; LLM provider account; one Vercel project (or a self-hosted Next container). Contracts are an internal module (`src/lib/contracts`) — no registry needed.
 
 ---
 
 ## System-Wide Impact
 
-- **Auth boundary:** every graph mutation is user-scoped (JWT + RLS); LLM never on client. Per-user JWT is the real gate; CORS + `X-Acta-Client` are hygiene/speed-bumps only (see § Security Model).
+- **Auth boundary:** every graph mutation is user-scoped (session + RLS); LLM/service-role keys are server-only (build-enforced via `server-only` + no `NEXT_PUBLIC_`). Per-user identity is the real gate; same-origin drops CORS/client-header entirely (see § Security Model).
 - **Data lifecycle:** Captures immutable; proposals **persisted** until confirm/discard (then drop/archive) — not durable graph SoT; merged entities durable.
 - **Performance:** pre-warm + freeze-at-rest; Barnes–Hut only when node counts demand (per graph-physics).
-- **Repo role:** one repo holds planning SoT (`docs/`, `styles/`) and code (`acta-web`, `acta-api`, `acta-contracts`) — update README/building-plan as subfolders land.
+- **Repo role:** one repo = the Next app + planning SoT (`docs/`) at root; keep README/building-plan in sync as units land.
 
 ---
 
@@ -442,10 +450,11 @@ U1 Contracts + workspace subfolders
 ## Open Questions
 
 - [ ] Exact LLM provider for v1 (OpenAI vs Anthropic) — either works behind AI SDK; pick at U4.
-- [ ] BE host choice Fly vs Railway — equivalent for plan; pick at first deploy.
 - [ ] Selected vs highlighted vs dimmed visual triad — brand/physics still open; don’t block U3.
-- [x] Repo structure — **resolved 2026-07-17:** one repo (existing `Acta`), workspace subfolders `acta-web` / `acta-api` / `acta-contracts`, `docs/` at root. Not renamed.
-- [ ] Rate-limit store — in-process (single-node BE) is fine for U2; pick a shared store (Upstash/Redis) only when BE runs multi-node. Decide at first horizontal scale.
+- [x] Repo structure — **resolved 2026-07-17; revised 2026-07-20:** one repo = a single Next.js app at root (`src/*`), contracts folded into `src/lib/contracts`, `docs/` at root. Not renamed.
+- [x] FE framework — **resolved 2026-07-20:** Next.js (App Router), reversing the interim Vite+Hono choice (KTD2).
+- [ ] Rate-limit store — in-process is fine for a single-region MVP; move to a shared store (Upstash/Redis) once serverless instances fan out (counters don't share across lambdas). Decide at first scale.
+- [ ] Long-running work offload — which mechanism (Vercel Cron / queue / worker) for adapter imports + embeddings backfill; decide when that work lands (KTD3).
 
 ---
 
@@ -453,13 +462,14 @@ U1 Contracts + workspace subfolders
 
 - Locked specs under `docs/` (product, data-model, surfaces, agents, brand, graph-physics, building-plan).
 - Former scaffold patterns from git `5bece5b` (Zod domain, GraphRepository, init SQL) — patterns only.
-- External shortlist (2026): Vite SPA + Hono + `react-force-graph-2d` + fetch-SSE + AI SDK structured output + private contracts + Vercel/Fly|Railway/Supabase.
-- Framework constraints: AI SDK `Output.*` (not deprecated `streamObject`); Supabase JWT via JWKS; EventSource unsuitable for Bearer auth.
+- External shortlist (2026): Next.js App Router + route handlers + `react-force-graph-2d` + fetch-SSE + AI SDK structured output + `@supabase/ssr` + Vercel/Supabase.
+- Framework constraints: AI SDK `Output.*` (not deprecated `streamObject`); Supabase sessions via `@supabase/ssr` (httpOnly cookies); EventSource unsuitable for authed streaming (use `fetch` + `ReadableStream`); serverless function time limits → offload long jobs (KTD3).
 
 ---
 
 ## Changelog
 
+- **2026-07-20:** **Reversed FE stack to Next.js (App Router); collapsed to one app.** KTD2 flipped from Vite SPA + separate Hono API to a **single Next app at repo root** (KTD1) — UI + route-handler API in one Vercel deploy. `acta-web`/`acta-api` retired; `@acta/contracts` folded into `src/lib/contracts`; tokens SoT → `src/styles/tokens.css`. Security model reframed around the **server/client build split + `server-only` + httpOnly cookie sessions** (`@supabase/ssr`); **CORS + `X-Acta-Client` retired** (same-origin) — R12 reframed, KTD3/KTD4/KTD6/KTD8/KTD12/KTD13 updated, U1/U2 rewritten, Output Structure + diagram + Security Model replaced. Rationale: founder velocity on Next/Vercel + integrated deploy beat backend portability at this stage; tax is offloading long jobs later (KTD3). U1 re-shipped on Next (health shell + `/api/health` + `/api/meta`, contracts + route tests green).
 - **2026-07-20:** **U1 hardening pass** — modernized contracts to Zod v4 idioms (`z.uuid()` / `z.url()` / `z.iso.datetime()`); pinned **TypeScript 5.x** (ecosystem tooling doesn't yet support TS 7 native); added root **ESLint (flat) + Prettier** baseline (`lint`/`format`/`check` scripts); split acta-api into a side-effect-free app factory (`index.ts`) + runnable `server.ts` so routes are testable; added acta-api **vitest** health/meta/CORS tests. Added deploy-bundling note for `@acta/contracts` (unpublished workspace package must ship with the API build).
 - **2026-07-20:** **Added § Definition of Done + R13** — JSDoc doc-comments and unit tests are now explicit per-unit gates for *every* unit (plus typecheck/lint clean, no FE secrets, docs in sync). Testing was already per-unit via Test scenarios; this makes doc-comments a first-class gate too.
 - **2026-07-20:** **Added § Security Model & Threat Boundaries** + requirements R10–R12 and KTD12–KTD13. Codifies: authenticate the user (JWT+JWKS) not the app; RLS everywhere; anon/service-role split; rate limiting (U2) + spend caps (U4); the `X-Acta-Client` header as **defense-in-depth only** (non-secret, never gates data); and what's not achievable (provably "only my web build"). Folded JWT/RLS/rate-limit/client-header into U2.

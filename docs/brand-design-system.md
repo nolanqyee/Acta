@@ -6,9 +6,9 @@ Last updated: 2026-07-15
 
 **Does not own:** IA/flows ([`surfaces-and-flows.md`](surfaces-and-flows.md)), agent write policy ([`agent-interaction-model.md`](agent-interaction-model.md)), full in-product copy ([`building-plan.md`](building-plan.md) **U-I**), adapter editor polish (**U-F**), rich provenance chrome (**U-G**), empty-state copy polish (**U-H**).
 
-Companions: [`personal-evidence-graph.md`](personal-evidence-graph.md) (product + Naming), [`surfaces-and-flows.md`](surfaces-and-flows.md) (what to style), [`mockup-synthesis.md`](mockup-synthesis.md) (Graph-home vision brief), [`building-plan.md`](building-plan.md) (**U-A**). **Code:** [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css).
+Companions: [`personal-evidence-graph.md`](personal-evidence-graph.md) (product + Naming), [`surfaces-and-flows.md`](surfaces-and-flows.md) (what to style), [`mockup-synthesis.md`](mockup-synthesis.md) (Graph-home vision brief), [`building-plan.md`](building-plan.md) (**U-A**). **Code:** [`src/styles/tokens.css`](../src/styles/tokens.css).
 
-Status: **U-A look locked** — tokens in `acta-web/src/styles/tokens.css`. Motion / full a11y / app restyle deferred until greenfield build after **U-J**. Keep growing §12 Do/don’t.
+Status: **U-A look locked** — tokens in `src/styles/tokens.css`. Motion / full a11y / app restyle deferred until greenfield build after **U-J**. Keep growing §12 Do/don’t.
 
 ---
 
@@ -20,7 +20,7 @@ Status: **U-A look locked** — tokens in `acta-web/src/styles/tokens.css`. Moti
 - [x] Type stack + **compact** scale + weights 400–700
 - [x] Composition principles + card policy (§7); radius/elevation leans
 - [x] Graph-home look locks from decision comparisons (nodes, kind, glass, icons, focus, confirm, empty, panel)
-- [x] Spacing / radius / panel+modal widths + semantic hex in [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css)
+- [x] Spacing / radius / panel+modal widths + semantic hex in [`src/styles/tokens.css`](../src/styles/tokens.css)
 - [x] Do / don’t seeded (§12) — **keep updating** as taste issues appear
 - [~] Motion principles — **deferred** to greenfield build
 - [~] App consumes tokens — **deferred** (prototype removed; bootstrap after **U-J**)
@@ -180,7 +180,7 @@ Canvas rule of thumb: **structure on the plane, substance on hover** (hover card
 | Glass fill (heavy) | **Locked** | `--glass` + `--glass-blur: 30px` | ~55% elevated + heavy blur | Ask, controls, hover, modal, floating panel |
 | Focus ring | **Locked** | `--focus-ring` | accent | Keyboard focus |
 
-**Code reference:** [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css). Prefer these variables over inventing values when the app is bootstrapped.
+**Code reference:** [`src/styles/tokens.css`](../src/styles/tokens.css). Prefer these variables over inventing values when the app is bootstrapped.
 
 **Rules**
 
@@ -202,7 +202,7 @@ Canvas rule of thumb: **structure on the plane, substance on hover** (hover card
 - [x] Warm paper light / neutral dark values
 - [x] No panel hairlines
 - [x] Pending ≠ accent — structural ghost (see §10)
-- [x] Node / edge / glass / semantic / focus tokens in [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css)
+- [x] Node / edge / glass / semantic / focus tokens in [`src/styles/tokens.css`](../src/styles/tokens.css)
 - [ ] Full contrast audit after Graph chrome restyle
 
 **Mockups:** [`brand-mockups.html`](brand-mockups.html) — Graph-home experimental preview. [`brand-decision-comparisons.html`](brand-decision-comparisons.html) — side-by-side locks for open look decisions. Vision target: [`mockup-synthesis.md`](mockup-synthesis.md).
@@ -439,7 +439,7 @@ Shared language: ask bar and filter menu both drive **highlight** the same way.
 
 ## 13. Token implementation map
 
-*Code reference:* [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css).
+*Code reference:* [`src/styles/tokens.css`](../src/styles/tokens.css).
 
 | Token group | CSS variables | Where applied first |
 | --- | --- | --- |
@@ -487,8 +487,8 @@ Shared language: ask bar and filter menu both drive **highlight** the same way.
 | 2026-07-15 | Pending nodes: **dashed outline + lower opacity + optional soft pulse**; **not** accent/color-coded |
 | 2026-07-15 | Canvas states: **highlight = accent**; **dimmed** + **selected** deferred (modal = selection; highlight alone for slices) |
 | 2026-07-15 | §7 composition principles locked (6); card policy + elevation/density leans; light nodes ≠ black |
-| 2026-07-15 | Spacing 4→64; radius 10/12/14; panel 320 / modal 520; semantic `#2f9e6a` / `#c4473a` (+ dark); code ref [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css) |
-| 2026-07-15 | Prototype Next app removed; tokens live at `acta-web/src/styles/tokens.css`. U-A look locked; trailers deferred |
+| 2026-07-15 | Spacing 4→64; radius 10/12/14; panel 320 / modal 520; semantic `#2f9e6a` / `#c4473a` (+ dark); code ref [`src/styles/tokens.css`](../src/styles/tokens.css) |
+| 2026-07-15 | Prototype Next app removed; tokens live at `src/styles/tokens.css`. U-A look locked; trailers deferred |
 
 ---
 
@@ -512,9 +512,10 @@ Shared language: ask bar and filter menu both drive **highlight** the same way.
 
 ## Changelog
 
-- **2026-07-20:** Token code reference now lives **only** at [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css) — the repo-root `styles/` folder was removed when U-J U1 scaffolded the frontend. All token references repointed there.
-- **2026-07-15:** Removed Next.js prototype scaffold; tokens moved to [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css). U-A look locked; motion/a11y/app wire deferred.
-- **2026-07-15:** Locked spacing/radius/chrome widths + semantic Confirm/Discard hex; code reference [`acta-web/src/styles/tokens.css`](../acta-web/src/styles/tokens.css).
+- **2026-07-20:** **Stack reversed to Next.js (single app).** U-J flipped from Vite SPA + Hono API to one Next.js app at repo root (see technical-implementation-plan KTD2). Tokens SoT moved from `acta-web/src/styles/tokens.css` → [`src/styles/tokens.css`](../src/styles/tokens.css), imported once in the Next root layout; all references repointed. Look/tokens unchanged.
+- **2026-07-20:** Token code reference now lives **only** at [`src/styles/tokens.css`](../src/styles/tokens.css) — the repo-root `styles/` folder was removed when U-J U1 scaffolded the frontend. All token references repointed there.
+- **2026-07-15:** Removed Next.js prototype scaffold; tokens moved to [`src/styles/tokens.css`](../src/styles/tokens.css). U-A look locked; motion/a11y/app wire deferred.
+- **2026-07-15:** Locked spacing/radius/chrome widths + semantic Confirm/Discard hex; code reference [`src/styles/tokens.css`](../src/styles/tokens.css).
 - **2026-07-15:** Mark **dropped for now** — wordmark **Acta** (Charis SIL) is the logo. Added [`graph-physics.md`](graph-physics.md) synthesizing canvas simulation behavior + the "minimize crossings, then render them gracefully" doctrine.
 - **2026-07-15:** Mark = **filled** three-point star (concave, no ring, thin arms) from founder reference SVG, rotated 180° tip-down — replaces the earlier line-ray version. Graph physics: cluster-seeded layout + collision force to cut edge crossings and stop node/label overlap.
 - **2026-07-15:** Rebuilt [`brand-mockups.html`](brand-mockups.html) as a Graph-home visual per [`mockup-synthesis.md`](mockup-synthesis.md): real force simulation (draggable nodes, pre-warmed radial settle, live physics/label sliders in the gear menu), denser Endeavors-only graph with edges meeting node centers, CoG shifts left when the floating diff panel is open, hover card + node modal with kind-preset header image and straddling title, pending diff-skim state (dashed neutral outline + lower opacity + soft pulse per locked recipe), ask + filter sharing one highlight/dim language.

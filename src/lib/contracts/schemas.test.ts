@@ -1,8 +1,9 @@
 /**
  * @fileoverview Contract validation tests — prove the shared schemas parse
  * valid input and reject malformed input. These are the U-J U1 acceptance
- * checks for `@acta/contracts` (enum closure + ExtractProposal happy/edge/error
- * paths); merge/persistence behavior is tested later in acta-api.
+ * checks for the shared contracts (enum closure + ExtractProposal
+ * happy/edge/error paths); merge/persistence behavior is tested later in the
+ * app's route handlers.
  */
 
 import { describe, expect, it } from "vitest";

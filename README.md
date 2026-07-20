@@ -2,7 +2,7 @@
 
 Personal evidence graph — capture life material, structure it into endeavors + edges, explore in natural language, draft grounded artifacts.
 
-**Pronunciation:** AK-tuh. Planning-first repo right now (no app scaffold yet). Code will land as `acta-web` / `acta-api` / `acta-contracts` workspace subfolders in **this** repo (docs stay at root) — see [`docs/technical-implementation-plan.md`](docs/technical-implementation-plan.md).
+**Pronunciation:** AK-tuh. This repo is a **single Next.js (App Router) app** — UI + route-handler API in one deploy, with planning docs at `docs/` — see [`docs/technical-implementation-plan.md`](docs/technical-implementation-plan.md).
 
 ## Specs
 
@@ -20,19 +20,27 @@ Planning docs live in [`docs/`](docs/). Building-plan units are **U-A…U-J** (s
 | [`docs/building-plan.md`](docs/building-plan.md) | Build roadmap |
 | [`docs/technical-implementation-plan.md`](docs/technical-implementation-plan.md) | **HOW** (**U-J** — locked) |
 
-**Design tokens (source of truth):** [`acta-web/src/styles/tokens.css`](acta-web/src/styles/tokens.css)
+**Design tokens (source of truth):** [`src/styles/tokens.css`](src/styles/tokens.css)
 
-**Where we are:** product + data model + Graph IA (**U-B/U-C**) + agent model (**U-D**) + brand look/tokens (**U-A**) + tech plan (**U-J**) locked. **Next: scaffold `acta-web` + `acta-api` + `acta-contracts` subfolders** in this repo (workspaces; FE/BE deploy to separate hosts, secrets backend-only) — capture + render with thin Supabase + real LLM Extract.
+**Where we are:** product + data model + Graph IA (**U-B/U-C**) + agent model (**U-D**) + brand look/tokens (**U-A**) + tech plan (**U-J**) locked. **U-J U1 shipped** as a single Next.js app (health shell + `/api/health` + `/api/meta`, shared contracts in `src/lib/contracts`). **Next: U2** — Supabase Auth + schema + RLS toward capture + render with thin Supabase + real LLM Extract.
 
-The old Next.js prototype was removed so planning isn’t fighting dead UI. App code will live in workspace subfolders of this repo per **U-J**, not the revived prototype.
+## Getting started
+
+```bash
+npm install
+npm run dev     # Next dev server (UI + /api/* on one origin)
+npm run check   # lint + typecheck + tests
+```
 
 ## Layout
 
 ```
 docs/                 Planning specs + HTML mock/decision tools
 AGENTS.md             Repo conventions for humans + coding agents
-acta-contracts/       @acta/contracts — shared Zod + types
-acta-web/             Vite React SPA — Graph canvas + chrome; design tokens SoT at src/styles/tokens.css
-acta-api/             Hono API — capture/extract/graph + DB (all secrets)
+src/app/              App Router: pages, root layout, and /api route handlers
+src/lib/contracts/    Shared Zod schemas + types (import via @/lib/contracts)
+src/features/         Graph canvas, capture composer + skim (client)
+src/server/           Server-only domain logic (GraphRepository, extract, merge)
+src/styles/tokens.css Design tokens — source of truth
 .cursor/              Agent rules (local; not committed)
 ```

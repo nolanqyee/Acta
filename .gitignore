@@ -4,8 +4,9 @@
 *.pem
 .cursor/
 
-# App / monorepo build artifacts
+# App build artifacts
 node_modules/
+.next/
 dist/
 /out/
 /build

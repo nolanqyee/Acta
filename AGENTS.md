@@ -1,12 +1,14 @@
 # Acta — Repo Conventions (humans + coding agents)
 
-This is the **single repo** for Acta. It holds planning docs and (soon) code:
+This is the **single repo** for Acta — one **Next.js (App Router) app** plus planning docs:
 
 ```
-docs/            Planning SoT (product, data-model, surfaces, agents, brand, graph-physics, building-plan, tech plan)
-acta-contracts/  @acta/contracts — shared Zod schemas + types
-acta-web/        Vite React SPA — Graph canvas + chrome; design tokens SoT at acta-web/src/styles/tokens.css
-acta-api/        Hono API — capture/extract/graph + Supabase (all secrets)
+docs/                 Planning SoT (product, data-model, surfaces, agents, brand, graph-physics, building-plan, tech plan)
+src/app/              App Router: pages, root layout, and /api route handlers (the API)
+src/lib/contracts/    Shared Zod schemas + types (import via @/lib/contracts)
+src/features/         Graph canvas, capture composer + skim (client components)
+src/server/           Server-only domain logic (GraphRepository, extract, merge) — guarded by `import "server-only"`
+src/styles/tokens.css Design tokens — single source of truth (imported in the root layout)
 ```
 
 Read [`docs/building-plan.md`](docs/building-plan.md) for the roadmap (units **U-A…U-J**) and
@@ -15,14 +17,18 @@ Read [`docs/building-plan.md`](docs/building-plan.md) for the roadmap (units **U
 
 ## Structure rules
 
-- **One repo, workspace subfolders.** `acta-web`, `acta-api`, `acta-contracts` are npm/pnpm
-  workspaces under a root `package.json`. `docs/` and `styles/` stay at root.
-- **FE/BE deploy separately.** Even though they share a repo, `acta-web` and `acta-api` are
-  independent deploy targets. **Secrets (Supabase service role, LLM keys) live only in the
-  backend deploy env** and must never be bundled into the FE build or committed.
-- `@acta/contracts` is resolved via workspaces (no registry publish while in-repo).
-- **Design tokens** live only at `acta-web/src/styles/tokens.css` (SoT). There is no
-  repo-root `styles/` folder.
+- **One Next.js app, one deploy.** UI (client components) and the API (route handlers +
+  server actions) live together at the repo root under `src/`. `docs/` stays at root.
+- **The secret boundary is the server/client split, not a host.** Provider keys and the
+  Supabase service role are used only in server code and env vars **without** a
+  `NEXT_PUBLIC_` prefix; they must never be imported into a client component or committed.
+  Server-only modules (`src/server/*`, `src/lib/supabase/server.ts`) must `import "server-only"`
+  so an accidental client import fails the build.
+- **Contracts are an internal module** (`src/lib/contracts`), imported via the `@/lib/contracts`
+  alias by both client and server. They hold no secrets and are safe to import anywhere.
+- **Design tokens** live only at `src/styles/tokens.css` (SoT), imported once in the root layout.
+- **Long-running work** (bulk imports, embeddings backfill) must be kept off the request
+  path — offload to Vercel Cron / a queue / a worker rather than blocking a route handler.
 
 ## Code documentation style (required)
 

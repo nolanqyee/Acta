@@ -1,31 +1,30 @@
 /**
- * @fileoverview U1 health shell for acta-web. Its only jobs are to prove the
- * workspace wiring end-to-end: that `@acta/contracts` resolves in the browser
- * build (we render the shared EndeavorKind enum) and that the design tokens are
- * applied. Replaced by the Graph home shell in U3.
+ * @fileoverview U1 health shell (client component). Its only job is to prove the
+ * migrated wiring end-to-end: that `@/lib/contracts` resolves in the browser
+ * bundle (we render the shared EndeavorKind enum), that design tokens apply, and
+ * that the co-located route-handler API is reachable same-origin (no CORS). It
+ * is replaced by the Graph home shell in U3.
  */
 
-import { useEffect, useState } from "react";
-import { EndeavorKind } from "@acta/contracts";
+"use client";
 
-/** Base URL of acta-api; overridable via VITE_API_BASE_URL for deploys. */
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8787";
+import { useEffect, useState } from "react";
+import { EndeavorKind } from "@/lib/contracts";
 
 /**
- * Root component for the U1 shell. Renders the contract-sourced endeavor kinds
- * and probes the backend `/health` endpoint to confirm both workspaces run.
+ * Root page for the U1 shell. Renders the contract-sourced endeavor kinds and
+ * probes the in-app `/api/health` route to confirm the API layer runs.
  *
  * @returns The health-shell UI.
  */
-export function App() {
+export default function Page() {
   const [apiStatus, setApiStatus] = useState<"checking" | "ok" | "unreachable">(
     "checking",
   );
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${API_BASE_URL}/health`)
+    fetch("/api/health")
       .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
       .then(() => !cancelled && setApiStatus("ok"))
       .catch(() => !cancelled && setApiStatus("unreachable"));
@@ -56,17 +55,17 @@ export function App() {
           Acta
         </h1>
         <p style={{ color: "var(--text-muted)", fontSize: "var(--text-ui)" }}>
-          U1 workspace shell — contracts + tokens wired.
+          U1 shell — Next app, contracts + tokens wired.
         </p>
         <p
           style={{ fontSize: "var(--text-label)", color: "var(--text-muted)" }}
         >
-          acta-api /health: {apiStatus}
+          /api/health: {apiStatus}
         </p>
         <p
           style={{ fontSize: "var(--text-label)", color: "var(--text-muted)" }}
         >
-          endeavor kinds from @acta/contracts: {EndeavorKind.options.join(", ")}
+          endeavor kinds from @/lib/contracts: {EndeavorKind.options.join(", ")}
         </p>
       </section>
     </main>
