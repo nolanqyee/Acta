@@ -41,6 +41,9 @@ Product, data model, Graph IA, agent write policy, brand look, and graph-physics
 - R7. Capture-pipeline logical tools from U-D map to HTTP (`create_capture`, `update_proposal`, `confirm_proposal`, `discard_proposal`, plus `retry_extract`); `extract_capture` is the **server-side** job started after Capture (not a separate FE-required call). Graph home also has `GET /graph` bootstrap (convenience over `list_endeavors` + edges — not a U-D tool name).
 - R8. Explore, Deepen, adapters, fat onboarding import, and agent chat-history connectors are **path-documented**, not built in the first milestones.
 - R9. Stack choices are **committed defaults with escape hatches** — changeable without rewriting product docs.
+- R10. **Per-user auth is the real boundary.** Every non-public API route requires a valid Supabase JWT (verified via JWKS); unauthenticated → 401. Sensitive data is returned only to its authenticated owner. RLS (`user_id = auth.uid()`) backs this at the DB so a valid token still only sees its owner's rows.
+- R11. **Abuse controls are first-class**, not afterthoughts: rate limiting on the API (per-user when authed, per-IP otherwise) and LLM spend caps. Basic rate limiting lands in U2; per-route/spend tuning by U4.
+- R12. **Frontend client key is defense-in-depth only.** acta-web sends a static `X-Acta-Client` header (from a non-secret `VITE_ACTA_CLIENT_KEY`); acta-api may reject requests lacking it. This is a speed bump against generic/scraper traffic and a kill-switch/rotation lever — **explicitly not a security boundary** (a public SPA cannot hold a secret). It never gates sensitive data; R10 does.
 
 ---
 
@@ -59,6 +62,8 @@ Product, data model, Graph IA, agent write policy, brand look, and graph-physics
 | KTD9 | **Supabase early, not memory-first** — dual clients: user JWT + RLS for interactive reads/PATCH; **service role + explicit `user_id` filter** for Extract job persistence and confirm merge (after JWT identity at job start / confirm) | Proposals survive refresh; Extract continues if the browser JWT expires mid-stream |
 | KTD10 | **Capture slice state machine** (defaults) — see High-Level Technical Design. **v1 = batch confirm only** after `ready`; U-D optional chunk-confirm deferred | Closes races without reopening product IA |
 | KTD11 | **Salvage former scaffold as patterns only** — port from git `5bece5b`: `src/domain/{common,entities,edges,extract,tags}.ts`, `src/server/graph/types.ts` (+ merge ideas from memory-repository), `supabase/migrations/20260710120000_init_graph.sql`. Do not revive the Next monolith | Blueprint paths, not a restore target |
+| KTD12 | **JWT-as-the-key, layered auth** — authenticate the *user* (Supabase JWT verified via JWKS), never the *app*. RLS everywhere + anon/service-role key split. CORS + static client header are hygiene/speed-bumps, not boundaries | A public SPA can't hold a secret; per-user identity is the only real gate for per-user data. See § Security Model |
+| KTD13 | **Rate limiting in-process at U2** (keyed by user id when authed, else IP) with LLM spend caps by U4 | Cheap Hono middleware first; protects the LLM bill. **Escape:** move to a shared store (Upstash/Redis) when BE scales beyond one node |
 
 ---
 
@@ -154,11 +159,11 @@ SSE events (names indicative): `proposal_upsert`, `endeavor_preview_upsert`, `ch
 
 | Location | Allowed |
 | --- | --- |
-| FE | Supabase URL + **publishable/anon** key, API base URL |
-| BE | LLM keys, Supabase **service role** (Extract job writes + confirm merge), JWT verification via JWKS / `@supabase/server` |
+| FE | Supabase URL + **publishable/anon** key, API base URL, **non-secret** `VITE_ACTA_CLIENT_KEY` (client header) |
+| BE | LLM keys, Supabase **service role** (Extract job writes + confirm merge), JWT verification via JWKS / `@supabase/server`, `ACTA_CLIENT_KEY` (expected client header) |
 | Never | Service role or LLM keys in `VITE_*` / public bundles |
 
-CORS: allowlist FE origin; auth middleware must not 401 `OPTIONS`.
+CORS: allowlist FE origin; auth middleware must not 401 `OPTIONS`. See § Security Model & Threat Boundaries for the full model.
 
 ### Persistence lean
 
@@ -168,6 +173,37 @@ Revive and extend former `supabase/migrations/20260710120000_init_graph.sql` pat
 - New **`extract_proposals`**: `id`, `user_id`, `capture_ids[]`, `status`, `payload jsonb`, `changelog jsonb`, `pending_endeavor_previews jsonb`, `failure_reason?`, `stream_cursor?`, timestamps.
 - RLS: `user_id = auth.uid()` for user-scoped clients (reads + user PATCH). Extract stream upserts + confirm merge: **service role + explicit `user_id` filter** after identity check at job/confirm start.
 - Canonical physical lean also in [`data-model.md`](data-model.md) (§ ExtractProposal persistence); keep **state-machine rules here** and avoid duplicating column lists when they change.
+
+---
+
+## Security Model & Threat Boundaries
+
+**Core principle: authenticate the *user*, never the *app*.** A public SPA ships all its code to the browser, so it cannot hold a secret — anything in the bundle (including any "API key") is trivially extractable. Therefore the only trustworthy gate for per-user data is a **per-user, server-minted, unforgeable credential (a Supabase JWT)**, backed by RLS at the database. Everything else is hygiene or a speed bump.
+
+### Layers (strongest → weakest)
+
+| Layer | What it enforces | Strength |
+| --- | --- | --- |
+| **RLS on every user table** (`user_id = auth.uid()`) | A valid token still only reads/writes its owner's rows; User B can't see User A's data | **Boundary** (DB-enforced) |
+| **JWT required on non-public routes** (JWKS-verified on acta-api) | Only authenticated users reach sensitive routes; unauthenticated → 401 | **Boundary** |
+| **anon/service-role key split** | Browser holds only the RLS-bound anon key; service role (bypasses RLS) is BE-only, used with an explicit `user_id` filter after identity check | **Boundary** |
+| **Rate limiting + LLM spend caps** | Caps abuse/cost even from authenticated callers | Control (not identity) |
+| **CORS allowlist** | Stops *other browser origins* from reading responses; ignored by curl/Postman | Hygiene |
+| **`X-Acta-Client` static header** (`VITE_ACTA_CLIENT_KEY`) | Deters lazy/generic scraper traffic; rotation/kill-switch lever | **Speed bump — NOT a boundary** |
+
+### The `X-Acta-Client` header (defense-in-depth, explicitly labeled)
+
+- acta-web sends `X-Acta-Client: <VITE_ACTA_CLIENT_KEY>` on API calls; acta-api may 403 requests missing/mismatching it.
+- **Value is not a secret** — it ships in the FE bundle. It cannot distinguish "my frontend" from "someone who copied the key," and it **never gates sensitive data** (RLS + JWT do). Its only jobs: cut obvious noise, and let us rotate/disable a leaked generic key without touching auth.
+- Kept only because it's near-zero cost and occasionally useful; documented this way so no one ever mistakes it for real protection.
+
+### Not achievable (stated plainly)
+
+- **Provably "only my official web build" calls the API.** Not solvable for web SPAs. App attestation (App Attest / Play Integrity) exists only for native mobile. Realistic mitigations if abuse appears: bot protection (e.g. Cloudflare Turnstile on signup), tighter rate limits — *later*, not now.
+
+### `@acta/contracts` is not an attack surface
+
+It is a compile-time TypeScript/Zod dependency, not a network service. "Who can call it" = who can read the package: private while in-repo; private registry (scoped access) if ever split out. Nothing to enforce at runtime.
 
 ---
 
@@ -248,16 +284,18 @@ Implementers may adjust folders; contracts and migration ownership must stay cle
 
 ### U2. Supabase Auth + schema + RLS
 
-- **Goal:** Migrations for captures, endeavors, edges (minimal canvas set), children stubs as needed for merge, and `extract_proposals`; Auth works from FE; BE verifies JWT.
-- **Requirements:** R3, R4
+- **Goal:** Migrations for captures, endeavors, edges (minimal canvas set), children stubs as needed for merge, and `extract_proposals`; Auth works from FE; BE verifies JWT on protected routes; RLS on all user tables; basic rate limiting + the `X-Acta-Client` header check in place (per § Security Model).
+- **Requirements:** R3, R4, R10, R11, R12
 - **Dependencies:** U1
-- **Files:** `acta-api/supabase/migrations/*`; FE auth routes/screens
-- **Approach:** Port init SQL from git history; add proposals table; RLS on all user tables; dual Supabase clients on BE (user-scoped vs service role for merge).
+- **Files:** `acta-api/supabase/migrations/*`; `acta-api` auth + rate-limit + client-header middleware; FE auth routes/screens + API client that attaches JWT + `X-Acta-Client`
+- **Approach:** Port init SQL from git history; add proposals table; RLS on all user tables; dual Supabase clients on BE (user-scoped vs service role for merge); JWT middleware (JWKS verify) that skips `OPTIONS` and public routes; in-process rate-limit middleware keyed by user id (else IP); reject requests missing/mismatching `X-Acta-Client` (defense-in-depth only — never the auth gate).
 - **Test scenarios:**
   - Authenticated user can insert own Capture; cannot read another user’s rows (`SET ROLE authenticated` style checks).
   - Unauthenticated API call to protected route returns 401.
   - Proposal row with `user_id` A is invisible to user B under RLS.
-- **Verification:** Sign-in on FE; BE `/me` (or equivalent) returns auth subject; migrations apply cleanly on empty project.
+  - A valid JWT but *missing* `X-Acta-Client` is rejected (403), while a valid JWT + header succeeds — and the header alone (no JWT) never returns sensitive data.
+  - Exceeding the rate limit returns 429; `OPTIONS` preflight is never blocked by auth/limit middleware.
+- **Verification:** Sign-in on FE; BE `/me` (or equivalent) returns auth subject; migrations apply cleanly on empty project; FE bundle still contains no service-role/LLM keys.
 
 ### U3. Graph bootstrap + force canvas (confirmed nodes)
 
@@ -367,7 +405,7 @@ U1 Contracts + workspace subfolders
 
 ## System-Wide Impact
 
-- **Auth boundary:** every graph mutation is user-scoped; LLM never on client.
+- **Auth boundary:** every graph mutation is user-scoped (JWT + RLS); LLM never on client. Per-user JWT is the real gate; CORS + `X-Acta-Client` are hygiene/speed-bumps only (see § Security Model).
 - **Data lifecycle:** Captures immutable; proposals **persisted** until confirm/discard (then drop/archive) — not durable graph SoT; merged entities durable.
 - **Performance:** pre-warm + freeze-at-rest; Barnes–Hut only when node counts demand (per graph-physics).
 - **Repo role:** one repo holds planning SoT (`docs/`, `styles/`) and code (`acta-web`, `acta-api`, `acta-contracts`) — update README/building-plan as subfolders land.
@@ -390,6 +428,7 @@ U1 Contracts + workspace subfolders
 - [ ] BE host choice Fly vs Railway — equivalent for plan; pick at first deploy.
 - [ ] Selected vs highlighted vs dimmed visual triad — brand/physics still open; don’t block U3.
 - [x] Repo structure — **resolved 2026-07-17:** one repo (existing `Acta`), workspace subfolders `acta-web` / `acta-api` / `acta-contracts`, `docs/` at root. Not renamed.
+- [ ] Rate-limit store — in-process (single-node BE) is fine for U2; pick a shared store (Upstash/Redis) only when BE runs multi-node. Decide at first horizontal scale.
 
 ---
 
@@ -404,6 +443,7 @@ U1 Contracts + workspace subfolders
 
 ## Changelog
 
+- **2026-07-20:** **Added § Security Model & Threat Boundaries** + requirements R10–R12 and KTD12–KTD13. Codifies: authenticate the user (JWT+JWKS) not the app; RLS everywhere; anon/service-role split; rate limiting (U2) + spend caps (U4); the `X-Acta-Client` header as **defense-in-depth only** (non-secret, never gates data); and what's not achievable (provably "only my web build"). Folded JWT/RLS/rate-limit/client-header into U2.
 - **2026-07-20:** **U1 shipped** (workspaces + `@acta/contracts` + health-shell FE/API). **Design-token SoT moved to `acta-web/src/styles/tokens.css`** — root `styles/` removed; token references across docs repointed. Added CORS middleware to acta-api (WEB_ORIGIN allowlist) so the browser can reach the API.
 - **2026-07-17:** **Repo structure changed from polyrepo → one repo, workspace subfolders** (`acta-web` / `acta-api` / `acta-contracts`, `docs/` at root of existing `Acta` repo). Security boundary now = separate deploy hosts + BE-only secrets, not a git split. Updated Summary, R1, KTD1, KTD8, Output Structure, U1, Alternative Approaches, Dependencies, System-Wide Impact. U1 also mirrors the JSDoc doc-comment rule into code subfolders.
 - **2026-07-15:** Confidence pass — HTTP route map; extract runtime + dual-client write rules; KTD8 `file:` first; batch-confirm v1; stronger U4 tests.
