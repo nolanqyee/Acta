@@ -37,6 +37,23 @@ Status: **v1 locked** for capture+render build (**U-B** + **U-C**). Graph-home c
 | **Adapter pages** | Draft / manage artifacts (resume, interview, app Q) | Own routes; **expandable mini-graph peek** |
 | **Settings / export** | Account, connectors, export, rare hard-delete | Via **profile menu** (top right) + in-menu app settings |
 
+### Route map (Next App Router)
+
+Concrete URL ↔ surface mapping so route names don't drift. **Key distinction:** most graph-adjacent surfaces are **overlays on `/`** (client state / intercepting routes), *not* separate pages — only adapters, settings, and auth are their own routes. Placeholder segments already exist in `src/app/` to pin these names.
+
+| URL / segment | Surface | Kind | Built in |
+| --- | --- | --- | --- |
+| `/` | **Graph home** — full-bleed canvas + overlays | Route (client canvas island) | U3 |
+| ↳ on `/` | Node modal, Explore results, Capture / diff-skim, Onboarding, Deepen backlog | **Overlays** (client / intercepting routes) — **not** separate routes | U3–U5 |
+| `/generate` | Adapter picker (hamburger target) | Route | U6 (thin) → U-F |
+| `/adapters/[kind]` | Adapter workspace (resume, interview, app Q) | Route (+ mini-graph peek) | U-F |
+| `/settings` | Account, connectors, export, hard-delete | Route (via profile menu) | U2 (auth/connectors) → U-E |
+| `/login` (in `(auth)`) | Sign in | Route | U2 |
+| `/auth/callback` | Supabase code exchange | Route handler | U2 |
+| `/api/*` | Backend API (`health`, `meta` now; `captures`, `proposals`, `graph`, `extract` later) | Route handlers | U1 → U5 |
+
+Explore and Capture are deliberately **not** routes (Explore "is not a separate Explore app"; both float over the visible graph). Don't scaffold `/explore` or `/capture` pages.
+
 ### Graph home — composition (contract)
 
 The homepage of the app. **The graph canvas is the entire background.** Every control and info surface **sits on top of** that canvas (no chrome “frame” that owns layout outside the graph).
@@ -333,6 +350,7 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
 
 ## Changelog
 
+- **2026-07-20:** Added **§ Route map (Next App Router)** — URL ↔ surface mapping; marks Explore/Capture/Node-modal/Onboarding/Deepen as **overlays on `/`**, not routes. Placeholder route segments scaffolded in `src/app/` (`/settings`, `/generate`, `/adapters/[kind]`, `(auth)/login`) to pin naming.
 - **2026-07-15:** Filter/ask canvas cue = **highlight** (accent); dim non-matches deferred (brand).
 - **2026-07-15:** Filters clarified — facet **values** (specific skill/person/org + kind), not type toggles onto canvas.
 - **2026-07-15:** Graph-home chrome from founder sketch — full-bleed canvas; bottom liquid-glass ask; filter button (not chips); graph settings; top-left brand + hamburger adapters; top-right Capture+/mic, deepen badge, theme, profile; floating right panels; circular force settle; node modal header image + straddling title.

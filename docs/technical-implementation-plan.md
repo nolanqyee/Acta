@@ -228,16 +228,18 @@ Acta/                    # existing repo root (git) = the Next app; one Vercel d
   src/
     app/
       layout.tsx         # root layout; imports styles/tokens.css once
-      page.tsx           # Graph home shell (client canvas island)
-      (auth)/            # login + auth callback route (U2)
-      graph/             # canvas surfaces ('use client')
-      capture/           # composer + diff-skim
+      page.tsx           # Graph home shell (client canvas island; U1 health shell for now)
+      (auth)/login/      # sign in (placeholder → U2); /auth/callback route handler at U2
+      settings/          # account, connectors, export (placeholder → U2/U-E)
+      generate/          # adapter picker (placeholder → U6/U-F)
+      adapters/[kind]/   # adapter workspace (placeholder → U-F)
       api/               # route handlers — the API
         health/route.ts  meta/route.ts   # (U1)
         captures/  proposals/  graph/  extract/   # (U2–U5)
+    components/          # shared UI (e.g. placeholder-surface)
     features/
-      graph/             # force canvas, physics settings, pending overlays
-      capture/           # composer + diff-skim panel
+      graph/             # force canvas, physics settings, pending overlays (client, on `/`)
+      capture/           # composer + diff-skim panel (overlay on `/`, not a route)
     lib/
       contracts/         # shared Zod + types (folded from @acta/contracts)
       supabase/          # server.ts (service-role + user-scoped) / client.ts (anon)
@@ -248,6 +250,8 @@ Acta/                    # existing repo root (git) = the Next app; one Vercel d
       merge/             # confirm merge
     styles/tokens.css    # design tokens — single source of truth
 ```
+
+Route map (URL ↔ surface, incl. which surfaces are overlays vs routes) lives in [`surfaces-and-flows.md`](surfaces-and-flows.md) § Route map.
 
 Implementers may adjust folders; contract ownership and the `server-only` boundary must stay clear. There is **one deploy**; the security boundary is the server/client split — client-imported modules must never pull in secrets or `src/server/*`.
 
