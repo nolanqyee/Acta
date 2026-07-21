@@ -5,7 +5,7 @@
   "description": "Acta — personal evidence graph. Single Next.js (App Router) app: UI + route-handler API in one deploy; server-only secrets.",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "next dev",

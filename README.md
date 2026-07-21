@@ -26,7 +26,7 @@ Planning docs live in [`docs/`](docs/). Building-plan units are **U-A…U-J** (s
 
 ## Getting started
 
-**Prerequisites:** Node 20+, and (for the local database) [Docker](https://docs.docker.com/get-docker/) + the [Supabase CLI](https://supabase.com/docs/guides/local-development).
+**Prerequisites:** Node 22+ (`.nvmrc` pins it — run `nvm use`; `@supabase/supabase-js` requires the native `WebSocket` that lands in Node 22), and (for the local database) [Docker](https://docs.docker.com/get-docker/) + the [Supabase CLI](https://supabase.com/docs/guides/local-development).
 
 ```bash
 npm install
