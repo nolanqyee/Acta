@@ -1,0 +1,20 @@
+# Acta local Supabase config, used by the CLI for the LOCAL Docker stack
+# (`supabase start` / `supabase db reset`) — option (a): test migrations locally
+# before they merge. The hosted `acta-dev` project is configured in the
+# dashboard; the GitHub integration applies `supabase/migrations/*` on merge to
+# main. Keep this minimal — most fields fall back to CLI defaults.
+
+project_id = "acta"
+
+[db]
+# Match the hosted project's Postgres major version so local ≈ remote.
+major_version = 17
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+
+[auth.email]
+enable_signup = true
+# Local dev convenience: don't require email confirmation on the local stack.
+enable_confirmations = false
