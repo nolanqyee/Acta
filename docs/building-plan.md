@@ -53,7 +53,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | Brand / visual (**U-A**) | **Look locked** — [`brand-design-system.md`](brand-design-system.md) + [`src/styles/tokens.css`](../src/styles/tokens.css); motion/a11y trail |
 | Tech implementation plan (**U-J**) | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 | Persistence / auth (**U-E**) | **In first build wave** — thin Supabase Auth/Postgres + proposals from U-J U2; extras (export, connectors) still queued |
-| Code | **U-J U1 shipped** — single Next.js app at repo root (health shell + `/api/health` + `/api/meta`, contracts in `src/lib/contracts`). Next = U2 (Supabase Auth + schema + RLS) |
+| Code | **U-J U2 shipped** — Supabase Auth (magic link) + graph/proposals migrations + RLS + `getClaims()` proxy gate + rate limiting, on top of U1's single Next.js app. Next = U3 (graph bootstrap + force canvas) |
 
 **Docs layout:** planning specs under `docs/`; tokens under `styles/`. Building-plan units **U-A…U-J**.
 
@@ -193,12 +193,13 @@ Practical order: **implement U-J milestones U1–U5** → Explore polish / thin 
 | U-J Technical implementation plan | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 
 Data model: **v1 draft locked** in `data-model.md`.  
-Code: **U-J U1 shipped** — single Next.js app at repo root. Next = U-J U2 (Supabase Auth + schema + RLS).
+Code: **U-J U2 shipped** — Supabase Auth (magic link) + migrations + RLS + proxy session gate + rate limiting. Next = U-J U3 (graph bootstrap + force canvas).
 
 ---
 
 ## Changelog
 
+- **2026-07-21:** **U-J U2 shipped** — thin Supabase Auth (magic link) + graph/proposals migrations + RLS on all user tables + Next 16 `proxy.ts` session gate (`getClaims()` local JWKS verify) + dual clients + in-process rate limiting. Migrations deploy to `acta-dev` via the Supabase GitHub integration on merge to `main`. See technical-implementation-plan U2 + changelog. Next = **U-J U3** (graph bootstrap + force canvas).
 - **2026-07-20:** **FE stack reversed to Next.js; U1 re-shipped as one app.** Dropped the interim Vite SPA + Hono API for a single Next.js (App Router) app at repo root (UI + route-handler API, one Vercel deploy). `acta-web`/`acta-api` retired; `@acta/contracts` folded into `src/lib/contracts`; tokens SoT → `src/styles/tokens.css`. See technical-implementation-plan KTD1/KTD2 + changelog for full rationale (founder velocity on Next/Vercel, httpOnly-cookie auth, integrated deploy).
 - **2026-07-20:** **U-J U1 scaffold shipped** — npm workspaces + `@acta/contracts` (ported Zod domain) + Hono/Vite health shells. Design-token SoT moved into `src/styles/tokens.css`; repo-root `styles/` folder removed.
 - **2026-07-17:** **Repo structure decision** — build in **one repo** (this `Acta` repo) with `acta-web` / `acta-api` / `acta-contracts` workspace subfolders and `docs/` at root, instead of separate FE/BE repos. FE/BE still deploy to separate hosts (secrets backend-only). U-J updated to match; JSDoc doc-comment convention added (mirrored into code subfolders at U1).
