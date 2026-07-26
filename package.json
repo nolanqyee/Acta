@@ -2,7 +2,7 @@
   "name": "acta",
   "version": "0.0.0",
   "private": true,
-  "description": "Acta \u2014 personal evidence graph. Single Next.js (App Router) app: UI + route-handler API in one deploy; server-only secrets.",
+  "description": "Acta — personal evidence graph. Single Next.js (App Router) app: UI + route-handler API in one deploy; server-only secrets.",
   "type": "module",
   "engines": {
     "node": ">=22"
