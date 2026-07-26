@@ -88,6 +88,34 @@ Live: `.github/workflows/ci.yml` runs `npm ci`, `npm run check`, and
 green** (branch is also required to be up to date with `main`). Still run
 `npm run check && npm run build` locally first so you don't burn a CI cycle.
 
+### The lock file has a trap on macOS
+
+`npm install` on an Apple-silicon Mac **silently deletes** `@emnapi/core` and
+`@emnapi/runtime` from `package-lock.json`. They are dependencies of
+`@img/sharp-wasm32` (an optional `sharp` package that Next pulls in), which is
+`cpu: wasm32` and therefore never installed locally — so npm decides its
+dependencies are unreachable and prunes them. CI runs on Linux, where they *are*
+required, and `npm ci` then fails before a single test runs:
+
+```
+npm error `npm ci` can only install packages when your package.json and
+npm error package-lock.json ... are in sync.
+npm error Missing: @emnapi/runtime@… from lock file
+```
+
+`npm install --package-lock-only`, `--include=optional` and `--os=linux --cpu=x64`
+all prune it too; regenerating the lock from scratch does not help either.
+
+**After any `npm install`, before committing:**
+
+```bash
+grep -c '"node_modules/@emnapi/runtime"' package-lock.json   # must be 1, not 0
+npm ci                                                        # must exit 0
+```
+
+If it is 0, restore the two `node_modules/@emnapi/*` blocks from `main`'s copy of
+the lock (`git show main:package-lock.json`) and re-run `npm ci` to confirm.
+
 ### `main` branch protection
 
 - Changes land via PR only — no direct pushes.

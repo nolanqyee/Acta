@@ -48,7 +48,13 @@ export function rateLimit(
   if (!existing || now >= existing.resetAt) {
     const resetAt = now + windowMs;
     buckets.set(key, { count: 1, resetAt });
-    return { ok: true, limit, remaining: limit - 1, resetAt, retryAfterSeconds: 0 };
+    return {
+      ok: true,
+      limit,
+      remaining: limit - 1,
+      resetAt,
+      retryAfterSeconds: 0,
+    };
   }
 
   existing.count += 1;

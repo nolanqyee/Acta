@@ -1,6 +1,6 @@
 # Acta — Brand & Design System
 
-Last updated: 2026-07-15
+Last updated: 2026-07-25
 
 **Owns:** brand foundation + UI visual system for building-plan **U-A** — name lore, personality, tokens (color/type/space/motion), composition principles, graph-chrome language, do/don’t. Enough that Graph home (and later surfaces) share one look without inventing a new aesthetic per screen.
 
@@ -176,6 +176,8 @@ Canvas rule of thumb: **structure on the plane, substance on hover** (hover card
 | Danger / discard | **Locked** | `--state-danger` | light `#c4473a` · dark `#e07070` | Diff-skim **Discard** — semantic pair |
 | Endeavor node fill | **Locked** | `--node` | light `#6b6560` · dark `#c8c8c8` | Canvas nodes at rest |
 | Edge / link | **Locked** | `--edge` | light ~12% text · dark ~9% white | Subtle |
+| Edge / link (hovered subgraph) | **Lean** (added in U-J U3) | `--edge-strong` | light ~30% text · dark ~24% white | The hovered node's own links, repainted above the lattice. Still hairline, still neutral — a step out of the weave, not a colour change |
+| Ink on accent fill | **Lean** (added in U-J U3) | `--accent-contrast` | `#ffffff` | Text/icons on an accent fill (states the §5 a11y note as a token instead of leaving it to each component) |
 | Explore / filter highlight | **Locked** | `--highlight` | accent family | Matching endeavors |
 | Glass fill (heavy) | **Locked** | `--glass` + `--glass-blur: 30px` | ~55% elevated + heavy blur | Ask, controls, hover, modal, floating panel |
 | Focus ring | **Locked** | `--focus-ring` | accent | Keyboard focus |
@@ -443,16 +445,22 @@ Shared language: ask bar and filter menu both drive **highlight** the same way.
 
 | Token group | CSS variables | Where applied first |
 | --- | --- | --- |
-| Color | `--bg-*`, `--text*`, `--accent*`, `--state-*`, `--node`, `--edge`, `--highlight*`, `--glass*` | Graph home + shell; `html[data-mode]` + `prefers-color-scheme` |
-| Type | `--font-display`, `--font-ui`, `--text-*`, `--font-weight-*` | Shell + modal (load Charis + Figtree at bootstrap) |
+| Color | `--bg-*`, `--text*`, `--accent*`, `--state-*`, `--node`, `--edge*`, `--highlight*`, `--glass*` | Graph home + shell; `html[data-mode]` + `prefers-color-scheme` |
+| Type | `--font-display`, `--font-ui`, `--text-*`, `--font-weight-*` | Shell + modal (Charis SIL + Figtree loaded via `next/font`, which sets `--font-*-loaded`; the literal family name stays as the fallback) |
 | Space / shape | `--space-*`, `--radius-*`, `--ctl-size`, `--panel-width`, `--modal-max-width` | Overlays, modal |
 | Motion | `--duration*`, `--ease-out` | Placeholders — feel deferred to build |
 | Helpers | `.acta-glass`, `.acta-focus-ring`, `.acta-node-pending` | Optional class hooks |
 
+**Canvas note (U-J U3):** the `<canvas>` cannot read CSS variables — a canvas `font`
+or `fillStyle` containing `var()` is invalid and silently falls back. Tokens are
+therefore resolved to computed values once per theme via an offscreen probe
+(`src/features/graph/canvas-palette.ts`) and handed to the paint functions, so the
+canvas still has exactly one source of truth for colour and type.
+
 **Open**
 
 - [x] Canonical token file checked in
-- [~] Wire fonts + import tokens in greenfield app — after **U-J**
+- [x] Wire fonts + import tokens in the app — done in **U-J U3** (`next/font` in the root layout; tokens imported once)
 
 ---
 
@@ -512,6 +520,7 @@ Shared language: ask bar and filter menu both drive **highlight** the same way.
 
 ## Changelog
 
+- **2026-07-25:** **U-A first wired in code (U-J U3).** Fonts now load via `next/font` (`--font-display-loaded` / `--font-ui-loaded`, literal family as fallback); tokens imported once in the root layout; theme is `html[data-mode]` with a blocking boot script so a dark-mode user never sees a paper-white flash. Two tokens added: **`--edge-strong`** (hovered subgraph — still hairline/neutral) and **`--accent-contrast`** (ink on accent fills, promoting the §5 a11y note to a token). Canvas colour/type is resolved from tokens at runtime rather than duplicated (see §13 canvas note). Interpreted where the doc was silent, all reversible: hover lifts a node and its neighbours (neighbour = smallest step, hover = largest) with **no dimming** — consistent with the deferred dim decision; node radius scales with degree so hubs read as hubs; labels get a canvas-coloured halo so edges passing behind stay legible.
 - **2026-07-20:** **Stack reversed to Next.js (single app).** U-J flipped from Vite SPA + Hono API to one Next.js app at repo root (see technical-implementation-plan KTD2). Tokens SoT moved from `acta-web/src/styles/tokens.css` → [`src/styles/tokens.css`](../src/styles/tokens.css), imported once in the Next root layout; all references repointed. Look/tokens unchanged.
 - **2026-07-20:** Token code reference now lives **only** at [`src/styles/tokens.css`](../src/styles/tokens.css) — the repo-root `styles/` folder was removed when U-J U1 scaffolded the frontend. All token references repointed there.
 - **2026-07-15:** Removed Next.js prototype scaffold; tokens moved to [`src/styles/tokens.css`](../src/styles/tokens.css). U-A look locked; motion/a11y/app wire deferred.

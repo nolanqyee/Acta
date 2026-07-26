@@ -1,10 +1,10 @@
 # Acta — Surfaces & Core Flows
 
-Last updated: 2026-07-15
+Last updated: 2026-07-26
 
 **Owns:** information architecture (primary surfaces) and end-to-end interaction flows at contract altitude — not pixels, brand tokens, or full adapter editor design.
 
-Companions: [`personal-evidence-graph.md`](personal-evidence-graph.md) (product), [`data-model.md`](data-model.md) (schema), [`agent-interaction-model.md`](agent-interaction-model.md) (write policy), [`building-plan.md`](building-plan.md) (roadmap), [`brand-design-system.md`](brand-design-system.md) (visual).
+Companions: [`personal-evidence-graph.md`](personal-evidence-graph.md) (product), [`data-model.md`](data-model.md) (schema), [`agent-interaction-model.md`](agent-interaction-model.md) (write policy), [`building-plan.md`](building-plan.md) (roadmap), [`graph-canvas.md`](graph-canvas.md) (the live canvas spec).
 
 Status: **v1 locked** for capture+render build (**U-B** + **U-C**). Graph-home chrome revised 2026-07-15 from founder sketch (full-bleed canvas + overlay controls).
 
@@ -77,7 +77,7 @@ The homepage of the app. **The graph canvas is the entire background.** Every co
 
 #### Top-left chrome — brand + adapters
 
-9. **Logo + wordmark** — top left. Mark candidates: **stylistic A** or a **3-point star** rotated ~190° so one point sits at the bottom (open brand choice — see [`brand-design-system.md`](brand-design-system.md)).
+9. **Logo + wordmark** — top left. Mark candidates: **stylistic A** or a **3-point star** rotated ~190° so one point sits at the bottom (open brand choice — see [`archive/brand-design-system.md`](archive/brand-design-system.md)).
 10. **Hamburger (under brand)** — expands **adapter selection** menu.
     - **Hover:** menu opens while pointer stays within the expansion; leave → closes.
     - **Click:** menu **stays open** until dismissed / navigated.
@@ -350,6 +350,19 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
 
 ## Changelog
 
+- **2026-07-26:** **The chrome described here is currently unbuilt — on purpose.** The
+  first Graph-home implementation shipped every surface below in one pass and none of
+  them landed well; the canvas was rebuilt from scratch and the chrome was deleted with
+  it (see [`graph-canvas.md`](graph-canvas.md)). **This doc remains the intended IA** —
+  what surfaces exist, what they're for, how they relate — and each one gets built and
+  reviewed as its own slice on top of a canvas that reads well. Two specifics that need
+  rework when their slice comes up: the **node modal's straddling title** (the title was
+  painted under the header image, so the image covered it — the overlap needs an
+  explicit stacking context, or the pattern needs replacing), and **liquid-glass
+  translucency**, which made text unreadable over the live graph and is shelved in
+  favour of opaque surfaces until the visual system is rebuilt from working screens.
+- **2026-07-25:** **Graph home built (U-J U3)** — *(superseded 2026-07-26; the code
+  described here has been removed)* — the locked chrome now exists in code (`src/features/graph`): full-bleed canvas, bottom ask + filter menu + graph settings, top-left brand/adapters hamburger, top-right capture/deepen/theme/profile, hover card, node modal, floating right panels with CoG shift, quiet empty state. Two additions to this doc's surfaces, both deliberately small: the **empty state offers a "Preview a sample graph" escape hatch** (clearly labelled unsaved) so layout can be dogfooded before Extract exists, and a **sample-graph notice** replaces it while previewing. The **Explore panel currently lists substring matches** rather than ranked hits, and the **deepen backlog uses a placeholder thinness heuristic** — both labelled in-product so no one mistakes them for the real Explore/Deepen agents. Mic in the capture control is present but disabled (voice is out of scope for now).
 - **2026-07-20:** Added **§ Route map (Next App Router)** — URL ↔ surface mapping; marks Explore/Capture/Node-modal/Onboarding/Deepen as **overlays on `/`**, not routes. Placeholder route segments scaffolded in `src/app/` (`/settings`, `/generate`, `/adapters/[kind]`, `(auth)/login`) to pin naming.
 - **2026-07-15:** Filter/ask canvas cue = **highlight** (accent); dim non-matches deferred (brand).
 - **2026-07-15:** Filters clarified — facet **values** (specific skill/person/org + kind), not type toggles onto canvas.

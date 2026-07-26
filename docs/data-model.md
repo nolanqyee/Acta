@@ -1,6 +1,6 @@
 # Acta — Data Model Spec
 
-Last updated: 2026-07-15
+Last updated: 2026-07-26
 
 Product: **Acta** — personal evidence graph. Companion to [`personal-evidence-graph.md`](personal-evidence-graph.md) (product spec) and [`surfaces-and-flows.md`](surfaces-and-flows.md) (Graph UI). **This doc owns schema, entity types, edges, provenance, extraction contracts, and how adapters/agents consume the graph.** Product decisions that depend on the model should link here rather than inventing schema in the product doc.
 
@@ -538,6 +538,50 @@ Same stored graph; different renderings / filters. Spec-level capability — lay
 | **Provenance** | Capture → extracted entities | `sourced_from_capture` | Usually not primary canvas |
 | **Story map** | Stories → sources; highlight-on-tailor | `about` / `derived_from` | Highlight Endeavors |
 
+### Canvas snapshot (implemented in U-J U3)
+
+The canvas reads one **derived, read-only projection** — not the stored graph
+directly. Contract: `GraphSnapshot` in
+[`src/lib/contracts/graph.ts`](../src/lib/contracts/graph.ts); row reading in
+[`src/server/graph/project-graph.ts`](../src/server/graph/project-graph.ts); the
+link-shaping rules in
+[`src/lib/graph/derive-endeavor-links.ts`](../src/lib/graph/derive-endeavor-links.ts),
+which is deliberately isomorphic so the client sample graph derives links through the
+exact same rule the server uses.
+
+- **Nodes** = Endeavors only, each carrying its facet *names* (skills / people /
+ orgs) inline, so filters and hover cards need no extra round trip. A node also
+ carries `state: "committed" | "pending"` — pending is how U4's proposal ghosts
+ will arrive without a second canvas contract.
+- **Links** = endeavor↔endeavor only, and **undirected for drawing purposes**. Three
+ sources: stored `part_of` / `related_to` edges, a soft `primary_parent_id`
+ (structure even without a materialized edge), and **shared facets** — two
+ endeavors that used the same skill, involved the same person, or sat at the same
+ org.
+- **Relation weight** (spring emphasis, 0–1): `part_of` 1.0 > `related_to` 0.7 >
+ `shared_org` 0.5 > `shared_person` 0.4 > `shared_skill` 0.3. One pair draws once —
+ the strongest relation wins.
+- **Three anti-crossing rules** (serving [`graph-canvas.md`](graph-canvas.md), not
+ the data model, and all tunable projection options rather than stored facts):
+ - A facet shared by *k* endeavors becomes a **star** — one hub, k−1 spokes — never
+   a clique (k(k−1)/2 edges is an instant crossing storm) and never a chain (same
+   edge count, but wired in arbitrary order it snakes across the plane). Spokes of a
+   star share an endpoint, so they cannot cross each other. The hub is whichever
+   member already **contains** the most others, so an org group usually collapses
+   onto the role it belongs to and adds no new edges at all.
+ - Each endeavor keeps at most **2 derived facet links**, strongest relation first.
+   Containment is never capped. Every derived link is a bridge across the plane, and
+   bridges are what crossings are made of; the *complete* facet story stays on the
+   node, the hover card, and the filter menu, where it's readable.
+ - A facet shared by more than **8** endeavors is dropped as a hub (a "Python" on
+   everything says nothing about structure).
+- Rows whose `kind`/`status` fall outside the current contract are **skipped**, and
+ non-conforming `timeframe`/`application_tags` jsonb degrades to empty rather than
+ failing the snapshot: one odd row must never blank a user's canvas.
+
+Ordering is deterministic (nodes and links sorted by id) so an unchanged graph
+projects identically on every read.
+
 ---
 
 ## Capture → extract contract
@@ -729,6 +773,8 @@ User attaches `audio` demo walkthrough to a tech `role`. Kind profile did not su
 
 ## Changelog
 
+- **2026-07-26:** **Facet links reshaped for legibility** (§ Canvas snapshot) — a shared facet now radiates from **one hub** instead of chaining through its members in arbitrary order, and each endeavor keeps at most **two** derived facet links (containment is never capped). Both are layout rules, not model changes: uncapped chained bridges were the main source of edge crossings on the canvas. The derivation moved to an isomorphic module so the client sample graph and the server projection share one rule. Stored model unchanged.
+- **2026-07-25:** **Canvas snapshot projection documented** (§ Graph view projections) — the first read contract built in code (U-J U3): Endeavors-only nodes with inline facet names + a `committed`/`pending` state, endeavor↔endeavor links derived from `part_of` / `related_to` / `primary_parent_id` / shared facets, and a weight per relation (`part_of` 1.0 → `shared_skill` 0.3). Two projection rules added to stop crossing storms — shared facets chain rather than clique, and facets shared by 8+ endeavors are dropped as hubs. Stored model unchanged; this is derived-read-only.
 - **2026-07-15:** ExtractProposal **persistence lean** added (physical table + statuses); points at U-J for state machine.
 - **2026-07-14:** Product brand → **Acta** (working name; see product spec Naming).
 - **2026-07-13:** Aligned with surfaces IA — Graph-home canvas draws **Endeavors only**; Skills/People/Orgs remain stored entities but are not canvas physics nodes (orgs redundant with role/education + `at_org`); skill/people/org “projections” = filter/highlight endeavors.

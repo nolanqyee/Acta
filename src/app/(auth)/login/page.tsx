@@ -77,8 +77,7 @@ export default function LoginPage() {
 
         {status === "sent" ? (
           <p style={{ color: "var(--text-muted)", fontSize: "var(--text-ui)" }}>
-            Check your inbox — we sent a magic link to{" "}
-            <strong>{email}</strong>.
+            Check your inbox — we sent a magic link to <strong>{email}</strong>.
           </p>
         ) : (
           <form
@@ -105,9 +104,9 @@ export default function LoginPage() {
               autoComplete="email"
               style={{
                 padding: "var(--space-2)",
-                borderRadius: "var(--radius-sm)",
-                border: "1px solid var(--border)",
-                background: "var(--bg-surface)",
+                borderRadius: "var(--radius-soft)",
+                border: 0,
+                background: "var(--bg-elevated)",
                 color: "var(--text)",
                 fontSize: "var(--text-ui)",
               }}
@@ -117,7 +116,7 @@ export default function LoginPage() {
               disabled={status === "sending"}
               style={{
                 padding: "var(--space-2)",
-                borderRadius: "var(--radius-sm)",
+                borderRadius: "var(--radius-soft)",
                 border: "none",
                 background: "var(--accent)",
                 color: "var(--accent-contrast)",
@@ -130,7 +129,10 @@ export default function LoginPage() {
             {status === "error" && error ? (
               <p
                 role="alert"
-                style={{ color: "var(--danger)", fontSize: "var(--text-label)" }}
+                style={{
+                  color: "var(--state-danger-text)",
+                  fontSize: "var(--text-label)",
+                }}
               >
                 {error}
               </p>

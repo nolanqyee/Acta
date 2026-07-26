@@ -20,3 +20,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# Ad-hoc canvas review screenshots — never committed
+.screenshots/

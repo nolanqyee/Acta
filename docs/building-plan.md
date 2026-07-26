@@ -1,6 +1,6 @@
 # Acta — Building Plan
 
-Last updated: 2026-07-17
+Last updated: 2026-07-26
 
 Overarching **build** roadmap (not business/GTM). Companion to:
 
@@ -10,7 +10,8 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | [`data-model.md`](data-model.md) | Schema, edges, extract/provenance contracts |
 | [`surfaces-and-flows.md`](surfaces-and-flows.md) | IA / surfaces + core interaction flows |
 | [`agent-interaction-model.md`](agent-interaction-model.md) | Agents, confirm vs auto, pending proposals, write policy |
-| [`brand-design-system.md`](brand-design-system.md) | Brand + visual system (**U-A**) |
+| [`graph-canvas.md`](graph-canvas.md) | The live canvas spec (requirements + how we work on the graph) |
+| [`archive/`](archive/) | Superseded design docs — reasoning kept, specifics not canon |
 | [`technical-implementation-plan.md`](technical-implementation-plan.md) | **HOW** to implement locked plan docs (**U-J** — locked) |
 | **This doc** | What to harden next: brand, IA, flows, agents, tech plan, auth |
 
@@ -50,10 +51,10 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | Data model | **v1 draft locked** — [`data-model.md`](data-model.md) |
 | IA + core flows (**U-B** + **U-C**) | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | Agent write policy (**U-D**) | **Locked** — [`agent-interaction-model.md`](agent-interaction-model.md) |
-| Brand / visual (**U-A**) | **Look locked** — [`brand-design-system.md`](brand-design-system.md) + [`src/styles/tokens.css`](../src/styles/tokens.css); motion/a11y trail |
+| Brand / visual (**U-A**) | **Unlocked again (2026-07-26)** — the up-front visual system was archived to [`archive/brand-design-system.md`](archive/brand-design-system.md); tokens stay in [`src/styles/tokens.css`](../src/styles/tokens.css) and the system gets rebuilt from working screens |
 | Tech implementation plan (**U-J**) | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 | Persistence / auth (**U-E**) | **In first build wave** — thin Supabase Auth/Postgres + proposals from U-J U2; extras (export, connectors) still queued |
-| Code | **U-J U2 shipped** — Supabase Auth (magic link) + graph/proposals migrations + RLS + `getClaims()` proxy gate + rate limiting, on top of U1's single Next.js app. Next = U3 (graph bootstrap + force canvas) |
+| Code | **U-J U3 shipped** — Graph home canvas + chrome on top of U2's auth/schema: `GET /api/graph` → cluster-seeded force canvas of confirmed endeavors, ask + filter + graph-settings, hover card, node modal, floating panels, quiet empty state, light/dark theming. Next = U4 (Capture + LLM Extract stream) |
 
 **Docs layout:** planning specs under `docs/`; tokens under `styles/`. Building-plan units **U-A…U-J**.
 
@@ -108,7 +109,7 @@ Monetization, GTM, domain/legal, B2B/coach-share, essay adapters, voice, kitchen
 
 ### U-A. Brand & visual system — **done (look locked)**
 
-**Deliverable:** [`brand-design-system.md`](brand-design-system.md) + [`src/styles/tokens.css`](../src/styles/tokens.css) — brand + UI foundation (tokens, type, color, graph chrome, do/don’t). HTML decision/mock tools under `docs/`.
+**Deliverable:** [`archive/brand-design-system.md`](archive/brand-design-system.md) (archived) + [`src/styles/tokens.css`](../src/styles/tokens.css) — brand + UI foundation (tokens, type, color, graph chrome, do/don’t). HTML decision/mock tools under `docs/`.
 
 **Name (locked for now):** **Acta** — Latin *acta* (deeds / record of what was done). Supersedes Stilva. Domain TBD.
 
@@ -193,12 +194,15 @@ Practical order: **implement U-J milestones U1–U5** → Explore polish / thin 
 | U-J Technical implementation plan | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 
 Data model: **v1 draft locked** in `data-model.md`.  
-Code: **U-J U2 shipped** — Supabase Auth (magic link) + migrations + RLS + proxy session gate + rate limiting. Next = U-J U3 (graph bootstrap + force canvas).
+Code: **U-J U3 rebuilt, canvas-first** — the graph now runs on our own `d3-force` + `<canvas>` + `requestAnimationFrame` loop (see [`graph-canvas.md`](graph-canvas.md)); the first attempt's chrome was deleted and returns one reviewed slice at a time. Next slice = node selection + detail, then U-J U4 (Capture + Extract stream).
 
 ---
 
 ## Changelog
 
+- **2026-07-26 (later):** **U-J U3 graph scrapped and rebuilt — and the way we build front end changed with it.** The retuned canvas measured well and still looked wrong on screen, which was the tell: the physics ran inside `react-force-graph-2d`, so the simulation loop, zoom transform, drag handling and redraw scheduling — the four things every requirement actually depends on — were not ours to shape. The wrapper is gone; simulation, camera, renderer and input are now our own modules, and the whole first-attempt UI (chrome, hover cards, node modal, floating panels) was deleted rather than carried forward. Three durable changes: (1) **captions are gated on measured clear space**, so overview views are quiet and zooming in reveals names, instead of a zoom threshold guessing at it; (2) **the canvas is reviewed by looking at it** — a dev-only `/lab/graph` workbench with URL-settable forces plus two Playwright scripts (`npm run shots`, `npm run shots:compare`) that shoot fit/zoom/drag states and stitch candidate settings into contact sheets; (3) **the shape test measures the real engine** rather than a re-implementation, so it can no longer pass while the screen is wrong. Measured: aspect ratio 1.00–1.06 from 19 to 400 nodes, 109–127 fps including mid-drag. The up-front visual system and physics doctrine moved to [`archive/`](archive/) — front-end intent is now written as checkable requirements and built in slices (see [`AGENTS.md`](../AGENTS.md) § Front-end working agreement). Data model, surfaces/flows and the agent model were unaffected and remain canon.
+- **2026-07-26:** **U-J U3 layout corrected — the graph reads calm now.** The first U3 canvas violated the two things the physics doc exists to protect (circular settle, few crossings): it had **no cohesion force at all** (d3's `forceCenter` only recentres a centroid), unbounded repulsion that inflated the graph into strings, shared facets wired as arbitrarily ordered **chains**, and cluster centres seeded around the ring alphabetically so every cross-cluster link cut through the middle. All four are fixed, defaults retuned, and — the durable part — the qualities are now **measured** in a headless simulation test rather than judged by screenshot, on the sample graph plus a denser synthetic one. The sample graph settles with **zero crossings** in a square-ish frame. Link derivation is now one isomorphic rule shared by the server projection and the sample fixture. See graph-physics + data-model + technical-implementation-plan changelogs. Next = **U-J U4** (Capture + Extract stream).
+- **2026-07-25:** **U-J U3 shipped — Graph home is real.** Confirmed endeavors render on a full-bleed `react-force-graph-2d` canvas fed by `GET /api/graph`; cluster-seeded pre-warm lands the layout settled; the locked chrome (bottom ask + filter menu + graph settings, top-left adapters hamburger, top-right capture/deepen/theme/profile, hover cards, centered node modal, floating right panels, quiet empty state) is built against U-A tokens. This is the first unit where **U-A, U-B and the graph-physics doctrine are exercised in code** — three docs gained interim answers rather than new locks: highlight-only (no dim), drag-release rejoins the simulation, and a containment root clusters with its own children. Facets (skills/people/orgs) stay data: they project into weighted endeavor↔endeavor links instead of becoming nodes. NL ask ranking, the real deepen signal, and the capture composer are labelled in-product as pending their own units. See technical-implementation-plan U3 + brand-design-system §13 + graph-physics changelogs. Next = **U-J U4** (Capture + Extract stream).
 - **2026-07-21:** **U-J U2 shipped** — thin Supabase Auth (magic link) + graph/proposals migrations + RLS on all user tables + Next 16 `proxy.ts` session gate (`getClaims()` local JWKS verify) + dual clients + in-process rate limiting. Migrations deploy to `acta-dev` via the Supabase GitHub integration on merge to `main`. See technical-implementation-plan U2 + changelog. Next = **U-J U3** (graph bootstrap + force canvas).
 - **2026-07-20:** **FE stack reversed to Next.js; U1 re-shipped as one app.** Dropped the interim Vite SPA + Hono API for a single Next.js (App Router) app at repo root (UI + route-handler API, one Vercel deploy). `acta-web`/`acta-api` retired; `@acta/contracts` folded into `src/lib/contracts`; tokens SoT → `src/styles/tokens.css`. See technical-implementation-plan KTD1/KTD2 + changelog for full rationale (founder velocity on Next/Vercel, httpOnly-cookie auth, integrated deploy).
 - **2026-07-20:** **U-J U1 scaffold shipped** — npm workspaces + `@acta/contracts` (ported Zod domain) + Hono/Vite health shells. Design-token SoT moved into `src/styles/tokens.css`; repo-root `styles/` folder removed.
@@ -206,7 +210,7 @@ Code: **U-J U2 shipped** — Supabase Auth (magic link) + migrations + RLS + pro
 - **2026-07-15:** **U-J locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md). Polyrepo FE/BE; thin Supabase + real LLM in first slice. Next = implement capture+render.
 - **2026-07-15:** **U-A look locked**; Next prototype removed; tokens at `src/styles/tokens.css`. **Next = U-J**.
 - **2026-07-15:** Graph-home chrome aligned to founder sketch (full-bleed canvas, bottom ask, floating panels, hamburger adapters). See [`surfaces-and-flows.md`](surfaces-and-flows.md).
-- **2026-07-14:** Working brand → **Acta**. U-A scaffold → [`brand-design-system.md`](brand-design-system.md). Name locked; visual sections open. Then U-J → capture+render → U-E.
+- **2026-07-14:** Working brand → **Acta**. U-A scaffold → [`archive/brand-design-system.md`](archive/brand-design-system.md). Name locked; visual sections open. Then U-J → capture+render → U-E.
 - **2026-07-13:** **U-D locked.** Added **U-J** technical implementation plan (HOW for locked plan docs). Next = **U-A**, then U-J, then capture+render → U-E.
 - **2026-07-13:** Status snapshot — U-B/U-C locked; U-D co-design; units **U-A…U-I**.
 - **2026-07-13:** Building-plan units renamed to **U-A…U-I** (doc/agent convention). Thin adapter citation UX owned by U-D; rich provenance remains U-G.

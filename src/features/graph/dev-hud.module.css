@@ -1,0 +1,75 @@
+/**
+ * Styles for the development physics panel. Opaque on purpose (see dev-hud.tsx):
+ * nothing translucent sits over the live graph while we're judging it.
+ */
+
+.panel {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 10;
+  display: flex;
+  width: 230px;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--edge-strong);
+  border-radius: var(--radius-panel);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-soft);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 11px;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.stat {
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--text-muted);
+}
+
+.value {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.control input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.reset {
+  padding: 6px 8px;
+  border: 1px solid var(--edge-strong);
+  border-radius: var(--radius-ctl);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.reset:hover {
+  color: var(--text);
+}
