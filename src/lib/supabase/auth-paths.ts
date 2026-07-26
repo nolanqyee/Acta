@@ -30,6 +30,29 @@ export function isPublicPath(pathname: string): boolean {
   );
 }
 
+/**
+ * Paths reachable without a session **only outside production**.
+ *
+ * `/lab/*` holds front-end workbenches that render fixtures and touch no user data
+ * (see `src/app/lab/graph`). They are open in development so a browser — or a
+ * screenshot script — can look at the canvas without a magic-link round trip. The
+ * routes themselves also 404 in production, so this allowance can't expose anything
+ * on its own.
+ */
+export const DEV_ONLY_PUBLIC_PATHS = ["/lab"] as const;
+
+/**
+ * Whether a pathname is one of the development-only workbench paths.
+ *
+ * @param pathname - The request pathname.
+ * @returns True for `/lab` and anything beneath it.
+ */
+export function isDevOnlyPath(pathname: string): boolean {
+  return DEV_ONLY_PUBLIC_PATHS.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+}
+
 /** What the middleware should do with a request after reading its session. */
 export type GateDecision = "allow" | "login" | "unauthorized";
 
@@ -41,13 +64,18 @@ export type GateDecision = "allow" | "login" | "unauthorized";
  *
  * @param pathname - The request pathname.
  * @param isAuthenticated - Whether a valid session/JWT was verified.
+ * @param allowDevPaths - Whether development-only workbench paths are open; callers
+ *   pass `process.env.NODE_ENV !== "production"`. Defaults to false so forgetting it
+ *   fails closed.
  * @returns `allow` to proceed, `login` to redirect, `unauthorized` for a 401.
  */
 export function gateDecision(
   pathname: string,
   isAuthenticated: boolean,
+  allowDevPaths = false,
 ): GateDecision {
   if (isPublicPath(pathname) || isAuthenticated) return "allow";
+  if (allowDevPaths && isDevOnlyPath(pathname)) return "allow";
   if (pathname.startsWith("/api/")) return "unauthorized";
   return "login";
 }

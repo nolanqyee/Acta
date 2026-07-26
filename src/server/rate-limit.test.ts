@@ -5,11 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach } from "vitest";
-import {
-  rateLimit,
-  resetRateLimits,
-  clientKeyForRequest,
-} from "./rate-limit";
+import { rateLimit, resetRateLimits, clientKeyForRequest } from "./rate-limit";
 
 describe("rateLimit", () => {
   beforeEach(() => resetRateLimits());

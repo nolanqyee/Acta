@@ -46,4 +46,17 @@ describe("gateDecision", () => {
     expect(gateDecision("/api/captures", false)).toBe("unauthorized");
     expect(gateDecision("/api/graph", false)).toBe("unauthorized");
   });
+
+  it("opens the /lab workbenches only when dev paths are explicitly allowed", () => {
+    expect(gateDecision("/lab/graph", false, true)).toBe("allow");
+    expect(gateDecision("/lab/graph", false)).toBe("login");
+    expect(gateDecision("/lab/graph", false, false)).toBe("login");
+  });
+
+  it("does not let the dev allowance leak to anything outside /lab", () => {
+    expect(gateDecision("/", false, true)).toBe("login");
+    expect(gateDecision("/api/graph", false, true)).toBe("unauthorized");
+    expect(gateDecision("/labs", false, true)).toBe("login");
+    expect(gateDecision("/lab-notes", false, true)).toBe("login");
+  });
 });

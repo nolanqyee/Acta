@@ -2,7 +2,7 @@
   "name": "acta",
   "version": "0.0.0",
   "private": true,
-  "description": "Acta — personal evidence graph. Single Next.js (App Router) app: UI + route-handler API in one deploy; server-only secrets.",
+  "description": "Acta \u2014 personal evidence graph. Single Next.js (App Router) app: UI + route-handler API in one deploy; server-only secrets.",
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -21,12 +21,14 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/d3-force": "^3.0.10",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "eslint": "^10.7.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "playwright": "^1.62.0",
     "prettier": "^3.9.5",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.65.0",
@@ -35,6 +37,8 @@
   "dependencies": {
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.7",
+    "d3-force": "^3.0.0",
+    "lucide-react": "^1.27.0",
     "next": "^16.2.10",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",

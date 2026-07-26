@@ -14,15 +14,14 @@ Planning docs live in [`docs/`](docs/). Building-plan units are **U-A…U-J** (s
 | [`docs/data-model.md`](docs/data-model.md) | Schema |
 | [`docs/surfaces-and-flows.md`](docs/surfaces-and-flows.md) | IA & flows (**U-B** / **U-C**) |
 | [`docs/agent-interaction-model.md`](docs/agent-interaction-model.md) | Agents & write policy (**U-D**) |
-| [`docs/brand-design-system.md`](docs/brand-design-system.md) | Brand + visual (**U-A**) |
-| [`docs/mockup-synthesis.md`](docs/mockup-synthesis.md) | Graph-home vision brief |
-| [`docs/graph-physics.md`](docs/graph-physics.md) | Canvas simulation doctrine |
+| [`docs/graph-canvas.md`](docs/graph-canvas.md) | The graph canvas — requirements + how we work on it |
 | [`docs/building-plan.md`](docs/building-plan.md) | Build roadmap |
 | [`docs/technical-implementation-plan.md`](docs/technical-implementation-plan.md) | **HOW** (**U-J** — locked) |
+| [`docs/archive/`](docs/archive/) | Superseded design docs (visual system, physics doctrine, mocks) — reasoning kept, specifics not canon |
 
 **Design tokens (source of truth):** [`src/styles/tokens.css`](src/styles/tokens.css)
 
-**Where we are:** product + data model + Graph IA (**U-B/U-C**) + agent model (**U-D**) + brand look/tokens (**U-A**) + tech plan (**U-J**) locked. **U-J U2 shipped** — single Next.js app with Supabase Auth (magic link), graph + proposals migrations, RLS, a `proxy.ts` session gate, and rate limiting. **Next: U3** — graph bootstrap + force canvas, toward capture + render with real LLM Extract.
+**Where we are:** product, data model, Graph IA (**U-B/U-C**), agent model (**U-D**) and tech plan (**U-J**) hold up. **U-J U2 shipped** (Supabase Auth, migrations, RLS, session gate, rate limiting). **U3 is being rebuilt:** the first graph canvas was scrapped — the front end was specified in too much detail up front and built in one pass, and the physics ran inside a wrapper we couldn't control. The canvas is now being built on our own `d3-force` + `<canvas>` render loop, one verified slice at a time, starting with the physics engine alone. See [`docs/graph-canvas.md`](docs/graph-canvas.md).
 
 ## Getting started
 

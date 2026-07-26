@@ -1,7 +1,10 @@
 /**
  * Acta design tokens — code reference for U-A locks.
- * Source of truth (prose): docs/brand-design-system.md
- * Vision brief: docs/mockup-synthesis.md
+ * This file is the source of truth for tokens. The prose that once described the
+ * visual system is archived (docs/archive/brand-design-system.md) — it locked a
+ * "liquid glass" direction before anything was rendered, and translucent surfaces
+ * over a live graph proved unreadable. Tokens are kept; the system around them is
+ * being rebuilt from working screens.
  *
  * Usage (when app is bootstrapped after U-J):
  *   @import or link this file from the app stylesheet
@@ -10,9 +13,13 @@
  */
 
 :root {
-  /* —— Fonts —— */
-  --font-display: "Charis SIL", Georgia, "Times New Roman", serif;
-  --font-ui: "Figtree", system-ui, -apple-system, sans-serif;
+  /* —— Fonts ——
+     The `--font-*-loaded` vars are set by next/font in the root layout; the
+     literal family name is the fallback when the webfont isn't available. */
+  --font-display: var(--font-display-loaded, "Charis SIL"), Georgia,
+    "Times New Roman", serif;
+  --font-ui: var(--font-ui-loaded, "Figtree"), system-ui, -apple-system,
+    sans-serif;
 
   /* —— Type scale (compact PKM) —— */
   --text-label: 0.75rem; /* 12px */
@@ -69,6 +76,8 @@
   --accent: #2aa77d;
   --accent-soft: color-mix(in oklab, var(--accent) 18%, transparent);
   --accent-text: #1e8a66;
+  /* Ink for text/icons sitting on an accent fill (per §5 a11y note). */
+  --accent-contrast: #ffffff;
 
   /* —— Semantic (Confirm / Discard — outside brand teal) —— */
   --state-success: #2f9e6a;
@@ -87,6 +96,8 @@
   --node: #6b6560;
   --node-pending-opacity: 0.45;
   --edge: color-mix(in oklab, var(--text) 12%, transparent);
+  /* Hovered subgraph: still hairline + neutral, just a step out of the lattice. */
+  --edge-strong: color-mix(in oklab, var(--text) 30%, transparent);
   --highlight: var(--accent);
   --highlight-soft: var(--accent-soft);
   --glass: color-mix(in oklab, var(--bg-elevated) 55%, transparent);
@@ -104,6 +115,7 @@
     --text-muted: #8f8f8f;
     --node: #c8c8c8;
     --edge: color-mix(in oklab, #fff 9%, transparent);
+    --edge-strong: color-mix(in oklab, #fff 24%, transparent);
     --glass: color-mix(in oklab, #1c1c1c 55%, transparent);
     --shadow-soft: 0 6px 20px color-mix(in oklab, #000 40%, transparent);
     --shadow: 0 16px 48px color-mix(in oklab, #000 55%, transparent);
@@ -123,6 +135,7 @@ html[data-mode="dark"] {
   --text-muted: #8f8f8f;
   --node: #c8c8c8;
   --edge: color-mix(in oklab, #fff 9%, transparent);
+  --edge-strong: color-mix(in oklab, #fff 24%, transparent);
   --glass: color-mix(in oklab, #1c1c1c 55%, transparent);
   --shadow-soft: 0 6px 20px color-mix(in oklab, #000 40%, transparent);
   --shadow: 0 16px 48px color-mix(in oklab, #000 55%, transparent);
@@ -141,6 +154,7 @@ html[data-mode="light"] {
   --text-muted: #6e695f;
   --node: #6b6560;
   --edge: color-mix(in oklab, var(--text) 12%, transparent);
+  --edge-strong: color-mix(in oklab, var(--text) 30%, transparent);
   --glass: color-mix(in oklab, var(--bg-elevated) 55%, transparent);
   --shadow-soft: 0 4px 16px color-mix(in oklab, #000 8%, transparent);
   --shadow: 0 12px 40px color-mix(in oklab, #000 12%, transparent);

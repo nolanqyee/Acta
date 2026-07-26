@@ -3,16 +3,16 @@ title: "feat: Acta technical implementation plan (U-J)"
 type: feat
 status: active
 date: 2026-07-15
-origin: docs/building-plan.md (U-J); locked companions: personal-evidence-graph.md, data-model.md, surfaces-and-flows.md, agent-interaction-model.md, brand-design-system.md, graph-physics.md
+origin: docs/building-plan.md (U-J); locked companions: personal-evidence-graph.md, data-model.md, surfaces-and-flows.md, agent-interaction-model.md; live canvas spec: graph-canvas.md (brand-design-system.md + graph-physics.md archived 2026-07-26)
 ---
 
 # feat: Acta technical implementation plan (U-J)
 
-**Last updated:** 2026-07-20
+**Last updated:** 2026-07-26
 
 **Owns:** HOW to implement locked product docs — stack defaults, module map, capture+render slice, persistence/auth path, agent/runtime seams, sequenced milestones, risks. Does **not** re-litigate product IA, schema kinds, or brand look.
 
-**Companions:** [`building-plan.md`](building-plan.md) (roadmap), [`data-model.md`](data-model.md) (schema), [`agent-interaction-model.md`](agent-interaction-model.md) (write policy), [`surfaces-and-flows.md`](surfaces-and-flows.md) (chrome/flows), [`graph-physics.md`](graph-physics.md) (canvas behavior), [`brand-design-system.md`](brand-design-system.md) + [`src/styles/tokens.css`](../src/styles/tokens.css) (visual).
+**Companions:** [`building-plan.md`](building-plan.md) (roadmap), [`data-model.md`](data-model.md) (schema), [`agent-interaction-model.md`](agent-interaction-model.md) (write policy), [`surfaces-and-flows.md`](surfaces-and-flows.md) (chrome/flows), [`graph-canvas.md`](graph-canvas.md) (canvas behaviour — replaces the archived physics doctrine), [`src/styles/tokens.css`](../src/styles/tokens.css) (tokens; the up-front visual system is archived).
 
 **Note on IDs:** Implementation units below (`U1`…) are **build milestones inside this plan**. Building-plan roadmap units remain **`U-A`…`U-J`**.
 
@@ -26,7 +26,7 @@ Greenfield Acta as **one Next.js (App Router) app in the existing `Acta` repo** 
 
 ## Problem Frame
 
-Product, data model, Graph IA, agent write policy, brand look, and graph-physics doctrine are locked. Remaining blockers before code: keep LLM keys and the Supabase service role off the client (server-only in Next), map modules to docs, and sequence a dogfoodable **capture → extract → diff-skim → merge → canvas** loop with refresh-surviving proposals. (An earlier planning cycle removed a stale Next prototype and briefly targeted a Vite SPA + separate Hono API; that was reversed on 2026-07-20 — see KTD2 — back to a single Next app because founder velocity on Next/Vercel + one integrated deploy outweighs the backend-portability edge at this stage.)
+Product, data model, Graph IA, and agent write policy are locked; the canvas and visual system are built and revised in slices instead (see [`graph-canvas.md`](graph-canvas.md)). Remaining blockers before code: keep LLM keys and the Supabase service role off the client (server-only in Next), map modules to docs, and sequence a dogfoodable **capture → extract → diff-skim → merge → canvas** loop with refresh-surviving proposals. (An earlier planning cycle removed a stale Next prototype and briefly targeted a Vite SPA + separate Hono API; that was reversed on 2026-07-20 — see KTD2 — back to a single Next app because founder velocity on Next/Vercel + one integrated deploy outweighs the backend-portability edge at this stage.)
 
 ---
 
@@ -36,7 +36,7 @@ Product, data model, Graph IA, agent write policy, brand look, and graph-physics
 - R2. First dogfoodable loop is **typed Capture → real LLM Extract (incremental) → floating diff-skim + pending Endeavor ghosts → confirm/discard → force canvas of confirmed Endeavors**.
 - R3. **Thin Supabase** (Auth + Postgres + RLS) is in the first loop — Captures, graph entities needed for canvas, and ExtractProposals persist across refresh.
 - R4. Extract writes **proposals only** until confirm; Capture auto-save is the only silent write (see origin: `agent-interaction-model.md`).
-- R5. Canvas follows [`graph-physics.md`](graph-physics.md): Endeavors only, cluster-seed + pre-warm, CoG shift via force center (not CSS translate), pending styling per brand.
+- R5. Canvas follows [`graph-canvas.md`](graph-canvas.md): Endeavors only, seeded + pre-warmed so the first frame is settled, real per-node centre gravity (never `forceCenter` alone), small dots with captions gated on clear space, subtle edges, opaque overlays.
 - R6. Design tokens live at [`src/styles/tokens.css`](../src/styles/tokens.css) (SoT), imported once in the root layout; Graph chrome overlays full-bleed canvas per [`surfaces-and-flows.md`](surfaces-and-flows.md).
 - R7. Capture-pipeline logical tools from U-D map to HTTP (`create_capture`, `update_proposal`, `confirm_proposal`, `discard_proposal`, plus `retry_extract`); `extract_capture` is the **server-side** job started after Capture (not a separate FE-required call). Graph home also has `GET /graph` bootstrap (convenience over `list_endeavors` + edges — not a U-D tool name).
 - R8. Explore, Deepen, adapters, fat onboarding import, and agent chat-history connectors are **path-documented**, not built in the first milestones.
@@ -56,7 +56,7 @@ Product, data model, Graph IA, agent write policy, brand look, and graph-physics
 | KTD2 | **Next.js (App Router) for UI + API** — client components for the canvas island; route handlers (`src/app/api/*`) + server actions for the API; Server Components for non-canvas surfaces | **Reversed from Vite+Hono on 2026-07-20.** Founder velocity on Next/Vercel + one integrated app beats the backend-portability edge at this stage; AI SDK streaming is first-class on Next; `@supabase/ssr` gives **httpOnly cookie** sessions (safer than an SPA's in-JS token). **Escape:** the app stays plain React — a future Vite/other-host split is possible but not planned |
 | KTD3 | **API = Next route handlers + server actions; domain logic in `src/server/*` behind `import "server-only"`** | Keeps HTTP plumbing thin and the real logic (GraphRepository, extract agent, merge) testable and isolated from client bundles. **Escape:** when a task outgrows the request cycle (bulk adapter imports, embeddings backfill), move *that job* to Vercel Cron / a queue (QStash/Inngest/Trigger.dev) or a dedicated worker — a partial peel, not a rewrite |
 | KTD4 | **Hosting:** one **Vercel** project (UI + API); data/Auth on Supabase | Single deploy target; server code + secrets live server-side on Vercel, never in client JS. **Escape:** self-host Next on a Node container (Fly/Railway) if Vercel function limits bite for long-running work — or offload that work per KTD3 |
-| KTD5 | **Force canvas = `react-force-graph-2d`** | warmupTicks, `d3Force` for CoG/tunable physics, custom `nodeCanvasObject` for pending. **Escape:** custom `d3-force` + canvas if wrapper fights cluster-seed / incremental identity |
+| KTD5 | ~~**Force canvas = `react-force-graph-2d`**~~ → **escape hatch taken 2026-07-26: custom `d3-force` + `<canvas>`** | The wrapper owned the tick loop, zoom transform, drag handling and redraw scheduling — i.e. everything the canvas is judged on — so it was replaced by our own simulation/camera/renderer/input modules. The recorded escape condition ("if the wrapper fights…") is exactly what happened. See [`graph-canvas.md`](graph-canvas.md) |
 | KTD6 | **Streaming = route handler returning a `ReadableStream`** consumed via `fetch` (not browser `EventSource`) | Same-origin `fetch` with the cookie session; unidirectional extract chunks. **Escape:** NDJSON stream if framing is noise; WebSocket only if mid-stream bidirectional becomes core |
 | KTD7 | **LLM = Vercel AI SDK** (`streamText` + `Output.object` / `Output.array`) **+ Zod**; provider via adapter (OpenAI or Anthropic) | Partial object stream for UI; final Zod validation before mergeable. Prefer `Output.array` + element stream for endeavor chunks. **Escape:** direct provider SDK + Zod |
 | KTD8 | **Shared contracts folded into `src/lib/contracts`** (Zod + types), imported by both client and server code via the `@/lib/contracts` path alias | One app = one consumer; an internal module is simpler than a workspace package and there's no version skew. Schemas stay pure (no secrets, safe to import client-side). **Escape:** extract back into a published package only if a second consumer (e.g. native app) appears |
@@ -116,8 +116,8 @@ flowchart LR
 | --- | --- | --- |
 | Entity/edge Zod + ExtractProposal shape | `src/lib/contracts` (+ server persist) | `data-model.md` |
 | Capture → Extract → Proposal → Merge | `src/server/*` (route handlers call it) | `agent-interaction-model.md` |
-| Force canvas, overlays, skim chrome | `src/features/*` (client) | `surfaces-and-flows.md`, `graph-physics.md` |
-| Tokens / visual | `src/styles/tokens.css` (imported in root layout) | `brand-design-system.md` |
+| Force canvas, overlays, skim chrome | `src/features/*` (client) | `surfaces-and-flows.md`, `graph-canvas.md` |
+| Tokens / visual | `src/styles/tokens.css` (imported in root layout) | itself — the prose visual system is archived; `graph-canvas.md` covers canvas visuals |
 | Auth session | browser client + `middleware.ts` cookie verify | **U-E** detail inside this plan’s early milestones |
 
 ### Capture / proposal state machine (KTD10)
@@ -333,7 +333,7 @@ Rationale: quality is built in per unit (readable code + tests), not bolted on l
 - **Requirements:** R5, R6
 - **Dependencies:** U2
 - **Files:** `src/features/graph`; `GET /api/graph` (or endeavors+edges) bootstrap route
-- **Approach:** `react-force-graph-2d`; stable node object identity; CoG API ready for panel open. Seed fixture endeavors for layout dogfood before Extract lands.
+- **Approach (revised 2026-07-26):** **our own loop** — `d3-force` stepped one tick per `requestAnimationFrame` onto a plain `<canvas>`, with our own camera, renderer, and pointer handling. The first attempt used `react-force-graph-2d` and could not reach the qualities the canvas is judged on, because that library owns the simulation loop, the zoom transform, drag handling, and redraw scheduling. Node objects still hold their own position/velocity so a snapshot refresh nudges the layout instead of restarting it. Fixture endeavors (hand-authored, plus a generator for scale) remain the way layout is dogfooded before Extract lands.
 - **Execution note:** Prefer characterization of graphData identity (no remount on unrelated React state) early.
 - **Test scenarios:**
   - Bootstrap with N endeavors paints N nodes; refresh shows same set.
@@ -341,6 +341,16 @@ Rationale: quality is built in per unit (readable code + tests), not bolted on l
   - Opening a stub right panel shifts force center left (not CSS-translated canvas).
   - Reduced-motion: land fully settled with no animated settle scramble (pending pulse covered in U4).
 - **Verification:** Dogfood: signed-in user sees seeded or empty graph matching physics calm defaults.
+- **Status:** 🔁 **rebuilt 2026-07-26 — canvas-only, chrome deferred.** See [`graph-canvas.md`](graph-canvas.md) for the live spec, the module map, and the measured numbers. What landed in the rebuild: `simulation.ts` (a `d3-force` layout with its timer disabled, driven by the render loop), `camera.ts` (pan/zoom/fit with an exact screen↔world inverse), `render.ts` (hairline edges, clamped dots, captions gated on measured clear space via a screen-space grid), `seed.ts` (deterministic containment-grouped spiral seeds), `palette.ts`, `graph-canvas.tsx` (RAF loop, pointer/wheel/resize, nothing per-frame through React state), `dev-hud.tsx` (opaque force sliders), and a dev-only `/lab/graph` workbench with URL-settable size and forces. Verification: the `/lab/graph` workbench is looked at directly (the Playwright capture scripts that drove the tuning were removed once the physics were signed off — see [`graph-canvas.md`](graph-canvas.md) § How it's verified); `src/test/graph/layout-shape.test.ts` settles the **real** `GraphSimulation` and guards roundness, non-overlap, drag locality and shimmer; `camera.test.ts` pins the projection inverse. The gate gained a **development-only** allowance for `/lab/*` (`gateDecision(..., allowDevPaths)`, fails closed by default, and the route 404s in production). `react-force-graph-2d` was removed. Deleted with the first attempt: ask bar, filter menu, graph settings, hover card, node modal, floating panels, empty state, and the `CanvasGraphModel`/`highlight`/`deepen` modules — each returns as its own reviewed slice.
+  **Previous status (superseded):** ✅ shipped 2026-07-25 — UI-complete canvas + chrome. What landed: `GraphSnapshot` contract (`src/lib/contracts/graph.ts`), `GET /api/graph` over a `GraphRepository` + a **pure projection** (`src/server/graph/project-graph.ts`), and `src/features/graph/*` — force canvas, cluster-seed/pre-warm, token-resolved painting, ask bar + filter menu + graph settings, hover card, node modal, floating panels, empty state, light/dark theme.
+  Decisions made while building (all reversible, and mirrored into the specs they touch):
+  - **Endeavors are the only physics bodies.** Skills/people/orgs stay facets, so shared-facet structure is projected into *endeavor↔endeavor* links, weighted `part_of` > `shared_org` > `shared_skill` > `shared_person`. Hub facets are chained and capped rather than fully connected, otherwise one popular skill creates a crossing storm.
+  - **Node identity is owned outside React** (`CanvasGraphModel`): d3-force mutates position/velocity on the node objects, so a new container is handed over only when node/link *membership* changes. Confirming a proposal (a `state` change) deliberately does **not** re-settle the graph.
+  - **Canvas colour + type are resolved from tokens at runtime** via an offscreen probe, cached per theme — a canvas can't parse `var()`.
+  - **Panels shift the centering force, never the canvas transform**, keeping pointer math honest.
+  - Interim/deferred, called out honestly in the UI: ask is **substring matching** (embeddings ranking is Explore's job), the deepen backlog uses a **placeholder thinness heuristic** over snapshot fields, and the capture panel is chrome-only until U4. A **sample graph** (`sample-graph.ts`) is available from the empty state for layout dogfooding, labelled as unsaved.
+  - Also fixed here: the theme boot script read a key exported from a `"use client"` module, which resolves to `undefined` on the server — shared constants now live in a directive-free module (`src/features/theme/theme-storage.ts`).
+  - Not yet done: the canvas tests are pure-logic only (projection, seeding, physics, highlight, model identity); browser-level assertions on paint/CoG and keyboard traversal of the graph remain open.
 
 ### U4. Capture + LLM Extract stream + proposal persistence
 
@@ -422,7 +432,7 @@ U1 Next app + contracts
 | --- | --- |
 | Proxy buffering kills SSE | Disable buffering; keepalive comments; test on real BE host early |
 | AI SDK partials treated as mergeable | UI-only until final Zod `ready` |
-| `react-force-graph` remount thrash | Stable node identity; treat remount-on-chunk as bug |
+| Layout restarting on unrelated state changes | Node objects hold their own position/velocity and are reused across snapshots; a re-settle on anything but membership change is a bug |
 | Service role bypasses RLS | Dual clients; ownership checks in merge |
 | Supabase key/JWT migration (publishable keys, asymmetric JWT) | Prefer JWKS verify; avoid HS256 secret forever |
 | LLM cost / stuck streaming jobs | Spend caps; job timeout; failed status + Retry; one open proposal |
@@ -437,7 +447,7 @@ U1 Next app + contracts
 
 - **Auth boundary:** every graph mutation is user-scoped (session + RLS); LLM/service-role keys are server-only (build-enforced via `server-only` + no `NEXT_PUBLIC_`). Per-user identity is the real gate; same-origin drops CORS/client-header entirely (see § Security Model).
 - **Data lifecycle:** Captures immutable; proposals **persisted** until confirm/discard (then drop/archive) — not durable graph SoT; merged entities durable.
-- **Performance:** pre-warm + freeze-at-rest; Barnes–Hut only when node counts demand (per graph-physics).
+- **Performance:** pre-warm + park the render loop at rest; repulsion is range-capped (d3's many-body is already Barnes–Hut). Measured 109–127 fps at 140 nodes and mid-drag at 400 (per graph-canvas).
 - **Repo role:** one repo = the Next app + planning SoT (`docs/`) at root; keep README/building-plan in sync as units land.
 
 ---
@@ -455,7 +465,7 @@ U1 Next app + contracts
 ## Open Questions
 
 - [ ] Exact LLM provider for v1 (OpenAI vs Anthropic) — either works behind AI SDK; pick at U4.
-- [ ] Selected vs highlighted vs dimmed visual triad — brand/physics still open; don’t block U3.
+- [ ] Selected vs highlighted vs dimmed visual triad — still open. U3 shipped **highlight + hover lift only**, with selection expressed by the node modal; revisit once real graph density shows whether dimming is needed.
 - [x] Repo structure — **resolved 2026-07-17; revised 2026-07-20:** one repo = a single Next.js app at root (`src/*`), contracts folded into `src/lib/contracts`, `docs/` at root. Not renamed.
 - [x] FE framework — **resolved 2026-07-20:** Next.js (App Router), reversing the interim Vite+Hono choice (KTD2).
 - [ ] Rate-limit store — in-process is fine for a single-region MVP; move to a shared store (Upstash/Redis) once serverless instances fan out (counters don't share across lambdas). Decide at first scale.
@@ -465,7 +475,7 @@ U1 Next app + contracts
 
 ## Sources & Research
 
-- Locked specs under `docs/` (product, data-model, surfaces, agents, brand, graph-physics, building-plan).
+- Locked specs under `docs/` (product, data-model, surfaces, agents, building-plan) + the live canvas spec (`graph-canvas.md`).
 - Former scaffold patterns from git `5bece5b` (Zod domain, GraphRepository, init SQL) — patterns only.
 - External shortlist (2026): Next.js App Router + route handlers + `react-force-graph-2d` + fetch-SSE + AI SDK structured output + `@supabase/ssr` + Vercel/Supabase.
 - Framework constraints: AI SDK `Output.*` (not deprecated `streamObject`); Supabase sessions via `@supabase/ssr` (httpOnly cookies); EventSource unsuitable for authed streaming (use `fetch` + `ReadableStream`); serverless function time limits → offload long jobs (KTD3).
@@ -474,6 +484,9 @@ U1 Next app + contracts
 
 ## Changelog
 
+- **2026-07-26 (later):** **U3 canvas rebuilt on our own render loop; the wrapper is gone.** The retuned layout passed its own measurements and still looked wrong on screen — the diagnosis was architectural, not numerical: with `react-force-graph-2d` owning the tick loop, the zoom transform, drag handling and redraw scheduling, the qualities the canvas is judged on were unreachable from outside. Now ours: [`simulation.ts`](../src/features/graph/simulation.ts), [`camera.ts`](../src/features/graph/camera.ts), [`render.ts`](../src/features/graph/render.ts), [`seed.ts`](../src/features/graph/seed.ts), [`graph-canvas.tsx`](../src/features/graph/graph-canvas.tsx). Three things worth carrying forward beyond this unit: **(1)** captions are gated on *measured clear space* around a node, not a zoom threshold, so overview views are quiet and zooming in reveals names; **(2)** front-end work is now verified in a browser — a dev-only `/lab/graph` workbench (URL-settable forces + a fixture generator up to 600 nodes) plus `npm run shots` / `npm run shots:compare`, which capture fit/zoom/drag states and stitch candidate settings into one comparable image; **(3)** [`layout-shape.test.ts`](../src/features/graph/layout-shape.test.ts) measures the **real** engine, replacing a test that re-implemented the forces and could therefore pass while the screen was wrong. Measured: aspect ratio 1.00–1.06 across 19/26/140/400 nodes, furthest node 1.3–1.7× the median radius, 109–127 fps including mid-drag at 400 nodes. `npm run check` + `next build` green. Docs: [`graph-canvas.md`](graph-canvas.md) replaces the archived physics doctrine and visual system; [`AGENTS.md`](../AGENTS.md) gained a front-end working agreement (build in verified slices; don't specify visuals ahead of building them; own the loop; numbers guard, eyes decide; no translucency over live content).
+- **2026-07-26:** **U3 layout fix — the canvas now honours the physics doctrine.** The shipped U3 graph settled as a stringy sprawl parked off-centre; four causes, all fixed and now measured rather than eyeballed. (1) **No gravity existed**: `forceCenter` only translates the centroid, so `forceX`/`forceY` now supply real cohesion; (2) charge reach is **capped** at ~4× link distance instead of inflating the whole graph; (3) shared facets are wired as **hub-and-spoke stars capped at two derived links per endeavor** instead of arbitrarily ordered chains; (4) cluster centres are ordered around the seeding ring by **link affinity** instead of alphabetically. Framing is fitted after the engine stops. New: [`src/lib/graph/derive-endeavor-links.ts`](../src/lib/graph/derive-endeavor-links.ts) — one isomorphic link rule shared by the server projection and the sample fixture, so the fixture can no longer flatter the layout — and [`layout-quality.test.ts`](../src/features/graph/layout-quality.test.ts), which settles the sample graph *and* a denser synthetic graph in a headless `d3-force` run and asserts crossings, bounding-box roundness, radial fill, overlaps, and edge length. Retuned defaults (gravity `0.09`, link distance `40`, repel `320`) land the sample graph at **zero crossings** and a square-ish bounding box. `npm run check` green. See graph-physics + data-model changelogs.
+- **2026-07-25:** **U3 shipped — Graph home canvas + chrome.** `GraphSnapshot` contract + `GET /api/graph` (RLS-scoped repository read, pure projection of endeavors/edges/facets into canvas nodes and weighted links) + `src/features/graph/*`: `react-force-graph-2d` canvas with cluster-seeded pre-warm, degree-scaled nodes, hairline straight edges with halo'd labels, hover lift, panel-driven centre-of-gravity shift, ask + filter + graph-settings chrome, hover card, node modal, floating panels, quiet empty state, and `html[data-mode]` theming with a flash-free boot script. Fonts wired via `next/font`. Decisions: endeavors are the only physics bodies (facets project into endeavor↔endeavor links, hub facets chained + capped); node identity is held outside React so unrelated state can't restart the layout; canvas colour/type resolved from tokens per theme; highlight-only (no dim) and drag-release rejoins the simulation. Deferred and labelled in-product: NL ask ranking (Explore), deepen thinness signal, capture composer (U4). `npm run check` + `next build` green. See building-plan, brand-design-system §13, and graph-physics changelogs. Next = **U4** (Capture + Extract stream).
 - **2026-07-21:** **U2 shipped — Supabase Auth + schema + RLS + rate limiting.** Ported the graph schema (Acta-branded) + added the `extract_proposals` table under `supabase/migrations/`; dual Supabase clients (`src/lib/supabase/{client,server}.ts` — anon+RLS vs `server-only` service role); Next 16 **`src/proxy.ts`** session gate (refresh + gate via `getClaims()` local JWKS verify); magic-link `/login` + `/auth/callback`; in-process per-IP/route rate limiter (`src/server/rate-limit.ts`, 429 + `Retry-After`). Decisions: auth = **magic link only**; **`SUPABASE_JWKS_URL` retired** (getClaims derives JWKS from the project URL); migrations tested locally (`supabase/config.toml`) and deployed to `acta-dev` via the **Supabase GitHub integration** on merge to `main`. RLS isolation verified by an **auto-skipping integration test** (needs local DB env); CI covers gating + rate-limit logic. `npm run check` + `next build` green.
 - **2026-07-20:** **Reversed FE stack to Next.js (App Router); collapsed to one app.** KTD2 flipped from Vite SPA + separate Hono API to a **single Next app at repo root** (KTD1) — UI + route-handler API in one Vercel deploy. `acta-web`/`acta-api` retired; `@acta/contracts` folded into `src/lib/contracts`; tokens SoT → `src/styles/tokens.css`. Security model reframed around the **server/client build split + `server-only` + httpOnly cookie sessions** (`@supabase/ssr`); **CORS + `X-Acta-Client` retired** (same-origin) — R12 reframed, KTD3/KTD4/KTD6/KTD8/KTD12/KTD13 updated, U1/U2 rewritten, Output Structure + diagram + Security Model replaced. Rationale: founder velocity on Next/Vercel + integrated deploy beat backend portability at this stage; tax is offloading long jobs later (KTD3). U1 re-shipped on Next (health shell + `/api/health` + `/api/meta`, contracts + route tests green).
 - **2026-07-20:** **U1 hardening pass** — modernized contracts to Zod v4 idioms (`z.uuid()` / `z.url()` / `z.iso.datetime()`); pinned **TypeScript 5.x** (ecosystem tooling doesn't yet support TS 7 native); added root **ESLint (flat) + Prettier** baseline (`lint`/`format`/`check` scripts); split acta-api into a side-effect-free app factory (`index.ts`) + runnable `server.ts` so routes are testable; added acta-api **vitest** health/meta/CORS tests. Added deploy-bundling note for `@acta/contracts` (unpublished workspace package must ship with the API build).

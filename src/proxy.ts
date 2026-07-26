@@ -23,7 +23,11 @@ import { gateDecision } from "@/lib/supabase/auth-paths";
  */
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const { response, isAuthenticated } = await updateSession(request);
-  const decision = gateDecision(request.nextUrl.pathname, isAuthenticated);
+  const decision = gateDecision(
+    request.nextUrl.pathname,
+    isAuthenticated,
+    process.env.NODE_ENV !== "production",
+  );
 
   if (decision === "allow") return response;
 

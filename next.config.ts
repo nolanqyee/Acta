@@ -7,6 +7,10 @@
 
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  // The floating dev-tools badge sits over the canvas and lands in every screenshot
+  // taken by scripts/shoot-graph.mjs, which is how front-end work is reviewed here.
+  devIndicators: false,
+};
 
 export default nextConfig;
