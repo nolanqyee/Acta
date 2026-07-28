@@ -30,10 +30,31 @@ export class Camera {
   private centerX = 0;
   private centerY = 0;
   private scale = 1;
+  /**
+   * Screen-space nudge (CSS px) added to every projected x, so the graph can be pushed
+   * clear of a floating panel without changing what world point is "centred" (that stays
+   * a physics/fit concern) or which nodes are on screen. Eased toward its target by
+   * whoever owns the render loop — the camera itself just applies whatever it's told.
+   */
+  private focusOffsetX = 0;
 
   /** @returns Current magnification. 1 means one world unit per CSS pixel. */
   getScale(): number {
     return this.scale;
+  }
+
+  /** @returns The current focus offset (CSS px); see {@link focusOffsetX}. */
+  getFocusOffset(): number {
+    return this.focusOffsetX;
+  }
+
+  /**
+   * Sets the focus offset directly. Callers own any easing — this just applies it.
+   *
+   * @param offsetX - Screen-space px to add to every projected x.
+   */
+  setFocusOffset(offsetX: number): void {
+    this.focusOffsetX = offsetX;
   }
 
   /**
@@ -52,7 +73,7 @@ export class Camera {
     viewHeight: number,
   ): { x: number; y: number } {
     return {
-      x: (x - this.centerX) * this.scale + viewWidth / 2,
+      x: (x - this.centerX) * this.scale + viewWidth / 2 + this.focusOffsetX,
       y: (y - this.centerY) * this.scale + viewHeight / 2,
     };
   }
@@ -74,7 +95,7 @@ export class Camera {
     viewHeight: number,
   ): { x: number; y: number } {
     return {
-      x: (x - viewWidth / 2) / this.scale + this.centerX,
+      x: (x - viewWidth / 2 - this.focusOffsetX) / this.scale + this.centerX,
       y: (y - viewHeight / 2) / this.scale + this.centerY,
     };
   }

@@ -14,6 +14,10 @@
  *
  * Hovering also lives here: the pointed-at node and its links stay lit while the rest
  * of the graph fades back, so a node's neighbourhood is legible without any chrome.
+ *
+ * Selection uses the identical dim/lit/accent language. Background dim snaps on when
+ * something is selected; the green accent itself fades in and out — including when hover
+ * over a different node temporarily takes it over and when hover clears again.
  */
 
 import type { Palette } from "./palette";
@@ -38,8 +42,14 @@ export interface Frame {
   hoveredId: string | null;
   /** How far the hover treatment has faded in, 0–1. See {@link HoverFade}. */
   hoverAmount: number;
+  /** How far the selection accent has faded in, 0–1. See {@link SelectionAccentFade}. */
+  selectionAccentAmount: number;
   /** Ids linked to the hovered node; they stay lit while the rest fades. */
   hoveredNeighborIds: ReadonlySet<string> | null;
+  /** The clicked-and-persisted node, if any. Independent of hover. */
+  selectedId: string | null;
+  /** Ids linked to the selected node; they stay lit while the rest fades. */
+  selectedNeighborIds: ReadonlySet<string> | null;
   draggedId: string | null;
   /** Caches the zoom level at which captions become readable. Owned by the canvas. */
   labelGate: LabelGate;
@@ -138,6 +148,73 @@ export class HoverFade {
 }
 
 /**
+ * Eases the selection accent in and out when hover temporarily takes it over.
+ *
+ * A click still selects immediately (background dim snaps on), but the green accent
+ * and lit neighbourhood fade rather than popping — especially when hover clears and
+ * selection takes the accent back from a different node.
+ */
+export class SelectionAccentFade {
+  private amount = 0;
+
+  /**
+   * Advances the selection accent one frame.
+   *
+   * @param selectedId - The persistently selected node, if any.
+   * @param hoveredId - Node the hover treatment is drawn for (may lag the pointer).
+   * @param hoverAmount - Current hover fade strength.
+   * @param deltaMs - Milliseconds since the previous frame.
+   */
+  update(
+    selectedId: string | null,
+    hoveredId: string | null,
+    hoverAmount: number,
+    deltaMs: number,
+  ): void {
+    const step = Math.min(deltaMs, 50);
+    const hoverOverrides =
+      selectedId !== null &&
+      hoveredId !== null &&
+      hoveredId !== selectedId &&
+      hoverAmount > 0;
+    const target = selectedId !== null && !hoverOverrides ? 1 : 0;
+
+    if (target > this.amount) {
+      this.amount = Math.min(target, this.amount + step / HOVER_FADE_IN_MS);
+    } else if (target < this.amount) {
+      this.amount = Math.max(target, this.amount - step / HOVER_FADE_OUT_MS);
+    }
+  }
+
+  /** @returns Selection accent strength, 0–1. */
+  getAmount(): number {
+    return this.amount;
+  }
+
+  /**
+   * Whether the accent still needs frames.
+   *
+   * @param selectedId - The persistently selected node, if any.
+   * @param hoveredId - Node the hover treatment is drawn for.
+   * @param hoverAmount - Current hover fade strength.
+   * @returns True while the accent is still easing.
+   */
+  isAnimating(
+    selectedId: string | null,
+    hoveredId: string | null,
+    hoverAmount: number,
+  ): boolean {
+    const hoverOverrides =
+      selectedId !== null &&
+      hoveredId !== null &&
+      hoveredId !== selectedId &&
+      hoverAmount > 0;
+    const target = selectedId !== null && !hoverOverrides ? 1 : 0;
+    return Math.abs(this.amount - target) > 0.001;
+  }
+}
+
+/**
  * Decides, for the graph as a whole, the zoom at which captions can all be shown.
  *
  * Captions used to be placed one at a time, each drawn only if it personally had room.
@@ -211,7 +288,7 @@ const RECOMPUTE_INTERVAL_MS = 500;
 const FADE_BAND = 0.82;
 
 /** Percentile of per-node requirements the threshold satisfies (1 = every node). */
-const THRESHOLD_PERCENTILE = 0.9;
+const THRESHOLD_PERCENTILE = 0.6;
 
 /**
  * Derives the zoom at which captions become readable across the graph.
@@ -271,6 +348,83 @@ function measureThresholdScale(
   return required[index]!;
 }
 
+/** Shared so an absent neighbour set never allocates. */
+const NO_IDS: ReadonlySet<string> = new Set<string>();
+
+/**
+ * The dim/lit/accent treatment for one frame — selection and hover compose for
+ * background dim, but hover over a *different* node temporarily owns the green accent.
+ */
+interface Highlight {
+  /** Every id that should stay at full strength: selected/hovered ids + neighbours. */
+  litIds: ReadonlySet<string>;
+  /**
+   * How dimmed the rest of the graph is, 0–1. Pinned to 1 the instant something is
+   * selected — a persistent choice, not a fade — so hovering can never relax the
+   * background back toward full brightness while the detail panel is open.
+   */
+  dimAmount: number;
+  /** The selected node's id, if any — its emphasis tracks {@link primaryAmount}. */
+  primaryId: string | null;
+  /** How strongly the selection accent is shown, 0–1. */
+  primaryAmount: number;
+  /** The hovered node's id, if any — its emphasis fades with {@link secondaryAmount}. */
+  secondaryId: string | null;
+  secondaryAmount: number;
+}
+
+/**
+ * Composes selection (persistent dim) and hover (transient accent) into one treatment.
+ *
+ * Background dim strength only ever depends on *whether* something is selected, never
+ * on which hover transition is mid-flight — that is what stops the flash when hover
+ * crosses a selection. Accent and lit neighbourhood, however, yield to hover whenever
+ * the pointer is over a node other than the selected one.
+ *
+ * @param frame - Current frame state.
+ * @returns The active highlight; `litIds` is empty when neither is set.
+ */
+function resolveHighlight(frame: Frame): Highlight {
+  const selectedId = frame.selectedId;
+  const hoveredId = frame.hoveredId;
+  const secondaryAmount = frame.hoverAmount;
+  const primaryAmount = frame.selectionAccentAmount;
+  const dimAmount = Math.max(selectedId ? 1 : 0, secondaryAmount);
+
+  const primaryId =
+    selectedId !== null && primaryAmount > 0 ? selectedId : null;
+  const secondaryId = hoveredId;
+
+  if (!primaryId && !secondaryId) {
+    return {
+      litIds: NO_IDS,
+      dimAmount,
+      primaryId,
+      primaryAmount,
+      secondaryId,
+      secondaryAmount,
+    };
+  }
+
+  const litIds = new Set<string>();
+  if (primaryId) {
+    litIds.add(primaryId);
+    for (const id of frame.selectedNeighborIds ?? NO_IDS) litIds.add(id);
+  }
+  if (secondaryId) {
+    litIds.add(secondaryId);
+    for (const id of frame.hoveredNeighborIds ?? NO_IDS) litIds.add(id);
+  }
+  return {
+    litIds,
+    dimAmount,
+    primaryId,
+    primaryAmount,
+    secondaryId,
+    secondaryAmount,
+  };
+}
+
 /**
  * Screen radius of a node's dot.
  *
@@ -278,49 +432,60 @@ function measureThresholdScale(
  * @param frame - Current frame state.
  * @returns Radius in CSS pixels, clamped to stay small.
  */
-function dotRadius(node: PositionedNode, frame: Frame): number {
+function dotRadius(
+  node: PositionedNode,
+  frame: Frame,
+  highlight: Highlight,
+): number {
   const world = nodeRadius(node.degree, frame.tunables);
-  const raw = world * frame.scale * (1 + 0.35 * emphasisOf(node.id, frame));
+  const raw =
+    world * frame.scale * (1 + 0.35 * emphasisOf(node.id, frame, highlight));
   return Math.min(MAX_DOT_RADIUS, Math.max(MIN_DOT_RADIUS, raw));
 }
 
 /**
  * How strongly a node is drawn as the subject of the interaction, 0–1.
  *
- * Fades with the hover rather than switching, so colour, size and ring all arrive
- * together. A drag is not faded — the pointer is already on the node by then.
+ * The selected node carries a flat 1 (a click is a discrete choice, not a fade); the
+ * hovered node carries the hover fade. A node that's both just takes the higher of the
+ * two, so re-hovering the selected node stays pinned at 1 instead of dipping. A drag
+ * overrides everything — the pointer is already on the node by then.
  *
  * @param id - Node id.
  * @param frame - Current frame state.
+ * @param highlight - The active highlight for this frame.
  * @returns Emphasis in 0–1.
  */
-function emphasisOf(id: string, frame: Frame): number {
+function emphasisOf(id: string, frame: Frame, highlight: Highlight): number {
   if (id === frame.draggedId) return 1;
-  return id === frame.hoveredId ? frame.hoverAmount : 0;
+  let emphasis = 0;
+  if (id === highlight.primaryId) emphasis = highlight.primaryAmount;
+  if (id === highlight.secondaryId)
+    emphasis = Math.max(emphasis, highlight.secondaryAmount);
+  return emphasis;
 }
 
 /**
- * Whether a node belongs to the hovered node's neighbourhood — itself or something it
- * links to. Everything else is dimmed.
+ * Whether a node belongs to the highlighted neighbourhood — the selected and/or
+ * hovered node, or something either links to. Everything else is dimmed.
  *
  * @param id - Node id.
- * @param frame - Current frame state.
+ * @param highlight - The active highlight for this frame.
  * @returns True when the node stays at full strength.
  */
-function isLit(id: string, frame: Frame): boolean {
-  if (!frame.hoveredId) return true;
-  return id === frame.hoveredId || (frame.hoveredNeighborIds?.has(id) ?? false);
+function isLit(id: string, highlight: Highlight): boolean {
+  return highlight.litIds.size === 0 || highlight.litIds.has(id);
 }
 
 /**
- * How much the graph outside the hovered neighbourhood is currently faded back.
+ * How much the graph outside the highlighted neighbourhood is currently faded back.
  *
- * @param frame - Current frame state.
- * @param floor - The dim level at full hover.
- * @returns Alpha multiplier, easing from 1 to `floor` as the hover fades in.
+ * @param highlight - The active highlight for this frame.
+ * @param floor - The dim level at full strength.
+ * @returns Alpha multiplier, easing from 1 to `floor` as the highlight fades in.
  */
-function dimFactor(frame: Frame, floor: number): number {
-  return 1 - (1 - floor) * frame.hoverAmount;
+function dimFactor(highlight: Highlight, floor: number): number {
+  return 1 - (1 - floor) * highlight.dimAmount;
 }
 
 /**
@@ -344,31 +509,39 @@ function shortLabel(title: string): string {
  */
 export function drawFrame(ctx: CanvasRenderingContext2D, frame: Frame): void {
   const { palette, width, height } = frame;
+  const highlight = resolveHighlight(frame);
 
   ctx.fillStyle = palette.background;
   ctx.fillRect(0, 0, width, height);
 
-  drawEdges(ctx, frame);
-  drawNodes(ctx, frame);
-  drawLabels(ctx, frame);
+  drawEdges(ctx, frame, highlight);
+  drawNodes(ctx, frame, highlight);
+  drawLabels(ctx, frame, highlight);
   ctx.globalAlpha = 1;
 }
 
 /**
- * Draws every link as a hairline straight line, in two passes when a node is hovered:
- * the graph at large recedes, that node's own links come forward in the accent colour.
+ * Draws every link as a hairline straight line, in two passes when a node is
+ * highlighted: the graph at large recedes, that node's own links come forward in the
+ * accent colour.
  *
  * @param ctx - 2D context.
  * @param frame - Current frame state.
+ * @param highlight - The active hover-or-selection target for this frame.
  */
-function drawEdges(ctx: CanvasRenderingContext2D, frame: Frame): void {
+function drawEdges(
+  ctx: CanvasRenderingContext2D,
+  frame: Frame,
+  highlight: Highlight,
+): void {
   // Thinner than a pixel at low zoom: the line fades rather than disappearing, which
   // is exactly the "texture, not diagram" reading we want when zoomed out.
   ctx.lineWidth = Math.min(1.1, Math.max(0.55, frame.scale * 0.5));
 
-  const hovered = frame.hoveredId;
-  const touchesHovered = (link: PositionedLink): boolean =>
-    link.source.id === hovered || link.target.id === hovered;
+  const touches = (link: PositionedLink, id: string | null): boolean =>
+    id !== null && (link.source.id === id || link.target.id === id);
+  const touchesEither = (link: PositionedLink): boolean =>
+    touches(link, highlight.primaryId) || touches(link, highlight.secondaryId);
 
   const trace = (only: (link: PositionedLink) => boolean): void => {
     ctx.beginPath();
@@ -383,39 +556,53 @@ function drawEdges(ctx: CanvasRenderingContext2D, frame: Frame): void {
   };
 
   ctx.strokeStyle = frame.palette.edge;
-  if (!hovered) {
+  if (!highlight.primaryId && !highlight.secondaryId) {
     ctx.globalAlpha = 1;
     trace(() => true);
     return;
   }
 
-  // The graph at large recedes; the hovered node's own links hold their normal weight
-  // and then take on the accent colour as the fade comes in.
-  ctx.globalAlpha = dimFactor(frame, DIM_EDGE_ALPHA);
-  trace((link) => !touchesHovered(link));
+  // The graph at large recedes; the selected and/or hovered node's own links hold
+  // their normal weight and then take on the accent colour — the selected node's at
+  // full strength immediately (no fade of its own), the hovered node's easing in.
+  ctx.globalAlpha = dimFactor(highlight, DIM_EDGE_ALPHA);
+  trace((link) => !touchesEither(link));
 
   ctx.globalAlpha = 1;
-  trace(touchesHovered);
+  trace(touchesEither);
 
-  ctx.globalAlpha = HOVER_EDGE_ALPHA * frame.hoverAmount;
   ctx.strokeStyle = frame.palette.accent;
-  trace(touchesHovered);
+  if (highlight.primaryId) {
+    ctx.globalAlpha = HOVER_EDGE_ALPHA * highlight.primaryAmount;
+    trace((link) => touches(link, highlight.primaryId));
+  }
+  if (highlight.secondaryId) {
+    ctx.globalAlpha = HOVER_EDGE_ALPHA * highlight.secondaryAmount;
+    trace((link) => touches(link, highlight.secondaryId));
+  }
   ctx.globalAlpha = 1;
 }
 
 /**
- * Draws every node as a small dot, emphasising the hovered or dragged one and fading
- * everything outside the hovered node's neighbourhood.
+ * Draws every node as a small dot, emphasising the hovered/selected/dragged one and
+ * fading everything outside its neighbourhood.
  *
  * @param ctx - 2D context.
  * @param frame - Current frame state.
+ * @param highlight - The active hover-or-selection target for this frame.
  */
-function drawNodes(ctx: CanvasRenderingContext2D, frame: Frame): void {
+function drawNodes(
+  ctx: CanvasRenderingContext2D,
+  frame: Frame,
+  highlight: Highlight,
+): void {
   for (const node of frame.nodes) {
     const { x, y } = frame.project(node.x, node.y);
-    const radius = dotRadius(node, frame);
-    const emphasis = emphasisOf(node.id, frame);
-    const lit = isLit(node.id, frame) ? 1 : dimFactor(frame, DIM_NODE_ALPHA);
+    const radius = dotRadius(node, frame, highlight);
+    const emphasis = emphasisOf(node.id, frame, highlight);
+    const lit = isLit(node.id, highlight)
+      ? 1
+      : dimFactor(highlight, DIM_NODE_ALPHA);
 
     ctx.globalAlpha = lit;
     ctx.beginPath();
@@ -448,30 +635,38 @@ function drawNodes(ctx: CanvasRenderingContext2D, frame: Frame): void {
  *
  * All of them or none of them, at the opacity {@link LabelGate} allows for the current
  * zoom — with two exceptions that are about answering a question, not about density:
- * the node under the pointer (and the ones it links to) is always named, at any zoom.
+ * the selected node and the hovered node (and the ones either links to) are always
+ * named, at any zoom.
  *
  * @param ctx - 2D context.
  * @param frame - Current frame state.
+ * @param highlight - The active highlight for this frame.
  */
-function drawLabels(ctx: CanvasRenderingContext2D, frame: Frame): void {
+function drawLabels(
+  ctx: CanvasRenderingContext2D,
+  frame: Frame,
+  highlight: Highlight,
+): void {
   ctx.font = `500 ${LABEL_FONT_SIZE}px ${frame.palette.fontFamily}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
 
   const opacity = frame.labelGate.opacity(ctx, frame);
-  const hovering = frame.hoveredId !== null;
-  if (opacity === 0 && !hovering && !frame.draggedId) return;
+  const highlighting =
+    highlight.primaryId !== null || highlight.secondaryId !== null;
+  if (opacity === 0 && !highlighting && !frame.draggedId) return;
 
   for (const node of frame.nodes) {
-    const emphasis = emphasisOf(node.id, frame);
-    const lit = isLit(node.id, frame);
+    const emphasis = emphasisOf(node.id, frame, highlight);
+    const lit = isLit(node.id, highlight);
 
-    // Hover names exactly one node: the one under the pointer. Its neighbours are
-    // still shown — lit dots, accent edges — but naming them all turned a hover over a
-    // dense cluster into a pile of overlapping captions, which is the opposite of the
-    // answer the hover is supposed to give. Everything else stays on the zoom gate,
-    // dimmed by however far the hover has faded in.
-    const gated = opacity * (lit ? 1 : dimFactor(frame, DIM_NODE_ALPHA));
+    // Naming is reserved for the selected and/or hovered node itself (via `emphasis`,
+    // which is exactly 1/hoverAmount for those two and 0 otherwise) — never their
+    // neighbours. Naming every lit neighbour too turned a hover over a dense cluster
+    // into a pile of overlapping captions, which is the opposite of the answer the
+    // highlight is supposed to give. Everything else stays on the zoom gate, dimmed by
+    // however far the highlight has faded in.
+    const gated = opacity * (lit ? 1 : dimFactor(highlight, DIM_NODE_ALPHA));
     const alpha = Math.max(gated, emphasis);
     if (alpha <= 0.02) continue;
 
@@ -480,7 +675,7 @@ function drawLabels(ctx: CanvasRenderingContext2D, frame: Frame): void {
       continue;
 
     const text = shortLabel(node.title);
-    const top = y + dotRadius(node, frame) + LABEL_OFFSET;
+    const top = y + dotRadius(node, frame, highlight) + LABEL_OFFSET;
 
     ctx.globalAlpha = alpha;
     // A halo in the canvas colour keeps a hairline edge from cutting through text.

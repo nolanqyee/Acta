@@ -1,24 +1,27 @@
 /**
- * @fileoverview The `/` surface while the canvas is being rebuilt: the graph and
- * nothing else.
+ * @fileoverview The `/` surface while the canvas is being rebuilt: the graph, hover,
+ * and selection — nothing more.
  *
- * The chrome from the first attempt (ask bar, filter menu, hover cards, node modal,
- * floating panels) was deliberately deleted rather than carried over. Those surfaces
- * are still the plan — see docs/surfaces-and-flows.md — but each one gets built and
- * looked at on its own, on top of a canvas that already feels right
- * (docs/graph-canvas.md § Deliberately deferred). The tunables slider panel lives only
- * in the dev workbench (`graph-lab.tsx`); this surface renders with the finalised
- * defaults.
+ * The chrome from the first attempt (ask bar, filter menu, floating panels) was
+ * deliberately deleted rather than carried over. Those surfaces are still the plan —
+ * see docs/surfaces-and-flows.md — but each one gets built and looked at on its own, on
+ * top of a canvas that already feels right (docs/graph-canvas.md § Deliberately
+ * deferred). The tunables slider panel lives only in the dev workbench
+ * (`graph-lab.tsx`); this surface renders with the finalised defaults. Top-right
+ * theme toggle is the only chrome restored so far (see surfaces-and-flows § Top-right).
  */
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { GraphSnapshot } from "@/lib/contracts";
 import { buildSampleGraph } from "@/lib/graph/sample-graph";
-import { GraphCanvas } from "./graph-canvas";
+import { GraphCanvas, type HoverInfo } from "./graph-canvas";
 import styles from "./graph-view.module.css";
-import type { PositionedNode } from "./types";
+import { HoverCard } from "./hover-card";
+import { NodeDetail } from "./node-detail";
+import { ThemeToggle } from "@/features/theme/theme-toggle";
+import { useTheme } from "@/features/theme/use-theme";
 
 /** Where the rendered graph came from, so the readout can say so honestly. */
 type Source = "loading" | "live" | "sample";
@@ -29,9 +32,38 @@ type Source = "loading" | "live" | "sample";
  * @returns The graph surface.
  */
 export function GraphView() {
+  const { resolvedTheme } = useTheme();
   const [snapshot, setSnapshot] = useState<GraphSnapshot | null>(null);
   const [source, setSource] = useState<Source>("loading");
-  const [selected, setSelected] = useState<PositionedNode | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [hover, setHover] = useState<HoverInfo | null>(null);
+
+  // Looked up from the snapshot rather than kept on the click event: the snapshot's
+  // fields (title, summary, facets, …) are what the detail panel shows, and they stay
+  // correct across a re-fetch as long as the node itself still exists.
+  const selectedNode = useMemo(
+    () => snapshot?.nodes.find((node) => node.id === selectedId) ?? null,
+    [snapshot, selectedId],
+  );
+
+  /**
+   * The left detail panel: the selection when idle, or a temporary preview of whatever
+   * node is hovered while a different one stays selected. Clears back to the selection
+   * when hover ends.
+   */
+  const panelNode = useMemo(() => {
+    if (!snapshot) return null;
+    if (
+      hover &&
+      selectedId &&
+      hover.node.id !== selectedId
+    ) {
+      return (
+        snapshot.nodes.find((node) => node.id === hover.node.id) ?? hover.node
+      );
+    }
+    return selectedNode;
+  }, [snapshot, hover, selectedId, selectedNode]);
 
   /**
    * Fetches the signed-in user's graph, falling back to the sample fixture when it is
@@ -71,8 +103,23 @@ export function GraphView() {
   return (
     <main className={styles.shell}>
       {snapshot ? (
-        <GraphCanvas snapshot={snapshot} onSelect={setSelected} />
+        <GraphCanvas
+          snapshot={snapshot}
+          resolvedTheme={resolvedTheme}
+          selectedId={selectedId}
+          onSelect={(node) => setSelectedId(node.id)}
+          onBackgroundClick={() => setSelectedId(null)}
+          onHover={setHover}
+        />
       ) : null}
+
+      {hover && !selectedId ? (
+        <HoverCard node={hover.node} x={hover.x} y={hover.y} />
+      ) : null}
+
+      <div className={styles.chrome}>
+        <ThemeToggle />
+      </div>
 
       <div className={styles.readout}>
         <span className={styles.source}>
@@ -82,10 +129,11 @@ export function GraphView() {
               ? "your graph"
               : "loading"}
         </span>
-        {selected ? (
-          <span className={styles.selected}>{selected.title}</span>
-        ) : null}
       </div>
+
+      {panelNode ? (
+        <NodeDetail node={panelNode} onClose={() => setSelectedId(null)} />
+      ) : null}
     </main>
   );
 }

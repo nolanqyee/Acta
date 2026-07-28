@@ -350,6 +350,18 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
 
 ## Changelog
 
+- **2026-07-26 (later):** **Node click surface reconsidered: left panel, not a centered
+  modal.** The first node-detail build (docs/graph-canvas.md's ninth pass) followed this
+  doc's §346 checkbox literally — centered, scrim behind it — and the founder's reaction
+  to that description (not yet seen on screen) was that a dark overlay over a live graph
+  is heavier than it needs to be, and centering hides the graph rather than sitting next
+  to it. It's rebuilt as an opaque **left-side floating panel** with no scrim, and the
+  canvas nudges its own visual centre right while the panel is open (a camera-level
+  offset, not a re-fit) so nothing sits behind it — see graph-canvas.md's tenth pass.
+  The header-image + straddling-title design in the §346 checkbox is **not** part of
+  this build (no image field exists on an endeavor yet regardless); that line should be
+  read as superseded, not as a rework target the way the straddling-title bug below
+  still is.
 - **2026-07-26:** **The chrome described here is currently unbuilt — on purpose.** The
   first Graph-home implementation shipped every surface below in one pass and none of
   them landed well; the canvas was rebuilt from scratch and the chrome was deleted with
