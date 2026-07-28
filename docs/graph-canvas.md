@@ -169,7 +169,7 @@ unchanged in physical terms — `repulsion: 8.5` at `linkDistance: 40` is the ol
 
 ```bash
 npm run dev
-open "http://localhost:3000/lab/graph?n=140"   # or ?n=400, plus ?gravity=…&repulsion=…
+open "http://localhost:3100/lab/graph?n=140"   # or ?n=400, plus ?gravity=…&repulsion=…
 ```
 
 The Playwright screenshot scripts that used to live in `scripts/` were removed once the
