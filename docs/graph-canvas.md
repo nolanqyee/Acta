@@ -59,13 +59,16 @@ Rebuilt 2026-07-26 on our own render loop. `react-force-graph-2d` is gone.
 | [`tunables.ts`](../src/features/graph/tunables.ts) | The four forces as numbers, with slider ranges. The only place defaults live. |
 | [`simulation.ts`](../src/features/graph/simulation.ts) | `GraphSimulation` — a `d3-force` layout with its internal timer disabled, stepped one tick per painted frame. Owns drag pinning and reheat/settle. |
 | [`seed.ts`](../src/features/graph/seed.ts) | Deterministic starting positions: containment groups start together, groups spiral out from the centre. |
-| [`camera.ts`](../src/features/graph/camera.ts) | Pan/zoom/fit, and the exact screen↔world inverse that drag and hit-testing depend on. |
+| [`camera.ts`](../src/features/graph/camera.ts) | Pan/zoom/fit, the exact screen↔world inverse that drag and hit-testing depend on, and a screen-space focus offset (eased by the canvas loop) that nudges the graph clear of the left detail panel. |
 | [`render.ts`](../src/features/graph/render.ts) | One frame: hairline edges, small dots, and the captions that have room. |
 | [`palette.ts`](../src/features/graph/palette.ts) | Resolves `tokens.css` custom properties into values a canvas can draw with. |
 | [`graph-canvas.tsx`](../src/features/graph/graph-canvas.tsx) | The `<canvas>`, the `requestAnimationFrame` loop, pointer/wheel/resize handling. Nothing per-frame goes through React state. |
 | [`dev-hud.tsx`](../src/features/graph/dev-hud.tsx) | Opaque sliders for the forces plus a frame counter. **Lab only** — it used to render on `/` too, which it never should have. |
 | [`graph-view.tsx`](../src/features/graph/graph-view.tsx) | The `/` surface: fetch `GET /api/graph`, fall back to the sample fixture, render the canvas at the finalised defaults. No chrome, no sliders. |
 | [`graph-lab.tsx`](../src/features/graph/graph-lab.tsx) + [`/lab/graph`](../src/app/lab/graph/page.tsx) | Dev-only workbench (404s in production, open without a session outside it). `?n=140` generates a fixture of that size; `?gravity=0.5&repulsion=12&…` overrides forces. |
+| [`node-detail.tsx`](../src/features/graph/node-detail.tsx) | Left-side, opaque panel for a selected node — title, kind, status, timeframe, summary, tags, facets. Every field is already on `GraphNode`; nothing here is invented. No scrim: the graph stays visible and clickable beside it. Escape / close button / a canvas background click all close it. |
+| [`hover-card.tsx`](../src/features/graph/hover-card.tsx) | The compact, opaque peek that follows the pointer over a node — the "card surface" R9's dim/lit/name treatment never included. Independent of selection. |
+| [`format-endeavor.ts`](../src/features/graph/format-endeavor.ts) | Shared text formatting (kind/status humanizing, fuzzy-date spans) so the hover card and detail panel agree on how a field reads. |
 
 **How the requirements are met.** Gravity is a per-node pull toward the origin, so
 every node is pulled (R1); repulsion is global, with the disc's size set by the balance
@@ -191,8 +194,21 @@ Named rather than hidden, in rough priority order:
 - **Small graphs (~20 nodes) read stringier than large ones.** Long derived facet links
   dominate when there are few nodes; the silhouette is still round but the middle has
   long crossing edges. May want facet links suppressed below some graph size.
-- **Clicking a node does almost nothing** — its title appears in the corner readout.
-  Selection, hover cards and the node detail surface are their own slices.
+- **Selection, hover, and the panel offset have not been looked at on screen yet.**
+  Selection reuses hover's exact dim/lit/accent treatment (render.ts's
+  `resolveHighlight`, hover-wins-while-active) at full strength with no fade of its own.
+  The detail panel floats on the **left**, opaque, no scrim — the founder's call after
+  seeing the first (centered + scrim) version described in chat, not on screen — and the
+  camera eases a screen-space `focusOffsetX` (camera.ts) rightward while it's open so
+  the graph clears it, back to 0 when it closes. The hover card (hover-card.tsx) follows
+  the pointer, positioned by fixed-size arithmetic rather than a measured flip. None of
+  this has been built with a browser available in the session that wrote it, which
+  breaks the "verify in a browser before moving on" rule this file opens with. Look at
+  it before trusting the description: hover several nodes (card follows, disappears on
+  mouse-leave and on press), click one (panel appears left, graph visibly nudges right,
+  nothing is covered), hover a different node while the panel is open (should take over,
+  then hand back), background click / Escape / close button (panel closes, graph
+  recentres), and check the panel and hover card don't collide or overlap awkwardly.
 - **Hover captions can overlap each other.** The hovered node's neighbours are always
   named, whatever the zoom, so in a tight cluster two of those names can collide. The
   zoom-gated captions never overlap; only this deliberate override can.
@@ -207,10 +223,13 @@ Named rather than hidden, in rough priority order:
 
 Not "later maybe" — actively out of scope until the engine feels right:
 
-- Hover *cards* (the dim-and-name treatment in R9 exists; a card surface does not),
-  node modal, floating panels, ask bar, filter menu, adapters menu.
+- Floating panels for Explore/diff-skim, ask bar, filter menu, adapters menu.
+- The node detail modal's eventual full shape: header image (no image field exists on
+  an endeavor yet), deepen prompts/chips, a Generate CTA, editable tags/archive, story
+  stamp — see docs/surfaces-and-flows.md's Node modal. What's built now is a read-only
+  view of the fields `GraphNode` already carries.
 - The visual/brand system beyond the existing tokens. (Rebuild from working screens.)
-- Highlight/dim language, selection states, pending-proposal ghosts.
+- Pending-proposal ghosts.
 - Keyboard traversal, reduced-motion refinements beyond honouring the preference.
 - Persisted physics settings and presets.
 
@@ -221,6 +240,59 @@ graph fixture (see [`data-model.md`](data-model.md) § Canvas snapshot).
 ---
 
 ## Changelog
+
+- **2026-07-26 (eleventh pass):** **Fixed a background flash during selection ↔ hover
+  transitions**, caught by the founder on the tenth pass before it was even looked at in
+  a browser (from the description alone) — the composed model below fixes it, but it's
+  still unverified on screen along with everything else in § Known rough edges. Root
+  cause: `resolveHighlight` treated hover and selection as strict either/or, so the
+  moment `hoveredId` became non-null — including re-hovering the *already-selected*
+  node, or hovering a different node while one was selected — the background's dim
+  strength switched to tracking the incoming hover's fade, which restarts near 0. For a
+  couple of frames the whole graph relaxed back toward full brightness before re-dimming
+  as the fade caught up: a visible flash every time hover crossed a selection. Hover and
+  selection now **compose** instead of replacing each other: the background dim amount
+  is `max(selected ? 1 : 0, hoverAmount)`, so it's pinned at full strength for the entire
+  time anything is selected, independent of whatever hover is doing on top. The lit set
+  is the union of both neighbourhoods, and edges/emphasis are drawn per-target (the
+  selected node's accent line at flat full strength, the hovered node's easing in) so a
+  node that's both selected and hovered just takes the higher of the two rather than
+  restarting. `Highlight` (render.ts) changed shape accordingly: `primaryId`/
+  `secondaryId`/`secondaryAmount`/`dimAmount`/`litIds` replace the old single `id`/
+  `neighbors`/`amount`.
+
+- **2026-07-26 (tenth pass):** **Hover card, and a design pivot on the detail panel** —
+  founder feedback on the ninth pass, given from a description rather than the screen
+  (still hasn't been looked at; see § Known rough edges). Two changes: (1) the hover
+  card the ninth pass left deferred is built — `hover-card.tsx` follows the pointer with
+  a compact, opaque peek (kind, title, timeframe, summary snippet, up to three facets),
+  independent of selection, and clears itself the instant the pointer leaves the canvas
+  or presses down (previously hover had no leave-handling at all — `hoveredId` could
+  stick to the last node forever once the mouse left the canvas without moving inside it
+  again; this pass added `onPointerLeave`, a real gap regardless of the hover card).
+  (2) The detail panel drops its center+scrim: a dark overlay over a live graph read as
+  too heavy, and centering it hid the graph rather than sitting beside it. It now floats
+  **left**, opaque, no backdrop — clicking the graph background (already wired for
+  deselect) or a different node works right through it. To keep the graph from sitting
+  behind the panel, `camera.ts` gained a `focusOffsetX`: a screen-space nudge applied
+  inside `toScreen`/`toWorld` on top of the existing centre/scale, eased toward
+  `PANEL_FOCUS_OFFSET_PX` (150) while a node is selected and back to 0 when it isn't —
+  deliberately a camera-level nudge, not a physics change, so gravity/anchors/fit are
+  untouched. `humanize`/`formatTimeframe` moved out of `node-detail.tsx` into
+  `format-endeavor.ts` so the hover card and panel read a kind/date/status the same way.
+
+- **2026-07-26 (ninth pass):** **Node selection + detail**, the slice named next after
+  hover. A click persists a highlight (render.ts's `resolveHighlight`: hover wins
+  outright while active, selection takes over the instant it lets go, both drawn with
+  the identical dim/lit/accent treatment — selection just holds at full strength with no
+  fade of its own, since a click is a discrete choice rather than a pointer passing
+  through) and opens a centered, opaque `node-detail.tsx` modal. The modal is
+  deliberately thin: title, kind, status, timeframe, summary, tags, and skill/people/org
+  facets are every field `GraphNode` already carries, and nothing else — no header
+  image (there's no image field to show), no deepen prompts, no Generate CTA, no
+  editable tags. Those depend on features that don't exist yet and stay in § Deliberately
+  deferred. Closes on Escape, a scrim click, or the close button; clicking empty canvas
+  also deselects. **Not yet looked at on screen** — see § Known rough edges.
 
 - **2026-07-26 (eighth pass):** Hover refinements. It named the hovered node *and* every
   neighbour, which turned a hover over a dense cluster — the common case when zoomed out

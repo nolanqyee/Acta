@@ -39,6 +39,26 @@ const ZOOM_PER_WHEEL_UNIT = 0.0016;
 const ZOOM_PER_PINCH_UNIT = 0.01;
 
 /**
+ * How far (CSS px) the camera nudges the graph right while a node is selected, so the
+ * left-side detail panel doesn't sit over it. "Slightly pushed", not a full re-fit.
+ */
+const PANEL_FOCUS_OFFSET_PX = 150;
+
+/** Fraction of the remaining distance to the target offset closed per tick. */
+const FOCUS_OFFSET_EASE = 0.14;
+
+/** Below this many px from the target, the offset just snaps rather than creeping. */
+const FOCUS_OFFSET_SNAP_PX = 0.05;
+
+/** Info handed to `onHover`: the hovered node plus where the pointer is over it. */
+export interface HoverInfo {
+  node: PositionedNode;
+  /** Pointer position in viewport CSS px (the graph surface is full-bleed). */
+  x: number;
+  y: number;
+}
+
+/**
  * A read-only window into the live canvas, for development tooling.
  *
  * The screenshot script needs to know where a node actually is on screen in order to
@@ -59,6 +79,19 @@ interface GraphCanvasProps {
   onFps?: (fps: number) => void;
   /** Called when a node is clicked without dragging. */
   onSelect?: (node: PositionedNode) => void;
+  /** Called when the background (not a node) is clicked without panning. */
+  onBackgroundClick?: () => void;
+  /**
+   * Called whenever the hovered node (or pointer position over it) changes, and once
+   * with `null` when the pointer leaves it or the canvas. Not fired while dragging or
+   * panning — a hover card is for passive peeking, not mid-gesture.
+   */
+  onHover?: (info: HoverInfo | null) => void;
+  /**
+   * The currently selected node's id, if any. Drawn with the same dim/lit/accent
+   * treatment as hover, but persistent (render.ts resolves which one wins per frame).
+   */
+  selectedId?: string | null;
   /** Development hook; receives a handle for inspecting the live canvas. */
   onDebugApi?: (api: GraphDebugApi) => void;
 }
@@ -70,6 +103,9 @@ interface GraphCanvasProps {
  * @param props.tunables - Force settings; changes are applied live.
  * @param props.onFps - Frame-rate reporter for the dev HUD.
  * @param props.onSelect - Node click handler.
+ * @param props.onBackgroundClick - Empty-canvas click handler.
+ * @param props.onHover - Hover state/position reporter, for a hover card.
+ * @param props.selectedId - The persistently-highlighted node, if any.
  * @param props.onDebugApi - Development hook (see {@link GraphDebugApi}).
  * @returns A full-bleed canvas element.
  */
@@ -78,6 +114,9 @@ export function GraphCanvas({
   tunables = DEFAULT_TUNABLES,
   onFps,
   onSelect,
+  onBackgroundClick,
+  onHover,
+  selectedId = null,
   onDebugApi,
 }: GraphCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -102,14 +141,24 @@ export function GraphCanvas({
     dragging: boolean;
   } | null>(null);
   const onSelectRef = useRef(onSelect);
+  const onBackgroundClickRef = useRef(onBackgroundClick);
+  const onHoverRef = useRef(onHover);
   const onFpsRef = useRef(onFps);
+  const selectedIdRef = useRef(selectedId);
 
   // Callbacks are mirrored into refs so the animation loop — which is created once and
   // outlives every render — always calls the latest one without being torn down.
   useEffect(() => {
     onSelectRef.current = onSelect;
+    onBackgroundClickRef.current = onBackgroundClick;
+    onHoverRef.current = onHover;
     onFpsRef.current = onFps;
-  }, [onSelect, onFps]);
+  }, [onSelect, onBackgroundClick, onHover, onFps]);
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+    wakeRef.current();
+  }, [selectedId]);
 
   /**
    * Rebuilds the simulation when the graph's contents change. Tunable changes are
@@ -218,6 +267,10 @@ export function GraphCanvas({
         hoveredId: hovered,
         hoverAmount: hoverFadeRef.current.getAmount(),
         hoveredNeighborIds: hovered ? simulation.getNeighbors(hovered) : null,
+        selectedId: selectedIdRef.current,
+        selectedNeighborIds: selectedIdRef.current
+          ? simulation.getNeighbors(selectedIdRef.current)
+          : null,
         draggedId: dragged?.id ?? null,
         labelGate: labelGateRef.current,
       });
@@ -248,10 +301,28 @@ export function GraphCanvas({
       hoverFadeRef.current.update(pointerTarget, delta);
       const fading = hoverFadeRef.current.isAnimating(pointerTarget);
 
+      // Eases the camera's screen-space nudge toward its target — in (a node is
+      // selected) or back to 0 (nothing is) — so the panel opening/closing doesn't snap
+      // the graph sideways.
+      const targetOffset = selectedIdRef.current ? PANEL_FOCUS_OFFSET_PX : 0;
+      const currentOffset = cameraRef.current.getFocusOffset();
+      const offsetGap = targetOffset - currentOffset;
+      const offsetAnimating = Math.abs(offsetGap) > FOCUS_OFFSET_SNAP_PX;
+      if (offsetAnimating) {
+        cameraRef.current.setFocusOffset(
+          currentOffset + offsetGap * FOCUS_OFFSET_EASE,
+        );
+      } else if (currentOffset !== targetOffset) {
+        cameraRef.current.setFocusOffset(targetOffset);
+      }
+
       const moving = simulationRef.current?.tick() ?? false;
       paint();
 
-      idleFrames = moving || fading || pointerRef.current ? 0 : idleFrames + 1;
+      idleFrames =
+        moving || fading || offsetAnimating || pointerRef.current
+          ? 0
+          : idleFrames + 1;
       if (idleFrames > 3) {
         frame = 0;
         return;
@@ -346,6 +417,13 @@ export function GraphCanvas({
         dragging: false,
       };
 
+      // A hover card is for passive peeking; any press — click or drag — ends that.
+      if (hoveredIdRef.current !== null) {
+        hoveredIdRef.current = null;
+        setHoveredId(null);
+        onHoverRef.current?.(null);
+      }
+
       // Deliberately no `startDrag` here — see DRAG_THRESHOLD_PX.
       wakeRef.current();
     },
@@ -376,6 +454,9 @@ export function GraphCanvas({
           setHoveredId(node?.id ?? null);
           wakeRef.current();
         }
+        onHoverRef.current?.(
+          node ? { node, x: event.clientX, y: event.clientY } : null,
+        );
         return;
       }
 
@@ -402,7 +483,8 @@ export function GraphCanvas({
   );
 
   /**
-   * Ends the gesture. A press that barely moved counts as a click on the node.
+   * Ends the gesture. A press that barely moved counts as a click — on the node it
+   * started on, or on the background if it started on empty canvas.
    *
    * @param event - The pointer-up (or cancel) event.
    */
@@ -416,6 +498,8 @@ export function GraphCanvas({
       if (gesture.mode === "node") {
         if (gesture.dragging) simulation.endDrag();
         else if (gesture.node) onSelectRef.current?.(gesture.node);
+      } else if (gesture.travelled < DRAG_THRESHOLD_PX) {
+        onBackgroundClickRef.current?.();
       }
 
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -425,6 +509,21 @@ export function GraphCanvas({
     },
     [],
   );
+
+  /**
+   * Clears hover when the pointer leaves the canvas outright — without this, moving
+   * the mouse off the edge left the last-hovered node dimmed/lit forever, since nothing
+   * else ever tells the loop the pointer is gone. Doesn't fire while a pointer is
+   * captured (mid-drag/pan), which is what we want: the gesture handlers own that case.
+   */
+  const handlePointerLeave = useCallback(() => {
+    if (hoveredIdRef.current !== null) {
+      hoveredIdRef.current = null;
+      setHoveredId(null);
+      wakeRef.current();
+    }
+    onHoverRef.current?.(null);
+  }, []);
 
   /**
    * Owns wheel, trackpad and pinch input.
@@ -497,6 +596,7 @@ export function GraphCanvas({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
+      onPointerLeave={handlePointerLeave}
     />
   );
 }

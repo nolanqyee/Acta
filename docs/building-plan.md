@@ -54,7 +54,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | Brand / visual (**U-A**) | **Unlocked again (2026-07-26)** — the up-front visual system was archived to [`archive/brand-design-system.md`](archive/brand-design-system.md); tokens stay in [`src/styles/tokens.css`](../src/styles/tokens.css) and the system gets rebuilt from working screens |
 | Tech implementation plan (**U-J**) | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 | Persistence / auth (**U-E**) | **In first build wave** — thin Supabase Auth/Postgres + proposals from U-J U2; extras (export, connectors) still queued |
-| Code | **U-J U3 shipped** — Graph home canvas + chrome on top of U2's auth/schema: `GET /api/graph` → cluster-seeded force canvas of confirmed endeavors, ask + filter + graph-settings, hover card, node modal, floating panels, quiet empty state, light/dark theming. Next = U4 (Capture + LLM Extract stream) |
+| Code | **U-J U3 rebuilt, canvas-first** — own `d3-force` + `<canvas>` render loop (see [`graph-canvas.md`](graph-canvas.md)). Node selection + detail (now a left-side opaque panel with a camera focus-offset, after founder feedback moved it off the originally-planned centered modal) + a hover card just landed on top of it, **not yet verified in a browser** (see that doc's changelog + known rough edges). Next = look at the new slice on screen, then U4 (Capture + LLM Extract stream) |
 
 **Docs layout:** planning specs under `docs/`; tokens under `styles/`. Building-plan units **U-A…U-J**.
 
@@ -194,11 +194,33 @@ Practical order: **implement U-J milestones U1–U5** → Explore polish / thin 
 | U-J Technical implementation plan | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 
 Data model: **v1 draft locked** in `data-model.md`.  
-Code: **U-J U3 rebuilt, canvas-first** — the graph now runs on our own `d3-force` + `<canvas>` + `requestAnimationFrame` loop (see [`graph-canvas.md`](graph-canvas.md)); the first attempt's chrome was deleted and returns one reviewed slice at a time. Next slice = node selection + detail, then U-J U4 (Capture + Extract stream).
+Code: **U-J U3 rebuilt, canvas-first** — the graph now runs on our own `d3-force` + `<canvas>` + `requestAnimationFrame` loop (see [`graph-canvas.md`](graph-canvas.md)); the first attempt's chrome was deleted and returns one reviewed slice at a time. Node selection + detail (a left-side opaque panel, not the originally-planned centered modal — see below) + a hover card just landed (2026-07-26) but have not been looked at in a browser yet. Next: verify that slice on screen, then U-J U4 (Capture + Extract stream).
 
 ---
 
 ## Changelog
+
+- **2026-07-26 (even later):** **Hover card + detail panel redesign.** Built the hover
+  card the previous pass deferred, and — on founder feedback — replaced the centered
+  modal + scrim from that pass with an opaque **left-side panel** and a camera-level
+  offset that nudges the graph right while it's open, rather than covering the graph
+  behind a dark overlay. Also fixed a real gap the hover card exposed: hover had no
+  pointer-leave handling, so it could stick to the last node forever once the mouse left
+  the canvas. `docs/surfaces-and-flows.md` gained a changelog note: this deviates from
+  its centered-modal checkbox, which should now be read as superseded on placement
+  (header image/straddling title were already out of scope regardless — no image field
+  exists). Full detail in [`graph-canvas.md`](graph-canvas.md)'s tenth pass. **Still not
+  verified on screen** — same caveat as the previous entry, carried forward.
+
+- **2026-07-26 (later still):** **Node selection + detail slice** — a click persists a
+  highlight (same dim/lit/accent treatment as hover, full strength, no fade) and opens a
+  centered, opaque node detail modal reading the fields `GraphNode` already carries
+  (title, kind, status, timeframe, summary, tags, facets). Full details in
+  [`graph-canvas.md`](graph-canvas.md)'s changelog. **Built and typechecked/tested but
+  not yet verified on screen** — no browser was available in the session that wrote it,
+  which breaks this repo's front-end working agreement (see
+  [`AGENTS.md`](../AGENTS.md) § Front-end working agreement). Look at it before
+  starting U4.
 
 - **2026-07-26 (later):** **U-J U3 graph scrapped and rebuilt — and the way we build front end changed with it.** The retuned canvas measured well and still looked wrong on screen, which was the tell: the physics ran inside `react-force-graph-2d`, so the simulation loop, zoom transform, drag handling and redraw scheduling — the four things every requirement actually depends on — were not ours to shape. The wrapper is gone; simulation, camera, renderer and input are now our own modules, and the whole first-attempt UI (chrome, hover cards, node modal, floating panels) was deleted rather than carried forward. Three durable changes: (1) **captions are gated on measured clear space**, so overview views are quiet and zooming in reveals names, instead of a zoom threshold guessing at it; (2) **the canvas is reviewed by looking at it** — a dev-only `/lab/graph` workbench with URL-settable forces plus two Playwright scripts (`npm run shots`, `npm run shots:compare`) that shoot fit/zoom/drag states and stitch candidate settings into contact sheets; (3) **the shape test measures the real engine** rather than a re-implementation, so it can no longer pass while the screen is wrong. Measured: aspect ratio 1.00–1.06 from 19 to 400 nodes, 109–127 fps including mid-drag. The up-front visual system and physics doctrine moved to [`archive/`](archive/) — front-end intent is now written as checkable requirements and built in slices (see [`AGENTS.md`](../AGENTS.md) § Front-end working agreement). Data model, surfaces/flows and the agent model were unaffected and remain canon.
 - **2026-07-26:** **U-J U3 layout corrected — the graph reads calm now.** The first U3 canvas violated the two things the physics doc exists to protect (circular settle, few crossings): it had **no cohesion force at all** (d3's `forceCenter` only recentres a centroid), unbounded repulsion that inflated the graph into strings, shared facets wired as arbitrarily ordered **chains**, and cluster centres seeded around the ring alphabetically so every cross-cluster link cut through the middle. All four are fixed, defaults retuned, and — the durable part — the qualities are now **measured** in a headless simulation test rather than judged by screenshot, on the sample graph plus a denser synthetic one. The sample graph settles with **zero crossings** in a square-ish frame. Link derivation is now one isomorphic rule shared by the server projection and the sample fixture. See graph-physics + data-model + technical-implementation-plan changelogs. Next = **U-J U4** (Capture + Extract stream).

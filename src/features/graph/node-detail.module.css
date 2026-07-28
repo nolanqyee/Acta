@@ -1,0 +1,123 @@
+/**
+ * The node detail panel: floats over the canvas on the left, fully opaque. No scrim —
+ * R7 shelves translucency, and the graph itself stays visible and interactive to the
+ * right of the panel (GraphCanvas nudges its focus over to clear this space).
+ */
+
+.panel {
+  position: fixed;
+  left: var(--space-5);
+  top: 50%;
+  z-index: 20;
+  transform: translateY(-50%);
+  width: var(--panel-width-max);
+  max-height: min(32rem, 80dvh);
+  overflow-y: auto;
+  padding: var(--modal-padding);
+  border-radius: var(--radius-panel);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+  font-family: var(--font-ui);
+  color: var(--text);
+}
+
+.close {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  width: var(--space-6);
+  height: var(--space-6);
+  border: none;
+  border-radius: var(--radius-ctl);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--bg-canvas);
+  color: var(--text);
+}
+
+.kicker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-right: var(--space-6);
+}
+
+.kind {
+  font-size: var(--text-label);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.status {
+  padding: 2px 8px;
+  border-radius: var(--radius-ctl);
+  background: var(--bg-canvas);
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  text-transform: capitalize;
+}
+
+.title {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--text-h-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.25;
+}
+
+.timeframe {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-ui);
+}
+
+.summary {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-body);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.empty {
+  margin: var(--space-4) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-body);
+  font-style: italic;
+}
+
+.section {
+  margin-top: var(--space-4);
+}
+
+.sectionLabel {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-label);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  padding: 4px 10px;
+  border-radius: var(--radius-ctl);
+  background: var(--bg-canvas);
+  font-size: var(--text-ui);
+}
