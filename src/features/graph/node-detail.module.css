@@ -4,12 +4,15 @@
  * right of the panel (GraphCanvas nudges its focus over to clear this space).
  */
 
-.panel {
+.shell {
   position: fixed;
   left: var(--space-5);
   top: 50%;
   z-index: 20;
   transform: translateY(-50%);
+}
+
+.panel {
   width: var(--panel-width-max);
   max-height: min(32rem, 80dvh);
   overflow-y: auto;

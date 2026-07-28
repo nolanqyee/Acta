@@ -15,15 +15,9 @@
  * Hovering also lives here: the pointed-at node and its links stay lit while the rest
  * of the graph fades back, so a node's neighbourhood is legible without any chrome.
  *
- * Selection uses the identical dim/lit/accent language, just without a fade (a click is
- * a discrete choice, not a pointer passing through, so it snaps to full strength). The
- * two **compose** rather than one replacing the other (see {@link resolveHighlight}):
- * whenever something is selected, the rest of the graph stays pinned at the dim floor
- * regardless of what hover is doing on top of it, so hovering the selected node again,
- * or hovering a different node while one is selected, never relaxes the background back
- * toward full brightness mid-transition. An earlier version treated the two as strict
- * either/or and did exactly that — a visible flash — because the incoming highlight's
- * fade always restarts near 0 even when the outgoing one was a persistent 1.
+ * Selection uses the identical dim/lit/accent language. Background dim snaps on when
+ * something is selected; the green accent itself fades in and out — including when hover
+ * over a different node temporarily takes it over and when hover clears again.
  */
 
 import type { Palette } from "./palette";
@@ -48,6 +42,8 @@ export interface Frame {
   hoveredId: string | null;
   /** How far the hover treatment has faded in, 0–1. See {@link HoverFade}. */
   hoverAmount: number;
+  /** How far the selection accent has faded in, 0–1. See {@link SelectionAccentFade}. */
+  selectionAccentAmount: number;
   /** Ids linked to the hovered node; they stay lit while the rest fades. */
   hoveredNeighborIds: ReadonlySet<string> | null;
   /** The clicked-and-persisted node, if any. Independent of hover. */
@@ -152,6 +148,73 @@ export class HoverFade {
 }
 
 /**
+ * Eases the selection accent in and out when hover temporarily takes it over.
+ *
+ * A click still selects immediately (background dim snaps on), but the green accent
+ * and lit neighbourhood fade rather than popping — especially when hover clears and
+ * selection takes the accent back from a different node.
+ */
+export class SelectionAccentFade {
+  private amount = 0;
+
+  /**
+   * Advances the selection accent one frame.
+   *
+   * @param selectedId - The persistently selected node, if any.
+   * @param hoveredId - Node the hover treatment is drawn for (may lag the pointer).
+   * @param hoverAmount - Current hover fade strength.
+   * @param deltaMs - Milliseconds since the previous frame.
+   */
+  update(
+    selectedId: string | null,
+    hoveredId: string | null,
+    hoverAmount: number,
+    deltaMs: number,
+  ): void {
+    const step = Math.min(deltaMs, 50);
+    const hoverOverrides =
+      selectedId !== null &&
+      hoveredId !== null &&
+      hoveredId !== selectedId &&
+      hoverAmount > 0;
+    const target = selectedId !== null && !hoverOverrides ? 1 : 0;
+
+    if (target > this.amount) {
+      this.amount = Math.min(target, this.amount + step / HOVER_FADE_IN_MS);
+    } else if (target < this.amount) {
+      this.amount = Math.max(target, this.amount - step / HOVER_FADE_OUT_MS);
+    }
+  }
+
+  /** @returns Selection accent strength, 0–1. */
+  getAmount(): number {
+    return this.amount;
+  }
+
+  /**
+   * Whether the accent still needs frames.
+   *
+   * @param selectedId - The persistently selected node, if any.
+   * @param hoveredId - Node the hover treatment is drawn for.
+   * @param hoverAmount - Current hover fade strength.
+   * @returns True while the accent is still easing.
+   */
+  isAnimating(
+    selectedId: string | null,
+    hoveredId: string | null,
+    hoverAmount: number,
+  ): boolean {
+    const hoverOverrides =
+      selectedId !== null &&
+      hoveredId !== null &&
+      hoveredId !== selectedId &&
+      hoverAmount > 0;
+    const target = selectedId !== null && !hoverOverrides ? 1 : 0;
+    return Math.abs(this.amount - target) > 0.001;
+  }
+}
+
+/**
  * Decides, for the graph as a whole, the zoom at which captions can all be shown.
  *
  * Captions used to be placed one at a time, each drawn only if it personally had room.
@@ -225,7 +288,7 @@ const RECOMPUTE_INTERVAL_MS = 500;
 const FADE_BAND = 0.82;
 
 /** Percentile of per-node requirements the threshold satisfies (1 = every node). */
-const THRESHOLD_PERCENTILE = 0.9;
+const THRESHOLD_PERCENTILE = 0.6;
 
 /**
  * Derives the zoom at which captions become readable across the graph.
@@ -289,52 +352,55 @@ function measureThresholdScale(
 const NO_IDS: ReadonlySet<string> = new Set<string>();
 
 /**
- * The dim/lit/accent treatment for one frame — selection and hover **compose** rather
- * than one replacing the other, which is what stops the background flashing back to
- * full brightness mid-transition (see the fileoverview).
+ * The dim/lit/accent treatment for one frame — selection and hover compose for
+ * background dim, but hover over a *different* node temporarily owns the green accent.
  */
 interface Highlight {
   /** Every id that should stay at full strength: selected/hovered ids + neighbours. */
   litIds: ReadonlySet<string>;
   /**
    * How dimmed the rest of the graph is, 0–1. Pinned to 1 the instant something is
-   * selected — a persistent choice, not a fade — so hovering (even the selected node
-   * itself, even a different node) can never relax it back toward full brightness.
-   * With nothing selected this just tracks the hover fade, as before.
+   * selected — a persistent choice, not a fade — so hovering can never relax the
+   * background back toward full brightness while the detail panel is open.
    */
   dimAmount: number;
-  /** The selected node's id, if any — its own emphasis is always 1, no fade. */
+  /** The selected node's id, if any — its emphasis tracks {@link primaryAmount}. */
   primaryId: string | null;
+  /** How strongly the selection accent is shown, 0–1. */
+  primaryAmount: number;
   /** The hovered node's id, if any — its emphasis fades with {@link secondaryAmount}. */
   secondaryId: string | null;
   secondaryAmount: number;
 }
 
 /**
- * Composes selection (persistent) and hover (transient) into one treatment.
+ * Composes selection (persistent dim) and hover (transient accent) into one treatment.
  *
- * The two used to be a strict either/or — whichever was "active" replaced the other
- * outright — which meant re-hovering an already-selected node, or hovering a different
- * one while something was selected, dropped the background's dim amount back to
- * whatever the incoming hover's fade-in happened to be (near 0) for a frame or two: the
- * rest of the graph flashed back into view before re-dimming. Composing them means the
- * background dim strength only ever depends on *whether* something is selected, never
- * on which transition is mid-flight.
+ * Background dim strength only ever depends on *whether* something is selected, never
+ * on which hover transition is mid-flight — that is what stops the flash when hover
+ * crosses a selection. Accent and lit neighbourhood, however, yield to hover whenever
+ * the pointer is over a node other than the selected one.
  *
  * @param frame - Current frame state.
  * @returns The active highlight; `litIds` is empty when neither is set.
  */
 function resolveHighlight(frame: Frame): Highlight {
-  const primaryId = frame.selectedId;
-  const secondaryId = frame.hoveredId;
+  const selectedId = frame.selectedId;
+  const hoveredId = frame.hoveredId;
   const secondaryAmount = frame.hoverAmount;
-  const dimAmount = Math.max(primaryId ? 1 : 0, secondaryAmount);
+  const primaryAmount = frame.selectionAccentAmount;
+  const dimAmount = Math.max(selectedId ? 1 : 0, secondaryAmount);
+
+  const primaryId =
+    selectedId !== null && primaryAmount > 0 ? selectedId : null;
+  const secondaryId = hoveredId;
 
   if (!primaryId && !secondaryId) {
     return {
       litIds: NO_IDS,
       dimAmount,
       primaryId,
+      primaryAmount,
       secondaryId,
       secondaryAmount,
     };
@@ -349,7 +415,14 @@ function resolveHighlight(frame: Frame): Highlight {
     litIds.add(secondaryId);
     for (const id of frame.hoveredNeighborIds ?? NO_IDS) litIds.add(id);
   }
-  return { litIds, dimAmount, primaryId, secondaryId, secondaryAmount };
+  return {
+    litIds,
+    dimAmount,
+    primaryId,
+    primaryAmount,
+    secondaryId,
+    secondaryAmount,
+  };
 }
 
 /**
@@ -386,7 +459,7 @@ function dotRadius(
 function emphasisOf(id: string, frame: Frame, highlight: Highlight): number {
   if (id === frame.draggedId) return 1;
   let emphasis = 0;
-  if (id === highlight.primaryId) emphasis = 1;
+  if (id === highlight.primaryId) emphasis = highlight.primaryAmount;
   if (id === highlight.secondaryId)
     emphasis = Math.max(emphasis, highlight.secondaryAmount);
   return emphasis;
@@ -500,7 +573,7 @@ function drawEdges(
 
   ctx.strokeStyle = frame.palette.accent;
   if (highlight.primaryId) {
-    ctx.globalAlpha = HOVER_EDGE_ALPHA;
+    ctx.globalAlpha = HOVER_EDGE_ALPHA * highlight.primaryAmount;
     trace((link) => touches(link, highlight.primaryId));
   }
   if (highlight.secondaryId) {

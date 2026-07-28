@@ -14,10 +14,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ResolvedTheme } from "@/features/theme/theme-storage";
 import type { GraphSnapshot } from "@/lib/contracts";
 import { boundsOf, Camera } from "./camera";
 import { getPalette } from "./palette";
-import { drawFrame, HoverFade, LabelGate } from "./render";
+import { drawFrame, HoverFade, LabelGate, SelectionAccentFade } from "./render";
 import { GraphSimulation } from "./simulation";
 import { DEFAULT_TUNABLES, type Tunables } from "./tunables";
 import type { PositionedNode } from "./types";
@@ -50,7 +51,7 @@ const FOCUS_OFFSET_EASE = 0.14;
 /** Below this many px from the target, the offset just snaps rather than creeping. */
 const FOCUS_OFFSET_SNAP_PX = 0.05;
 
-/** Info handed to `onHover`: the hovered node plus where the pointer is over it. */
+/** Info handed to `onHover`: the hovered node plus pointer position for the peek card. */
 export interface HoverInfo {
   node: PositionedNode;
   /** Pointer position in viewport CSS px (the graph surface is full-bleed). */
@@ -94,6 +95,8 @@ interface GraphCanvasProps {
   selectedId?: string | null;
   /** Development hook; receives a handle for inspecting the live canvas. */
   onDebugApi?: (api: GraphDebugApi) => void;
+  /** Resolved light/dark — repaints the canvas when the theme toggle flips. */
+  resolvedTheme?: ResolvedTheme;
 }
 
 /**
@@ -118,6 +121,7 @@ export function GraphCanvas({
   onHover,
   selectedId = null,
   onDebugApi,
+  resolvedTheme = "dark",
 }: GraphCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const simulationRef = useRef<GraphSimulation | null>(null);
@@ -130,6 +134,9 @@ export function GraphCanvas({
   const wakeRef = useRef<() => void>(() => {});
   const labelGateRef = useRef<LabelGate>(new LabelGate());
   const hoverFadeRef = useRef<HoverFade>(new HoverFade());
+  const selectionAccentFadeRef = useRef<SelectionAccentFade>(
+    new SelectionAccentFade(),
+  );
   const pointerRef = useRef<{
     id: number;
     mode: "node" | "pan";
@@ -145,6 +152,7 @@ export function GraphCanvas({
   const onHoverRef = useRef(onHover);
   const onFpsRef = useRef(onFps);
   const selectedIdRef = useRef(selectedId);
+  const resolvedThemeRef = useRef(resolvedTheme);
 
   // Callbacks are mirrored into refs so the animation loop — which is created once and
   // outlives every render — always calls the latest one without being torn down.
@@ -159,6 +167,11 @@ export function GraphCanvas({
     selectedIdRef.current = selectedId;
     wakeRef.current();
   }, [selectedId]);
+
+  useEffect(() => {
+    resolvedThemeRef.current = resolvedTheme;
+    wakeRef.current();
+  }, [resolvedTheme]);
 
   /**
    * Rebuilds the simulation when the graph's contents change. Tunable changes are
@@ -257,15 +270,11 @@ export function GraphCanvas({
         scale: camera.getScale(),
         width,
         height,
-        palette: getPalette(
-          document.documentElement.dataset.mode ??
-            (window.matchMedia("(prefers-color-scheme: dark)").matches
-              ? "dark"
-              : "light"),
-        ),
+        palette: getPalette(resolvedThemeRef.current),
         tunables: simulation.getTunables(),
         hoveredId: hovered,
         hoverAmount: hoverFadeRef.current.getAmount(),
+        selectionAccentAmount: selectionAccentFadeRef.current.getAmount(),
         hoveredNeighborIds: hovered ? simulation.getNeighbors(hovered) : null,
         selectedId: selectedIdRef.current,
         selectedNeighborIds: selectedIdRef.current
@@ -299,7 +308,20 @@ export function GraphCanvas({
 
       const pointerTarget = hoveredIdRef.current;
       hoverFadeRef.current.update(pointerTarget, delta);
-      const fading = hoverFadeRef.current.isAnimating(pointerTarget);
+      const hovered = hoverFadeRef.current.getActiveId();
+      selectionAccentFadeRef.current.update(
+        selectedIdRef.current,
+        hovered,
+        hoverFadeRef.current.getAmount(),
+        delta,
+      );
+      const hoverAnimating = hoverFadeRef.current.isAnimating(pointerTarget);
+      const selectionAnimating = selectionAccentFadeRef.current.isAnimating(
+        selectedIdRef.current,
+        hovered,
+        hoverFadeRef.current.getAmount(),
+      );
+      const fading = hoverAnimating || selectionAnimating;
 
       // Eases the camera's screen-space nudge toward its target — in (a node is
       // selected) or back to 0 (nothing is) — so the panel opening/closing doesn't snap

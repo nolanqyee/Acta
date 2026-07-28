@@ -13,8 +13,10 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { GraphNode } from "@/lib/contracts";
+import { animateEnter } from "@/features/motion/enter";
+import { useReducedMotion } from "@/features/motion/use-reduced-motion";
 import { formatTimeframe, humanize } from "./format-endeavor";
 import styles from "./node-detail.module.css";
 
@@ -56,6 +58,9 @@ function ChipSection({ label, values }: { label: string; values: string[] }) {
  * @returns The panel, mounted at the root of the graph surface.
  */
 export function NodeDetail({ node, onClose }: NodeDetailProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === "Escape") onClose();
@@ -64,16 +69,27 @@ export function NodeDetail({ node, onClose }: NodeDetailProps) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
+  useEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    const anim = animateEnter(el, reducedMotion);
+    return () => {
+      anim?.revert();
+    };
+  }, [node.id, reducedMotion]);
+
   const timeframe = formatTimeframe(node.timeframe);
   const tags = node.applicationTags.map((tag) => humanize(tag.tag));
 
   return (
-    <div
-      className={styles.panel}
-      role="dialog"
-      aria-modal="false"
-      aria-label={node.title}
-    >
+    <div className={styles.shell}>
+      <div
+        ref={panelRef}
+        className={styles.panel}
+        role="dialog"
+        aria-modal="false"
+        aria-label={node.title}
+      >
       <button
         type="button"
         className={styles.close}
@@ -105,6 +121,7 @@ export function NodeDetail({ node, onClose }: NodeDetailProps) {
       <ChipSection label="Skills" values={node.facets.skills} />
       <ChipSection label="People" values={node.facets.people} />
       <ChipSection label="Organizations" values={node.facets.orgs} />
+      </div>
     </div>
   );
 }

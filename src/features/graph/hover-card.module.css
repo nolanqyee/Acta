@@ -1,7 +1,6 @@
 /**
- * The hover card: small, opaque, follows the pointer. Keep `max-width`/`max-height`
- * in sync with CARD_WIDTH_PX/CARD_MAX_HEIGHT_PX in hover-card.tsx — the placement
- * arithmetic assumes these.
+ * The hover card: small, opaque, follows the pointer. Keep `max-width` in sync with
+ * CARD_WIDTH_PX in hover-card.tsx — the horizontal placement arithmetic assumes it.
  */
 
 .card {

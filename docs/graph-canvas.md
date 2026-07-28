@@ -1,6 +1,6 @@
 # Graph canvas — the live spec
 
-Last updated: 2026-07-26
+Last updated: 2026-07-28
 
 This replaces `archive/graph-physics.md`. That doc specified a canvas in detail before
 one existed; this one records only what is **true of the running canvas or required of
@@ -64,11 +64,13 @@ Rebuilt 2026-07-26 on our own render loop. `react-force-graph-2d` is gone.
 | [`palette.ts`](../src/features/graph/palette.ts) | Resolves `tokens.css` custom properties into values a canvas can draw with. |
 | [`graph-canvas.tsx`](../src/features/graph/graph-canvas.tsx) | The `<canvas>`, the `requestAnimationFrame` loop, pointer/wheel/resize handling. Nothing per-frame goes through React state. |
 | [`dev-hud.tsx`](../src/features/graph/dev-hud.tsx) | Opaque sliders for the forces plus a frame counter. **Lab only** — it used to render on `/` too, which it never should have. |
-| [`graph-view.tsx`](../src/features/graph/graph-view.tsx) | The `/` surface: fetch `GET /api/graph`, fall back to the sample fixture, render the canvas at the finalised defaults. No chrome, no sliders. |
+| [`graph-view.tsx`](../src/features/graph/graph-view.tsx) | The `/` surface: fetch `GET /api/graph`, fall back to the sample fixture, canvas + hover/selection. Top-right **theme toggle** (sun/moon); sample/live readout top-left. |
 | [`graph-lab.tsx`](../src/features/graph/graph-lab.tsx) + [`/lab/graph`](../src/app/lab/graph/page.tsx) | Dev-only workbench (404s in production, open without a session outside it). `?n=140` generates a fixture of that size; `?gravity=0.5&repulsion=12&…` overrides forces. |
-| [`node-detail.tsx`](../src/features/graph/node-detail.tsx) | Left-side, opaque panel for a selected node — title, kind, status, timeframe, summary, tags, facets. Every field is already on `GraphNode`; nothing here is invented. No scrim: the graph stays visible and clickable beside it. Escape / close button / a canvas background click all close it. |
-| [`hover-card.tsx`](../src/features/graph/hover-card.tsx) | The compact, opaque peek that follows the pointer over a node — the "card surface" R9's dim/lit/name treatment never included. Independent of selection. |
+| [`node-detail.tsx`](../src/features/graph/node-detail.tsx) | Left-side, opaque panel for a selected node — title, kind, status, timeframe, summary, tags, facets. While a *different* node is hovered, the panel **previews** that node and returns to the selection on hover clear. Escape / close / background click deselect. Camera nudges the graph right while open. |
+| [`hover-card.tsx`](../src/features/graph/hover-card.tsx) | Compact peek following the pointer — **only when nothing is selected** (the detail panel owns the left edge once a node is clicked). |
 | [`format-endeavor.ts`](../src/features/graph/format-endeavor.ts) | Shared text formatting (kind/status humanizing, fuzzy-date spans) so the hover card and detail panel agree on how a field reads. |
+| [`../motion/enter.ts`](../src/features/motion/enter.ts) | Shared anime.js enter animations (detail panel fade/pop; hover card fade). |
+| [`../theme/theme-toggle.tsx`](../src/features/theme/theme-toggle.tsx) | Sun/moon light/dark toggle — minimal top-right chrome restored on `/`. |
 
 **How the requirements are met.** Gravity is a per-node pull toward the origin, so
 every node is pulled (R1); repulsion is global, with the disc's size set by the balance
@@ -76,7 +78,7 @@ between the two (it used to be capped at 3× link distance — see below for why
 to go). Dots are world-scaled but clamped to 1.4–9 px
 (R2). Captions appear as a set once zoom passes a threshold that is *measured* from the
 layout — for each node, the zoom its title would need to clear its nearest neighbour;
-the threshold is the 90th percentile of those, with a short fade band below it (R3).
+the threshold is the 60th percentile of those, with a short fade band below it (R3).
 Drag sets the node's fixed position from the pointer and holds a low alpha; release
 un-pins it and lets it ease back (R4). Edges are straight hairlines at token `--edge`
 opacity, drawn beneath the dots (R6). Every surface here is opaque (R7). Locality (R8)
@@ -194,21 +196,6 @@ Named rather than hidden, in rough priority order:
 - **Small graphs (~20 nodes) read stringier than large ones.** Long derived facet links
   dominate when there are few nodes; the silhouette is still round but the middle has
   long crossing edges. May want facet links suppressed below some graph size.
-- **Selection, hover, and the panel offset have not been looked at on screen yet.**
-  Selection reuses hover's exact dim/lit/accent treatment (render.ts's
-  `resolveHighlight`, hover-wins-while-active) at full strength with no fade of its own.
-  The detail panel floats on the **left**, opaque, no scrim — the founder's call after
-  seeing the first (centered + scrim) version described in chat, not on screen — and the
-  camera eases a screen-space `focusOffsetX` (camera.ts) rightward while it's open so
-  the graph clears it, back to 0 when it closes. The hover card (hover-card.tsx) follows
-  the pointer, positioned by fixed-size arithmetic rather than a measured flip. None of
-  this has been built with a browser available in the session that wrote it, which
-  breaks the "verify in a browser before moving on" rule this file opens with. Look at
-  it before trusting the description: hover several nodes (card follows, disappears on
-  mouse-leave and on press), click one (panel appears left, graph visibly nudges right,
-  nothing is covered), hover a different node while the panel is open (should take over,
-  then hand back), background click / Escape / close button (panel closes, graph
-  recentres), and check the panel and hover card don't collide or overlap awkwardly.
 - **Hover captions can overlap each other.** The hovered node's neighbours are always
   named, whatever the zoom, so in a tight cluster two of those names can collide. The
   zoom-gated captions never overlap; only this deliberate override can.
@@ -240,6 +227,19 @@ graph fixture (see [`data-model.md`](data-model.md) § Canvas snapshot).
 ---
 
 ## Changelog
+
+- **2026-07-28 (twelfth pass):** **Verified on screen; interaction polish.** Founder QA
+  signed off the hover/selection/detail slice. Behaviour now: hover card follows the
+  pointer **only when nothing is selected**; click opens the left detail panel (anime.js
+  fade/pop via `motion/enter.ts`); hovering a **different** node while one is selected
+  **previews that node in the panel** and temporarily **takes the green accent** on the
+  canvas (`SelectionAccentFade` eases selection accent out/in — background dim stays
+  pinned while the panel is open). Hover card placement above the cursor uses
+  `translateY(-100%)` so the gap matches below-cursor. Caption gate percentile lowered
+  to **0.6** (`THRESHOLD_PERCENTILE` in render.ts). **Theme toggle restored** top-right
+  on `/` (`theme-toggle.tsx`); canvas receives `resolvedTheme` and repaints on flip.
+  Pointer mapping stays Figma-style (scroll pans, pinch/⌘+scroll zooms) — a mouse-wheel
+  zoom experiment was reverted after device detection proved unreliable.
 
 - **2026-07-26 (eleventh pass):** **Fixed a background flash during selection ↔ hover
   transitions**, caught by the founder on the tenth pass before it was even looked at in

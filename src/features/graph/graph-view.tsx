@@ -7,7 +7,8 @@
  * see docs/surfaces-and-flows.md — but each one gets built and looked at on its own, on
  * top of a canvas that already feels right (docs/graph-canvas.md § Deliberately
  * deferred). The tunables slider panel lives only in the dev workbench
- * (`graph-lab.tsx`); this surface renders with the finalised defaults.
+ * (`graph-lab.tsx`); this surface renders with the finalised defaults. Top-right
+ * theme toggle is the only chrome restored so far (see surfaces-and-flows § Top-right).
  */
 
 "use client";
@@ -19,6 +20,8 @@ import { GraphCanvas, type HoverInfo } from "./graph-canvas";
 import styles from "./graph-view.module.css";
 import { HoverCard } from "./hover-card";
 import { NodeDetail } from "./node-detail";
+import { ThemeToggle } from "@/features/theme/theme-toggle";
+import { useTheme } from "@/features/theme/use-theme";
 
 /** Where the rendered graph came from, so the readout can say so honestly. */
 type Source = "loading" | "live" | "sample";
@@ -29,6 +32,7 @@ type Source = "loading" | "live" | "sample";
  * @returns The graph surface.
  */
 export function GraphView() {
+  const { resolvedTheme } = useTheme();
   const [snapshot, setSnapshot] = useState<GraphSnapshot | null>(null);
   const [source, setSource] = useState<Source>("loading");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -41,6 +45,25 @@ export function GraphView() {
     () => snapshot?.nodes.find((node) => node.id === selectedId) ?? null,
     [snapshot, selectedId],
   );
+
+  /**
+   * The left detail panel: the selection when idle, or a temporary preview of whatever
+   * node is hovered while a different one stays selected. Clears back to the selection
+   * when hover ends.
+   */
+  const panelNode = useMemo(() => {
+    if (!snapshot) return null;
+    if (
+      hover &&
+      selectedId &&
+      hover.node.id !== selectedId
+    ) {
+      return (
+        snapshot.nodes.find((node) => node.id === hover.node.id) ?? hover.node
+      );
+    }
+    return selectedNode;
+  }, [snapshot, hover, selectedId, selectedNode]);
 
   /**
    * Fetches the signed-in user's graph, falling back to the sample fixture when it is
@@ -82,6 +105,7 @@ export function GraphView() {
       {snapshot ? (
         <GraphCanvas
           snapshot={snapshot}
+          resolvedTheme={resolvedTheme}
           selectedId={selectedId}
           onSelect={(node) => setSelectedId(node.id)}
           onBackgroundClick={() => setSelectedId(null)}
@@ -89,7 +113,13 @@ export function GraphView() {
         />
       ) : null}
 
-      {hover ? <HoverCard node={hover.node} x={hover.x} y={hover.y} /> : null}
+      {hover && !selectedId ? (
+        <HoverCard node={hover.node} x={hover.x} y={hover.y} />
+      ) : null}
+
+      <div className={styles.chrome}>
+        <ThemeToggle />
+      </div>
 
       <div className={styles.readout}>
         <span className={styles.source}>
@@ -101,8 +131,8 @@ export function GraphView() {
         </span>
       </div>
 
-      {selectedNode ? (
-        <NodeDetail node={selectedNode} onClose={() => setSelectedId(null)} />
+      {panelNode ? (
+        <NodeDetail node={panelNode} onClose={() => setSelectedId(null)} />
       ) : null}
     </main>
   );

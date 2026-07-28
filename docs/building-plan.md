@@ -1,6 +1,6 @@
 # Acta — Building Plan
 
-Last updated: 2026-07-26
+Last updated: 2026-07-28
 
 Overarching **build** roadmap (not business/GTM). Companion to:
 
@@ -54,7 +54,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | Brand / visual (**U-A**) | **Unlocked again (2026-07-26)** — the up-front visual system was archived to [`archive/brand-design-system.md`](archive/brand-design-system.md); tokens stay in [`src/styles/tokens.css`](../src/styles/tokens.css) and the system gets rebuilt from working screens |
 | Tech implementation plan (**U-J**) | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 | Persistence / auth (**U-E**) | **In first build wave** — thin Supabase Auth/Postgres + proposals from U-J U2; extras (export, connectors) still queued |
-| Code | **U-J U3 rebuilt, canvas-first** — own `d3-force` + `<canvas>` render loop (see [`graph-canvas.md`](graph-canvas.md)). Node selection + detail (now a left-side opaque panel with a camera focus-offset, after founder feedback moved it off the originally-planned centered modal) + a hover card just landed on top of it, **not yet verified in a browser** (see that doc's changelog + known rough edges). Next = look at the new slice on screen, then U4 (Capture + LLM Extract stream) |
+| Code | **U-J U3 interaction slice verified (2026-07-28)** — canvas engine + hover/selection/detail on `/` (see [`graph-canvas.md`](graph-canvas.md)). Theme toggle restored top-right. Next = **U-J U4** (Capture + LLM Extract stream) |
 
 **Docs layout:** planning specs under `docs/`; tokens under `styles/`. Building-plan units **U-A…U-J**.
 
@@ -194,11 +194,17 @@ Practical order: **implement U-J milestones U1–U5** → Explore polish / thin 
 | U-J Technical implementation plan | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 
 Data model: **v1 draft locked** in `data-model.md`.  
-Code: **U-J U3 rebuilt, canvas-first** — the graph now runs on our own `d3-force` + `<canvas>` + `requestAnimationFrame` loop (see [`graph-canvas.md`](graph-canvas.md)); the first attempt's chrome was deleted and returns one reviewed slice at a time. Node selection + detail (a left-side opaque panel, not the originally-planned centered modal — see below) + a hover card just landed (2026-07-26) but have not been looked at in a browser yet. Next: verify that slice on screen, then U-J U4 (Capture + Extract stream).
+Code: **U-J U3 interaction slice verified (2026-07-28)** — canvas engine plus hover/selection/detail on `/` (see [`graph-canvas.md`](graph-canvas.md)); theme toggle back top-right. Next = **U-J U4** (Capture + Extract stream).
 
 ---
 
 ## Changelog
+
+- **2026-07-28:** **U-J U3 hover/selection/detail verified on screen.** Polished
+  interaction (panel previews hovered node while another stays selected; selection accent
+  fades; hover card when unselected only; anime.js panel enter; caption gate at 60th
+  percentile; theme toggle restored). Full detail in [`graph-canvas.md`](graph-canvas.md)
+  twelfth pass. Next = **U-J U4** (Capture + Extract stream).
 
 - **2026-07-26 (even later):** **Hover card + detail panel redesign.** Built the hover
   card the previous pass deferred, and — on founder feedback — replaced the centered
