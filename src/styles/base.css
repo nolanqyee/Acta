@@ -55,6 +55,38 @@ select {
   background: var(--accent-soft);
 }
 
+/* Standing app-wide rule: every scrollable surface gets a styled thumb. Track-less
+   so the thumb reads on both paper (light) and graphite (dark) backdrops. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--text) 22%, transparent) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--text) 22%, transparent);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--text) 36%, transparent);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

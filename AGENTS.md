@@ -31,7 +31,13 @@ changes (branches, commits, PRs, Definition of Done), see [`CONTRIBUTING.md`](CO
   alias by both client and server. They hold no secrets and are safe to import anywhere.
 - **Design tokens** live only at `src/styles/tokens.css` (SoT), imported once in the root layout.
 - **Long-running work** (bulk imports, embeddings backfill) must be kept off the request
-  path — offload to Vercel Cron / a queue / a worker rather than blocking a route handler.
+ path — offload to Vercel Cron / a queue / a worker rather than blocking a route handler.
+- **`backdrop-filter` must be written last.** When a rule declares both
+ `-webkit-backdrop-filter` and `backdrop-filter`, Lightning CSS (Next's CSS pipeline)
+ collapses them into a single declaration and keeps whichever comes **first**. Chrome 150
+ removed support for `-webkit-backdrop-filter`, so writing the unprefixed property first
+ silently ships a build with no blur at all. Always put the `-webkit-` copy first and the
+ unprefixed copy last, with identical values. Browserslist targets do not change this.
 
 ## Front-end working agreement (added 2026-07-26)
 
