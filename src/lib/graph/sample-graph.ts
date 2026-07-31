@@ -41,12 +41,14 @@ interface SampleSpec {
   index: number;
   kind: EndeavorKind;
   title: string;
-  summary: string;
+  summary?: string;
   timeframe?: Timeframe;
   parent?: number;
   skills?: string[];
   people?: string[];
   orgs?: string[];
+  /** When true, renders as a proposal ghost on the canvas. */
+  pending?: boolean;
 }
 
 const SAMPLE_SPECS: SampleSpec[] = [
@@ -246,8 +248,6 @@ const SAMPLE_SPECS: SampleSpec[] = [
     index: 17,
     kind: "hobby",
     title: "Analog photography",
-    summary:
-      "Shooting and developing black-and-white 35mm; built a closet darkroom.",
     timeframe: { start: { year: 2022, month: 5 }, end: "ongoing" },
     skills: ["Darkroom"],
   },
@@ -263,10 +263,27 @@ const SAMPLE_SPECS: SampleSpec[] = [
     index: 19,
     kind: "hobby",
     title: "Jazz quartet, rhythm guitar",
-    summary: "Weekly rehearsals and two campus sets a term.",
     timeframe: { start: { year: 2023, month: 11 }, end: "ongoing" },
     skills: ["Public speaking"],
     people: ["Priya Raman"],
+  },
+  {
+    index: 20,
+    kind: "project",
+    title: "Latency writeup",
+    summary: "Proposed from capture: post-mortem on cache rollout.",
+    pending: true,
+    skills: ["Redis", "TypeScript"],
+    orgs: ["Bubble"],
+  },
+  {
+    index: 21,
+    kind: "project",
+    title: "Metrics pack",
+    summary: "Proposed dashboard panels for onboarding funnel.",
+    pending: true,
+    skills: ["Figma", "Research"],
+    parent: 4,
   },
 ];
 
@@ -281,7 +298,7 @@ function toNode(spec: SampleSpec): GraphNode {
     id: sampleId(spec.index),
     kind: spec.kind,
     title: spec.title,
-    summary: spec.summary,
+    summary: spec.summary ?? "",
     timeframe: spec.timeframe,
     status: "active",
     applicationTags: [],
@@ -291,7 +308,7 @@ function toNode(spec: SampleSpec): GraphNode {
       people: [...(spec.people ?? [])].sort(),
       orgs: [...(spec.orgs ?? [])].sort(),
     },
-    state: "committed",
+    state: spec.pending ? "pending" : "committed",
   };
 }
 

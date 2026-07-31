@@ -1,6 +1,6 @@
 # Acta — Building Plan
 
-Last updated: 2026-07-28
+Last updated: 2026-07-31
 
 Overarching **build** roadmap (not business/GTM). Companion to:
 
@@ -11,6 +11,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | [`surfaces-and-flows.md`](surfaces-and-flows.md) | IA / surfaces + core interaction flows |
 | [`agent-interaction-model.md`](agent-interaction-model.md) | Agents, confirm vs auto, pending proposals, write policy |
 | [`graph-canvas.md`](graph-canvas.md) | The live canvas spec (requirements + how we work on the graph) |
+| [`design-handoff.md`](design-handoff.md) | Design-session synthesis — pixels on screen today (`/lab/design`, `/landing`, tokens) |
 | [`archive/`](archive/) | Superseded design docs — reasoning kept, specifics not canon |
 | [`technical-implementation-plan.md`](technical-implementation-plan.md) | **HOW** to implement locked plan docs (**U-J** — locked) |
 | **This doc** | What to harden next: brand, IA, flows, agents, tech plan, auth |
@@ -63,9 +64,9 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 ### Locked IA highlights (build against these)
 
 - Home = Graph; **full-bleed** force-directed canvas (Endeavors only); chrome **overlays** canvas
-- Bottom liquid-glass ask + **filter button** (menu) + **graph settings** (physics/display); Explore = floating right panel + highlight
+- Bottom **ask bar** + **filter button** (menu) + **graph settings** (physics/display); Explore = floating right panel + highlight (chrome mocked in `/lab/design`; not on `/` yet)
 - Diff-skim = floating right panel + changelog + **incremental** pending nodes (proposals **stored until confirm/discard**)
-- Node = centered modal with **header image** + title straddling image/body; kind-rich hover cards
+- Node detail = **left-side opaque panel** (built on `/`); centered modal + header-image language in surfaces-and-flows is **superseded**; kind-rich hover cards
 - Deepen = top-right inbox-like control + badge → backlog panel (pull queue)
 - Generate = top-left **hamburger** → adapter pages + expandable mini-graph peek; adapters are a **family** with thin citation UX
 - Agent chat-history connectors = **after** classic MVP imports
@@ -81,7 +82,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | **U-B** | **IA & primary surfaces** | Screens + jobs | **Done (locked)** |
 | **U-C** | **Core interaction flows** | Flow contracts | **Done (locked)** |
 | **U-D** | **Agent / system interaction model** | Extract/deepen/explore/synth write policy; confirm vs auto; pending | **Done (locked)** |
-| **U-A** | **Brand & visual system** | Force-graph WOW needs one composition language | **Done (look locked)** — trailers deferred |
+| **U-A** | **Brand & visual system** | Force-graph WOW needs one composition language | **In progress** — Neubrutalism tokens + recipes in [`tokens.css`](../src/styles/tokens.css); lab + `/landing` ahead of shipped `/` |
 | **U-J** | **Technical implementation plan** | Turn locked what/why docs into a concrete HOW (stack choices, modules, sequencing, risks) | **Done (locked)** |
 | **U-E** | **Persistence & auth** | Real user + Supabase graph survives refresh | **Started via U-J** — thin Auth/DB/proposals in first slice; remaining polish queued |
 
@@ -107,15 +108,17 @@ Monetization, GTM, domain/legal, B2B/coach-share, essay adapters, voice, kitchen
 
 ## Now — detail & exit criteria
 
-### U-A. Brand & visual system — **done (look locked)**
+### U-A. Brand & visual system — **in progress (Neubrutalism rebuild)**
 
-**Deliverable:** [`archive/brand-design-system.md`](archive/brand-design-system.md) (archived) + [`src/styles/tokens.css`](../src/styles/tokens.css) — brand + UI foundation (tokens, type, color, graph chrome, do/don’t). HTML decision/mock tools under `docs/`.
+**Deliverable:** [`src/styles/tokens.css`](../src/styles/tokens.css) — brand + UI foundation rebuilt from working screens. Session handoff for current pixels: [`design-handoff.md`](design-handoff.md). Archived teal + liquid-glass spec: [`archive/brand-design-system.md`](archive/brand-design-system.md) — **do not implement from it.**
 
 **Name (locked for now):** **Acta** — Latin *acta* (deeds / record of what was done). Supersedes Stilva. Domain TBD.
 
-**Deferred trailers:** motion choreography, full a11y audit, deeper app restyle. (The Next app now imports the token file in its root layout as of U-J U1.) Keep updating §12 Do/don’t.
+**On screen today (2026-07-31):** Neubrutalism — 3px ink borders, offset shadows, opaque surfaces, blue primary / pink secondary, Charis + Figtree + Space Mono. Built in `/lab/design` (graph-home chrome mock), `/landing` (waitlist marketing), and partially on `/` (graph + left detail panel). No liquid glass; no backdrop blur over live graph (**R7**).
 
-**Exit met for planning:** composition language + token file exist; agents should not invent look. Greenfield UI after **U-J** imports `src/styles/tokens.css`.
+**Deferred trailers:** motion choreography polish, full a11y audit, promoting lab look onto shipped `/`.
+
+**Exit (when met):** one composition language verified on graph home + marketing; agents should not invent look; `tokens.css` is the SoT.
 
 ### U-B. IA & primary surfaces — **complete**
 
@@ -159,7 +162,7 @@ Monetization, GTM, domain/legal, B2B/coach-share, essay adapters, voice, kitchen
 U-B Surfaces ──► U-C Flows ──► U-D Agents     ✅ locked
                                     │
                                     ▼
-                               U-A Brand          ✅ look locked
+                               U-A Brand          🔁 Neubrutalism rebuild
                                     │
                                     ▼
                                U-J Tech plan      ✅ locked
@@ -182,7 +185,7 @@ Practical order: **implement U-J milestones U1–U5** → Explore polish / thin 
 
 | Unit | Status |
 | --- | --- |
-| U-A Brand & visual | **Done (look locked)** — tokens [`src/styles/tokens.css`](../src/styles/tokens.css) |
+| U-A Brand & visual | **In progress** — Neubrutalism in [`src/styles/tokens.css`](../src/styles/tokens.css); see [`design-handoff.md`](design-handoff.md) |
 | U-B IA & surfaces | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | U-C Core flows | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | U-D Agent model | **Locked** — [`agent-interaction-model.md`](agent-interaction-model.md) |
@@ -199,6 +202,8 @@ Code: **U-J U3 interaction slice verified (2026-07-28)** — canvas engine plus 
 ---
 
 ## Changelog
+
+- **2026-07-31:** **U-A reopened — Neubrutalism rebuild in progress.** Archived liquid-glass look superseded; new tokens + recipes in `tokens.css`. Design lab (`/lab/design`) mocks full graph-home chrome; `/landing` waitlist surface (slide scroll) exercises marketing motion. Shipped `/` has canvas + left detail panel only — chrome overlays still deferred. See [`design-handoff.md`](design-handoff.md).
 
 - **2026-07-28:** **U-J U3 hover/selection/detail verified on screen.** Polished
   interaction (panel previews hovered node while another stays selected; selection accent

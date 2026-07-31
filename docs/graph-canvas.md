@@ -1,6 +1,6 @@
 # Graph canvas — the live spec
 
-Last updated: 2026-07-28
+Last updated: 2026-07-31
 
 This replaces `archive/graph-physics.md`. That doc specified a canvas in detail before
 one existed; this one records only what is **true of the running canvas or required of
@@ -46,7 +46,7 @@ screenshot or a screen recording.
 | R9 | **Hover answers "what is this and what does it touch?"** | Pointing at a node names **only that node**, lights its links in the accent colour and keeps its neighbours' dots bright; the rest of the graph fades back but stays visible as context. Works at any zoom, including where captions are off. The whole treatment fades in over ~130ms rather than switching on — check by hovering, not from a still. |
 | R5 | **Forces: centre, node-node repulsion, link spring with a link distance.** | All four exist as real, separately tunable forces. Centre gravity must pull every node (a force that only recentres the average position is not gravity — that was the first build's bug). |
 | R6 | **Edges may cross, but must stay visually subtle** so they never compete with the nodes. | Hairline, low-contrast, straight. At a glance you see the nodes; the edges are texture. Crossings are acceptable and should be unremarkable. |
-| R7 | **No translucent surfaces over live content for now.** | Any panel or card is opaque. The "liquid glass" direction is shelved until the basics read well — translucency over a moving graph made text unreadable. |
+| R7 | **No translucent surfaces over live content for now.** | Any panel or card is opaque. Liquid glass and backdrop blur are shelved — translucency over a moving graph made text unreadable. Current chrome direction: Neubrutalism (ink border + offset shadow); see [`design-handoff.md`](design-handoff.md). |
 
 ---
 
@@ -66,11 +66,13 @@ Rebuilt 2026-07-26 on our own render loop. `react-force-graph-2d` is gone.
 | [`dev-hud.tsx`](../src/features/graph/dev-hud.tsx) | Opaque sliders for the forces plus a frame counter. **Lab only** — it used to render on `/` too, which it never should have. |
 | [`graph-view.tsx`](../src/features/graph/graph-view.tsx) | The `/` surface: fetch `GET /api/graph`, fall back to the sample fixture, canvas + hover/selection. Top-right **theme toggle** (sun/moon); sample/live readout top-left. |
 | [`graph-lab.tsx`](../src/features/graph/graph-lab.tsx) + [`/lab/graph`](../src/app/lab/graph/page.tsx) | Dev-only workbench (404s in production, open without a session outside it). `?n=140` generates a fixture of that size; `?gravity=0.5&repulsion=12&…` overrides forces. |
-| [`node-detail.tsx`](../src/features/graph/node-detail.tsx) | Left-side, opaque panel for a selected node — title, kind, status, timeframe, summary, tags, facets. While a *different* node is hovered, the panel **previews** that node and returns to the selection on hover clear. Escape / close / background click deselect. Camera nudges the graph right while open. |
+| [`node-detail.tsx`](../src/features/graph/node-detail.tsx) | Left-side, opaque panel for a selected node — title, kind, status, timeframe, summary, tags, facets. **× dismiss** via `.acta-panel-close` (top-right). While a *different* node is hovered, the panel **previews** that node and returns to the selection on hover clear. Escape / close / background click deselect. Camera nudges the graph right while open. |
 | [`hover-card.tsx`](../src/features/graph/hover-card.tsx) | Compact peek following the pointer — **only when nothing is selected** (the detail panel owns the left edge once a node is clicked). |
 | [`format-endeavor.ts`](../src/features/graph/format-endeavor.ts) | Shared text formatting (kind/status humanizing, fuzzy-date spans) so the hover card and detail panel agree on how a field reads. |
 | [`../motion/enter.ts`](../src/features/motion/enter.ts) | Shared anime.js enter animations (detail panel fade/pop; hover card fade). |
 | [`../theme/theme-toggle.tsx`](../src/features/theme/theme-toggle.tsx) | Sun/moon light/dark toggle — minimal top-right chrome restored on `/`. |
+| [`../design-lab/`](../src/features/design-lab/) + [`/lab/design`](../src/app/lab/design/page.tsx) | Dev-only graph-home chrome mock (Neubrutalism ask row, Explore toggle, panels). 404 in production. Spec: [`design-handoff.md`](design-handoff.md). |
+| [`../landing/`](../src/features/landing/) + [`/landing`](../src/app/landing/page.tsx) | Dev-only waitlist marketing (slide scroll, per-slide enter motion). 404 in production. |
 
 **How the requirements are met.** Gravity is a per-node pull toward the origin, so
 every node is pulled (R1); repulsion is global, with the disc's size set by the balance
@@ -372,6 +374,9 @@ graph fixture (see [`data-model.md`](data-model.md) § Canvas snapshot).
   `preventDefault` was silently ignored); a plain wheel pans. `layout-shape.test.ts`
   gained a locality guard, and the screenshot script a hover frame (that script has since
   been removed — see *How it.s verified*).
+
+- **2026-07-31:** Cross-linked [`design-handoff.md`](design-handoff.md) for Neubrutalism chrome + dev surfaces. Documented `.acta-panel-close` on node detail. R7 wording aligned with opaque Neubrutalism (liquid glass fully shelved).
+
 - **2026-07-26:** Created, and the rebuild landed in the same pass. Replaces
   `archive/graph-physics.md` after the first canvas was scrapped. `react-force-graph-2d`
   removed; physics, camera, rendering and input are now ours (`d3-force` + `<canvas>` +

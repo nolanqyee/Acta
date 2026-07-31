@@ -92,7 +92,7 @@ export function NodeDetail({ node, onClose }: NodeDetailProps) {
       >
       <button
         type="button"
-        className={styles.close}
+        className="acta-panel-close"
         onClick={onClose}
         aria-label="Close"
       >
@@ -101,6 +101,9 @@ export function NodeDetail({ node, onClose }: NodeDetailProps) {
 
       <div className={styles.kicker}>
         <span className={styles.kind}>{humanize(node.kind)}</span>
+        {node.state === "pending" ? (
+          <span className={styles.pending}>Pending</span>
+        ) : null}
         {node.status !== "active" ? (
           <span className={styles.status}>{humanize(node.status)}</span>
         ) : null}

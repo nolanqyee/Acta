@@ -3,18 +3,21 @@
  * node. Shown only when nothing is selected (the left detail panel takes over once a
  * node is clicked). Independent of selection.
  *
- * Positioned in plain CSS px near the pointer rather than measured after mount — the
- * card's own max size is fixed (see {@link CARD_WIDTH_PX}), so a cheap arithmetic
- * flip away from whichever viewport edge is close keeps it on screen without a
- * measure-then-reposition flash. Vertical placement uses `translateY(-100%)` when
- * flipped above the pointer so the gap matches the below-cursor case.
+ * Placement tracks the pointer every frame; card height is measured so wrapped chips
+ * flip above the cursor when the pointer is low on the viewport.
  */
 
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { animateFadeIn } from "@/features/motion/enter";
 import { useReducedMotion } from "@/features/motion/use-reduced-motion";
+import {
+  HOVER_CARD_ESTIMATE_HEIGHT_PX,
+  HOVER_CARD_OFFSET_PX,
+  HOVER_CARD_WIDTH_PX,
+  resolveHoverCardPlacement,
+} from "./hover-card-placement";
 import type { PositionedNode } from "./types";
 import { formatTimeframe, humanize } from "./format-endeavor";
 import styles from "./hover-card.module.css";
@@ -26,20 +29,11 @@ interface HoverCardProps {
   y: number;
 }
 
-/** Gap between the pointer and the card, in CSS px. */
-const OFFSET_PX = 16;
-
-/** Must match `.card`'s `max-width` in hover-card.module.css. */
-const CARD_WIDTH_PX = 260;
-
-/**
- * Height estimate for deciding whether to flip above the pointer — not used for
- * vertical placement (see {@link placement}).
- */
-const CARD_FLIP_HEIGHT_PX = 120;
-
 /** Longest summary snippet shown before an ellipsis. */
 const MAX_SNIPPET_CHARS = 140;
+
+/** Max facet chips shown on the peek card. */
+const MAX_FACET_CHIPS = 6;
 
 /**
  * @param summary - Full summary text, if any.
@@ -53,33 +47,6 @@ function snippet(summary: string | undefined): string | null {
 }
 
 /**
- * Picks a corner to grow from so the card stays on screen, without measuring it.
- *
- * @param x - Pointer x, relative to the graph surface (== viewport, it's full-bleed).
- * @param y - Pointer y, relative to the graph surface.
- * @returns Inline `left`/`top`/`flipY` for the card. When `flipY`, the card grows
- *   upward from `top` via `translateY(-100%)` so the gap above the pointer matches
- *   the gap below.
- */
-function placement(x: number, y: number): {
-  left: number;
-  top: number;
-  flipY: boolean;
-} {
-  const vw = typeof window === "undefined" ? Infinity : window.innerWidth;
-  const vh = typeof window === "undefined" ? Infinity : window.innerHeight;
-
-  const left =
-    x + OFFSET_PX + CARD_WIDTH_PX > vw
-      ? x - OFFSET_PX - CARD_WIDTH_PX
-      : x + OFFSET_PX;
-  const flipY = y + OFFSET_PX + CARD_FLIP_HEIGHT_PX > vh;
-  const top = flipY ? y - OFFSET_PX : y + OFFSET_PX;
-
-  return { left: Math.max(8, left), top: Math.max(8, top), flipY };
-}
-
-/**
  * A compact, opaque peek at whatever node is under the pointer.
  *
  * @param props.node - The hovered node (already carries every `GraphNode` field).
@@ -90,8 +57,44 @@ function placement(x: number, y: number): {
 export function HoverCard({ node, x, y }: HoverCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
-  const { left, top, flipY } = placement(x, y);
+  const [size, setSize] = useState({
+    width: HOVER_CARD_WIDTH_PX,
+    height: HOVER_CARD_ESTIMATE_HEIGHT_PX,
+  });
   const timeframe = formatTimeframe(node.timeframe);
+  const summary = snippet(node.summary);
+  const facets = useMemo(
+    () =>
+      [
+        ...node.facets.skills,
+        ...node.facets.people,
+        ...node.facets.orgs,
+      ].slice(0, MAX_FACET_CHIPS),
+    [node.facets.orgs, node.facets.people, node.facets.skills],
+  );
+
+  useLayoutEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const { width, height } = el.getBoundingClientRect();
+    setSize((prev) =>
+      prev.width === width && prev.height === height
+        ? prev
+        : { width, height },
+    );
+  }, [node.id, x, y, summary, facets.length]);
+
+  const placement = useMemo(
+    () =>
+      resolveHoverCardPlacement(
+        x,
+        y,
+        size.width,
+        size.height,
+        HOVER_CARD_OFFSET_PX,
+      ),
+    [size.height, size.width, x, y],
+  );
 
   useEffect(() => {
     const el = cardRef.current;
@@ -102,36 +105,38 @@ export function HoverCard({ node, x, y }: HoverCardProps) {
     };
   }, [node.id, reducedMotion]);
 
-  const summary = snippet(node.summary);
-  const facetLine = [
-    ...node.facets.skills,
-    ...node.facets.people,
-    ...node.facets.orgs,
-  ]
-    .slice(0, 3)
-    .join(" · ");
-
   return (
     <div
       ref={cardRef}
       className={styles.card}
       style={{
-        left,
-        top,
-        transform: flipY ? "translateY(-100%)" : undefined,
+        left: placement.left,
+        top: placement.top,
+        transform: placement.flipY ? "translateY(-100%)" : undefined,
       }}
       role="status"
       aria-live="polite"
     >
       <div className={styles.kicker}>
         <span className={styles.kind}>{humanize(node.kind)}</span>
+        {node.state === "pending" ? (
+          <span className={styles.pending}>Pending</span>
+        ) : null}
         {timeframe ? (
           <span className={styles.timeframe}>{timeframe}</span>
         ) : null}
       </div>
       <div className={styles.title}>{node.title}</div>
       {summary ? <p className={styles.summary}>{summary}</p> : null}
-      {facetLine ? <p className={styles.facets}>{facetLine}</p> : null}
+      {facets.length > 0 ? (
+        <ul className={styles.chips}>
+          {facets.map((facet) => (
+            <li key={facet} className={styles.chip}>
+              {facet}
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }

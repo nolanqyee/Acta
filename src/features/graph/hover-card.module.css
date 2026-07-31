@@ -1,15 +1,16 @@
 /**
- * The hover card: small, opaque, follows the pointer. Keep `max-width` in sync with
- * CARD_WIDTH_PX in hover-card.tsx — the horizontal placement arithmetic assumes it.
+ * The hover card: small, opaque, follows the pointer. Fixed width so facet chips
+ * wrap; placement is measured in hover-card.tsx / design-lab.tsx.
  */
 
 .card {
   position: fixed;
   z-index: 15;
-  width: max-content;
-  max-width: 260px;
-  max-height: 220px;
-  overflow: hidden;
+  box-sizing: border-box;
+  width: min(260px, calc(100vw - 16px));
+  max-height: min(280px, calc(100dvh - 16px));
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: var(--space-3);
   border-radius: var(--radius-soft);
   background: var(--bg-elevated);
@@ -21,6 +22,7 @@
 
 .kicker {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: var(--space-2);
 }
@@ -31,6 +33,14 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--accent-text);
+}
+
+.pending {
+  font-size: var(--text-label);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand-secondary-text);
 }
 
 .timeframe {
@@ -52,8 +62,25 @@
   color: var(--text-muted);
 }
 
-.facets {
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 4px 10px;
+  border-radius: var(--radius-ctl);
+  background: var(--bg-canvas);
   font-size: var(--text-label);
   color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

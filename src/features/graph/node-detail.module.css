@@ -2,20 +2,24 @@
  * The node detail panel: floats over the canvas on the left, fully opaque. No scrim —
  * R7 shelves translucency, and the graph itself stays visible and interactive to the
  * right of the panel (GraphCanvas nudges its focus over to clear this space).
+ *
+ * Height follows content up to a viewport cap; scrolls internally when content is tall.
  */
 
 .shell {
   position: fixed;
   left: var(--space-5);
-  top: 50%;
+  top: calc(var(--space-4) + 2.25rem);
   z-index: 20;
-  transform: translateY(-50%);
+  width: var(--panel-width-max);
+  max-height: calc(100dvh - var(--space-4) - 2.25rem - var(--space-6));
+  pointer-events: none;
 }
 
 .panel {
-  width: var(--panel-width-max);
-  max-height: min(32rem, 80dvh);
+  position: relative;
   overflow-y: auto;
+  pointer-events: auto;
   padding: var(--modal-padding);
   border-radius: var(--radius-panel);
   background: var(--bg-elevated);
@@ -24,31 +28,11 @@
   color: var(--text);
 }
 
-.close {
-  position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
-  width: var(--space-6);
-  height: var(--space-6);
-  border: none;
-  border-radius: var(--radius-ctl);
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 1.25rem;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.close:hover {
-  background: var(--bg-canvas);
-  color: var(--text);
-}
-
 .kicker {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding-right: var(--space-6);
+  padding-right: var(--panel-close-gutter);
 }
 
 .kind {
@@ -66,6 +50,17 @@
   color: var(--text-muted);
   font-size: var(--text-label);
   text-transform: capitalize;
+}
+
+.pending {
+  padding: 2px 8px;
+  border-radius: var(--radius-ctl);
+  background: color-mix(in oklab, var(--brand-secondary) 18%, transparent);
+  color: var(--brand-secondary-text, var(--text));
+  font-size: var(--text-label);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .title {

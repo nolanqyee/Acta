@@ -1,0 +1,59 @@
+/**
+ * Hero graph canvas — full-bleed illustration with a left fade for headline legibility.
+ * Pointer hits are limited to the right ~62% so the headline column stays scrollable.
+ */
+
+.wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 34%,
+    rgba(0, 0, 0, 0.35) 46%,
+    #000 58%
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 34%,
+    rgba(0, 0, 0, 0.35) 46%,
+    #000 58%
+  );
+}
+
+.wrap canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  display: block;
+  width: 100%;
+  height: 100%;
+  clip-path: inset(0 0 0 34%);
+  touch-action: pan-y;
+}
+
+@media (max-width: 900px) {
+  .wrap {
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      transparent 38%,
+      rgba(0, 0, 0, 0.35) 52%,
+      #000 68%
+    );
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      transparent 38%,
+      rgba(0, 0, 0, 0.35) 52%,
+      #000 68%
+    );
+  }
+
+  .wrap canvas {
+    clip-path: inset(0 0 0 38%);
+  }
+}

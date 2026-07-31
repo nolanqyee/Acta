@@ -1,8 +1,8 @@
 # Personal Evidence Graph — Planning Context
 
-Last updated: 2026-07-14 Update whenever planning decisions, scope, or open questions change.
+Last updated: 2026-07-31 Update whenever planning decisions, scope, or open questions change.
 
-**Active ideation thread:** working brand = **Acta**. **U-A** visual system → [`archive/brand-design-system.md`](archive/brand-design-system.md) (archived 2026-07-26; the visual system is being rebuilt from working screens instead of specified up front).
+**Active ideation thread:** working brand = **Acta**. **U-A** visual system is being rebuilt from working screens — current pixels in [`design-handoff.md`](design-handoff.md); archived liquid-glass spec in [`archive/brand-design-system.md`](archive/brand-design-system.md) (do not implement).
 
 **Doc altitude:** this is a **product spec** (what / why / scope). Detailed UI, UX, and user flows come later — capture product intent and capabilities here, not screen-level design.
 
@@ -598,12 +598,14 @@ Earlier working brand **Stilva** (still × vita) and soft candidate **Stiva** �
 - ~~Dedicated data-model spec~~ → `data-model.md` v1 draft
 - ~~IA + core flows~~ → [`surfaces-and-flows.md`](surfaces-and-flows.md) locked
 - ~~Agent write policy (**U-D**)~~ → [`agent-interaction-model.md`](agent-interaction-model.md) locked
-- **Next:** brand visual system (**U-A**) in [`archive/brand-design-system.md`](archive/brand-design-system.md) → technical implementation plan (**U-J**) → **capture + render** → **U-E** — see [`building-plan.md`](building-plan.md)
+- **Next:** finish **U-A** Neubrutalism on graph home (promote from `/lab/design`) → **U-J U4** capture + extract → **U-E** — see [`building-plan.md`](building-plan.md)
 - Remaining light product Qs: domain for **Acta**
 
 ---
 
 ## Changelog
+
+- **2026-07-31:** **U-A in progress** — Neubrutalism tokens + design lab + `/landing` waitlist; link to [`design-handoff.md`](design-handoff.md). Next stack updated (U4 capture, not re-litigating U-J).
 
 - **2026-07-15:** Brand lore — Acta secondary reading **A Call To Action** (inspire deeds → capture). Visual system still in U-A via [`archive/brand-design-system.md`](archive/brand-design-system.md).
 - **2026-07-14:** Working brand → **Acta** (Latin *acta* — deeds/record). Cut **Stilva**. Finalists: Atlas, Stele, Ariadne. Domain TBD. **U-A** scaffold → [`archive/brand-design-system.md`](archive/brand-design-system.md).

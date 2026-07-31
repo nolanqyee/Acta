@@ -17,7 +17,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ResolvedTheme } from "@/features/theme/theme-storage";
 import type { GraphSnapshot } from "@/lib/contracts";
 import { boundsOf, Camera } from "./camera";
-import { getPalette } from "./palette";
+import { getPalette, invalidatePaletteCache } from "./palette";
 import { drawFrame, HoverFade, LabelGate, SelectionAccentFade } from "./render";
 import { GraphSimulation } from "./simulation";
 import { DEFAULT_TUNABLES, type Tunables } from "./tunables";
@@ -38,6 +38,26 @@ const DRAG_THRESHOLD_PX = 3;
 /** Zoom sensitivity for a mouse wheel / trackpad pinch (ctrl-modified wheel). */
 const ZOOM_PER_WHEEL_UNIT = 0.0016;
 const ZOOM_PER_PINCH_UNIT = 0.01;
+
+/** Optional pointer and fit behaviour overrides (marketing hero, embeds). */
+export interface GraphInteractionOptions {
+  /** Pointer travel before a press becomes a drag. Default {@link DRAG_THRESHOLD_PX}. */
+  dragThresholdPx?: number;
+  /** When false, wheel gestures pan only. Default true. */
+  allowZoom?: boolean;
+  /** When false, node taps do not call `onSelect`. Default true. */
+  allowSelect?: boolean;
+  /** When false, wheel events pass through to the page. Default true. */
+  captureWheel?: boolean;
+}
+
+/** Default interaction profile for the main graph canvas. */
+const DEFAULT_INTERACTION: Required<GraphInteractionOptions> = {
+  dragThresholdPx: DRAG_THRESHOLD_PX,
+  allowZoom: true,
+  allowSelect: true,
+  captureWheel: true,
+};
 
 /**
  * How far (CSS px) the camera nudges the graph right while a node is selected, so the
@@ -97,6 +117,33 @@ interface GraphCanvasProps {
   onDebugApi?: (api: GraphDebugApi) => void;
   /** Resolved light/dark — repaints the canvas when the theme toggle flips. */
   resolvedTheme?: ResolvedTheme;
+  /**
+   * When true, the canvas background is cleared instead of filled with `--bg-canvas`,
+   * so a grid or paper texture on a parent element shows through (design lab).
+   */
+  transparentBackground?: boolean;
+  /** Pointer and zoom policy; defaults to full app interaction. */
+  interaction?: GraphInteractionOptions;
+  /** Screen-space padding passed to the initial `camera.fit`. Default 80. */
+  fitPadding?: number;
+  /** Horizontal screen bias after fit (positive moves the graph right). Default 0. */
+  fitScreenOffsetX?: number;
+  /** Vertical screen bias after fit (positive moves the graph down). Default 0. */
+  fitScreenOffsetY?: number;
+  /** Zoom multiplier applied after bounding-box fit (&gt; 1 = closer). Default 1. */
+  fitScaleBoost?: number;
+  /**
+   * Optional one-shot layout motion on first mount. `bounce` expands nodes slightly
+   * from centre so the hero graph settles visibly on load.
+   */
+  layoutIntro?: "bounce";
+  /** Scales drag warmth in the simulation; lower = softer hero nudges. Default 1. */
+  dragAlphaScale?: number;
+  /**
+   * When true, thin endeavors show the hollow secondary ring. Default false — only
+   * enable while the Deepen backlog panel is open.
+   */
+  showThinNodes?: boolean;
 }
 
 /**
@@ -122,6 +169,15 @@ export function GraphCanvas({
   selectedId = null,
   onDebugApi,
   resolvedTheme = "dark",
+  transparentBackground = false,
+  interaction = DEFAULT_INTERACTION,
+  fitPadding = 80,
+  fitScreenOffsetX = 0,
+  fitScreenOffsetY = 0,
+  fitScaleBoost = 1,
+  layoutIntro,
+  dragAlphaScale = 1,
+  showThinNodes = false,
 }: GraphCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const simulationRef = useRef<GraphSimulation | null>(null);
@@ -153,6 +209,15 @@ export function GraphCanvas({
   const onFpsRef = useRef(onFps);
   const selectedIdRef = useRef(selectedId);
   const resolvedThemeRef = useRef(resolvedTheme);
+  const transparentBackgroundRef = useRef(transparentBackground);
+  const interactionRef = useRef({ ...DEFAULT_INTERACTION, ...interaction });
+  const fitPaddingRef = useRef(fitPadding);
+  const fitScreenOffsetXRef = useRef(fitScreenOffsetX);
+  const fitScreenOffsetYRef = useRef(fitScreenOffsetY);
+  const fitScaleBoostRef = useRef(fitScaleBoost);
+  const layoutIntroRef = useRef(layoutIntro);
+  const dragAlphaScaleRef = useRef(dragAlphaScale);
+  const showThinNodesRef = useRef(showThinNodes);
 
   // Callbacks are mirrored into refs so the animation loop — which is created once and
   // outlives every render — always calls the latest one without being torn down.
@@ -170,8 +235,55 @@ export function GraphCanvas({
 
   useEffect(() => {
     resolvedThemeRef.current = resolvedTheme;
+    invalidatePaletteCache();
     wakeRef.current();
   }, [resolvedTheme]);
+
+  useEffect(() => {
+    transparentBackgroundRef.current = transparentBackground;
+    wakeRef.current();
+  }, [transparentBackground]);
+
+  useEffect(() => {
+    interactionRef.current = { ...DEFAULT_INTERACTION, ...interaction };
+  }, [interaction]);
+
+  useEffect(() => {
+    fitPaddingRef.current = fitPadding;
+    fitScreenOffsetXRef.current = fitScreenOffsetX;
+    fitScreenOffsetYRef.current = fitScreenOffsetY;
+    fitScaleBoostRef.current = fitScaleBoost;
+
+    const simulation = simulationRef.current;
+    const { width, height } = sizeRef.current;
+    if (simulation && width > 0 && height > 0) {
+      cameraRef.current.fit(
+        boundsOf(simulation.getNodes()),
+        width,
+        height,
+        fitPaddingRef.current,
+        fitScreenOffsetXRef.current,
+        fitScreenOffsetYRef.current,
+        fitScaleBoostRef.current,
+      );
+      wakeRef.current();
+    }
+  }, [fitPadding, fitScreenOffsetX, fitScreenOffsetY, fitScaleBoost]);
+
+  useEffect(() => {
+    layoutIntroRef.current = layoutIntro;
+  }, [layoutIntro]);
+
+  useEffect(() => {
+    dragAlphaScaleRef.current = dragAlphaScale;
+    simulationRef.current?.setDragAlphaScale(dragAlphaScale);
+    wakeRef.current();
+  }, [dragAlphaScale]);
+
+  useEffect(() => {
+    showThinNodesRef.current = showThinNodes;
+    wakeRef.current();
+  }, [showThinNodes]);
 
   /**
    * Rebuilds the simulation when the graph's contents change. Tunable changes are
@@ -180,12 +292,26 @@ export function GraphCanvas({
   useEffect(() => {
     const existing = simulationRef.current;
     if (existing) existing.setSnapshot(snapshot);
-    else simulationRef.current = new GraphSimulation(snapshot, tunables);
+    else {
+      simulationRef.current = new GraphSimulation(snapshot, tunables);
+      simulationRef.current.setDragAlphaScale(dragAlphaScaleRef.current);
+      if (layoutIntroRef.current === "bounce") {
+        simulationRef.current.introBounce();
+      }
+    }
 
     const camera = cameraRef.current;
     const { width, height } = sizeRef.current;
     if (width > 0 && height > 0) {
-      camera.fit(boundsOf(simulationRef.current!.getNodes()), width, height);
+      camera.fit(
+        boundsOf(simulationRef.current!.getNodes()),
+        width,
+        height,
+        fitPaddingRef.current,
+        fitScreenOffsetXRef.current,
+        fitScreenOffsetYRef.current,
+        fitScaleBoostRef.current,
+      );
     }
     wakeRef.current();
     // `tunables` is read only when first constructing; the effect below owns updates.
@@ -282,6 +408,8 @@ export function GraphCanvas({
           : null,
         draggedId: dragged?.id ?? null,
         labelGate: labelGateRef.current,
+        transparentBackground: transparentBackgroundRef.current,
+        showThinNodes: showThinNodesRef.current,
       });
     };
 
@@ -366,7 +494,15 @@ export function GraphCanvas({
       const simulation = simulationRef.current;
       const { width, height } = sizeRef.current;
       if (simulation && width > 0 && height > 0) {
-        cameraRef.current.fit(boundsOf(simulation.getNodes()), width, height);
+        cameraRef.current.fit(
+          boundsOf(simulation.getNodes()),
+          width,
+          height,
+          fitPaddingRef.current,
+          fitScreenOffsetXRef.current,
+          fitScreenOffsetYRef.current,
+          fitScaleBoostRef.current,
+        );
       }
       wake();
     });
@@ -379,6 +515,10 @@ export function GraphCanvas({
         boundsOf(simulation.getNodes()),
         sizeRef.current.width,
         sizeRef.current.height,
+        fitPaddingRef.current,
+        fitScreenOffsetXRef.current,
+        fitScreenOffsetYRef.current,
+        fitScaleBoostRef.current,
       );
     }
     wake();
@@ -489,8 +629,9 @@ export function GraphCanvas({
       gesture.travelled += Math.hypot(deltaX, deltaY);
 
       if (gesture.mode === "node") {
+        const threshold = interactionRef.current.dragThresholdPx;
         if (!gesture.dragging) {
-          if (gesture.travelled < DRAG_THRESHOLD_PX) return;
+          if (gesture.travelled < threshold) return;
           gesture.dragging = true;
           if (gesture.node) simulation.startDrag(gesture.node);
         }
@@ -519,8 +660,13 @@ export function GraphCanvas({
 
       if (gesture.mode === "node") {
         if (gesture.dragging) simulation.endDrag();
-        else if (gesture.node) onSelectRef.current?.(gesture.node);
-      } else if (gesture.travelled < DRAG_THRESHOLD_PX) {
+        else if (
+          gesture.node &&
+          interactionRef.current.allowSelect
+        ) {
+          onSelectRef.current?.(gesture.node);
+        }
+      } else if (gesture.travelled < interactionRef.current.dragThresholdPx) {
         onBackgroundClickRef.current?.();
       }
 
@@ -566,10 +712,15 @@ export function GraphCanvas({
     if (!canvas) return;
 
     const onWheel = (event: WheelEvent): void => {
+      if (!interactionRef.current.captureWheel) return;
+
       event.preventDefault();
       const { width, height } = sizeRef.current;
 
-      if (event.ctrlKey || event.metaKey) {
+      if (
+        interactionRef.current.allowZoom &&
+        (event.ctrlKey || event.metaKey)
+      ) {
         const rect = canvas.getBoundingClientRect();
         const perUnit = event.ctrlKey
           ? ZOOM_PER_PINCH_UNIT

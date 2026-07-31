@@ -12,7 +12,7 @@
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Charis_SIL, Figtree } from "next/font/google";
+import { Charis_SIL, Figtree, Space_Mono } from "next/font/google";
 import { ThemeBootScript } from "@/features/theme/theme-boot-script";
 import "@/styles/tokens.css";
 import "@/styles/base.css";
@@ -30,6 +30,14 @@ const uiFont = Figtree({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-ui-loaded",
+});
+
+/** Space Mono — labels, counts, machine values (Neubrutalism design system). */
+const monoFont = Space_Mono({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
+  variable: "--font-mono-loaded",
 });
 
 /** Base document metadata applied to all routes unless a page overrides it. */
@@ -52,7 +60,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${displayFont.variable} ${uiFont.variable}`}
+      className={`${displayFont.variable} ${uiFont.variable} ${monoFont.variable}`}
       suppressHydrationWarning
     >
       <head>

@@ -1,76 +1,71 @@
 /**
- * Layout + design-system treatments for `/lab/design`.
+ * Layout + Neubrutalism chrome for `/lab/design`.
  *
- * Three concerns are kept in this one file, in the order below, so a new system
- * is a small, isolated addition:
- *   1. `.surface` / `.control` / `.field` — the three chrome primitives every
- *      system restyles. Only their layout properties (size, padding, radius,
- *      display, font, transition, cursor) live here; fill/blur/shadow/rim are
- *      added per system below. Primitives must come first because they share
- *      equal specificity with layout classes on `position`; layout rules that
- *      set `fixed`/`absolute` need to win over the primitive `relative`.
- *   2. Layout — positions, sizes, gaps, typography. Identical across every system.
- *   3. System blocks, one per named system in `systems.ts`, each scoped with a
- *      `:global([data-design="..."])` ancestor selector on `.shell`.
- *
- * CSS Modules hash class names, which would make a *separate* systems stylesheet
- * unable to target these classes from outside — so the system blocks live here
- * instead of in their own file, purely as `:global(...)` selectors layered on
- * top of the classes below.
- *
- * No hairline borders anywhere in this file — chrome separates from the canvas
- * via elevation, blur, and fill only (standing brand rule).
+ * Hard 3px ink borders, offset shadows (8px panels, 3px controls/rows), opaque
+ * surfaces only — no backdrop-filter. Tokens live in `src/styles/tokens.css`
+ * (`--ink`, `--shadow-panel`, `--bg-panel`, etc.).
  */
 
-/* ————————————————— Chrome primitives (layout only) ————————————————— */
+/* ————————————————— Chrome primitives ————————————————— */
 
 .surface {
   position: relative;
-  isolation: isolate;
-  border-radius: var(--radius-panel-lg);
+  background: var(--bg-panel);
+  border: var(--border-ink);
+  border-radius: var(--radius-panel-brutal);
+  box-shadow: var(--shadow-panel);
   font-family: var(--font-ui);
-  color: var(--text);
+  color: var(--ink);
 }
 
 .control {
   position: relative;
-  isolation: isolate;
-  width: var(--ctl-size);
-  height: var(--ctl-size);
-  border: 0;
+  width: var(--ctl-size-brutal);
+  height: var(--ctl-size-brutal);
+  border: var(--border-ink);
   border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-control);
+  background: var(--bg-card);
   display: grid;
   place-items: center;
-  color: var(--text);
+  color: var(--ink);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-out);
 }
 
-.controlPill {
-  width: auto;
-  padding: 0 12px;
+.control:hover {
+  background: var(--bg-panel);
 }
 
-/* Panel close buttons: full 40px chrome reads as oversized tucked into a corner
-   next to a heading. */
-.controlSm {
-  width: 1.75rem; /* 28 */
-  height: 1.75rem;
-  border-radius: var(--radius-pill);
+.control:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.controlPill {
+  font-family: var(--font-ui);
+  font-size: var(--text-button);
+  font-weight: var(--font-weight-button);
+  letter-spacing: var(--letter-spacing-button);
+  line-height: 1;
+  width: auto;
+  padding: 0 16px 0 6px;
 }
 
 .field {
   position: relative;
-  isolation: isolate;
   display: flex;
   align-items: center;
+  height: var(--ask-height-brutal);
+  border: var(--border-ink);
   border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-control);
+  background: var(--bg-panel);
   font-family: var(--font-ui);
-  color: var(--text);
+  color: var(--ink);
   cursor: text;
-  transition: box-shadow var(--duration) var(--ease-out);
 }
 
 /* ——————————————————————— Layout ——————————————————————— */
@@ -79,120 +74,179 @@
   position: fixed;
   inset: 0;
   overflow: hidden;
-  background: var(--bg-canvas);
+  background: var(--bg-paper);
+  color: var(--ink);
+  /* Vertical band where floating panels may live — clears top chrome + bottom stack. */
+  --ask-stack: calc(var(--space-6) + var(--ask-height-brutal));
+  --status-offset: calc(var(--ask-stack) + var(--space-3));
+  --chrome-top: calc(var(--space-6) + var(--ctl-size-brutal) + var(--space-4));
+  --chrome-bottom: calc(var(--status-offset) + var(--space-4) + var(--text-label));
+  --panel-max-height: calc(100dvh - var(--chrome-top) - var(--chrome-bottom));
 }
 
 .canvasLayer {
   position: absolute;
   inset: 0;
   z-index: 0;
+  background: var(--bg-paper);
+  background-image:
+    linear-gradient(var(--ink-wash) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ink-wash) 1px, transparent 1px);
+  background-size: 36px 36px;
 }
 
-/* Brand — top-left mark + wordmark, with the adapter hamburger below it. */
+.canvasLayer canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Brand — top-left hamburger + wordmark; adapter menu drops below. */
 
 .brand {
   position: fixed;
-  top: var(--space-4);
-  left: var(--space-4);
+  top: var(--space-6);
+  left: var(--space-6);
   z-index: 20;
+}
+
+.brandRow {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-3);
+  align-items: center;
+  gap: var(--space-4);
 }
 
 .wordmark {
   font-family: var(--font-display);
-  font-size: var(--text-h-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text);
+  font-size: 1.875rem; /* 30 */
+  font-weight: var(--font-weight-bold);
+  color: var(--ink);
   line-height: 1;
+  letter-spacing: 0.01em;
 }
 
 .hamburgerAnchor {
   position: relative;
+  flex: none;
+}
+
+.hamburgerLines {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.hamburgerLines span {
+  display: block;
+  width: 14px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: var(--ink);
 }
 
 .adapterMenu {
   position: absolute;
-  left: calc(100% + var(--space-2));
-  top: 0;
-  width: 12rem;
-  padding: var(--space-2);
+  left: 0;
+  top: calc(100% + var(--space-3));
+  width: 14.75rem; /* 236 */
+  padding: var(--space-3);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  z-index: 1;
+}
+
+.adapterMenuLabel {
+  padding: 4px var(--space-3) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
 }
 
 .adapterRow {
-  display: block;
+  composes: acta-button from global;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
   width: 100%;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3);
   border: 0;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-row);
   background: transparent;
-  color: var(--text);
-  font-family: var(--font-ui);
-  font-size: var(--text-ui);
   text-align: left;
   cursor: pointer;
   transition: background var(--duration-fast) var(--ease-out);
 }
 
 .adapterRow:hover {
-  background: color-mix(in oklab, var(--text) 6%, transparent);
+  background: var(--bg-card);
+}
+
+.adapterRowArrow {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.adapterMenuFoot {
+  padding: var(--space-3) var(--space-3) 4px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-muted);
 }
 
 /* Top-right — capture, deepen, theme, profile. */
 
 .topRight {
   position: fixed;
-  top: var(--space-4);
-  right: var(--space-4);
+  top: var(--space-6);
+  right: var(--space-6);
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
-/*
- * Capture is a constant brand CTA (accent, always filled) rather than a surface
- * under test, so its fill is set directly here instead of routed through
- * `.control`'s per-system background — layering an override on top of the
- * system rules without a fragile specificity match would be the alternative,
- * and this is the simpler, more robust of the two.
- */
-.captureCluster {
-  display: flex;
-  align-items: stretch;
-  height: var(--ctl-size);
-  border-radius: var(--radius-pill);
-  overflow: hidden;
-}
-
-.captureLabel {
+.captureButton {
+  font-family: var(--font-ui);
+  font-size: var(--text-button);
+  font-weight: var(--font-weight-button);
+  letter-spacing: var(--letter-spacing-button);
+  line-height: 1;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 var(--space-3);
-  border: 0;
-  background: var(--accent);
-  color: var(--accent-contrast);
-  font-family: var(--font-ui);
-  font-size: var(--text-ui);
-  font-weight: var(--font-weight-medium);
+  gap: var(--space-2);
+  height: var(--ctl-size-brutal);
+  padding: 0 20px;
+  border: var(--border-ink);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-control);
+  background: var(--brand-primary);
+  color: var(--brand-primary-ink);
   white-space: nowrap;
   cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 
-.captureMic {
-  display: grid;
-  place-items: center;
-  width: var(--ctl-size);
-  border: 0;
-  background: color-mix(in oklab, var(--accent) 82%, #000 18%);
-  color: var(--accent-contrast);
-  cursor: pointer;
+.captureButton:hover {
+  filter: brightness(1.04);
+}
+
+.captureButton:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.capturePlus {
+  font-size: 15px;
+  line-height: 1;
 }
 
 .deepenWrap {
@@ -200,39 +254,47 @@
   display: inline-flex;
 }
 
+.deepenIcon {
+  width: 15px;
+  height: 12px;
+  border: 1.5px solid var(--ink);
+  border-radius: 2px;
+}
+
 .badge {
   position: absolute;
-  top: -4px;
   right: -4px;
-  min-width: 16px;
-  height: 16px;
+  top: -5px;
+  min-width: 18px;
+  height: 18px;
   padding: 0 4px;
   display: grid;
   place-items: center;
-  border-radius: 999px;
-  background: var(--accent);
-  color: var(--accent-contrast);
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--ink);
+  background: var(--brand-secondary);
+  color: var(--brand-secondary-ink);
   font-family: var(--font-ui);
   font-size: 10px;
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   line-height: 1;
 }
 
 .profileContent {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-3);
 }
 
 .avatar {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--accent-soft);
-  color: var(--accent-text);
+  background: var(--brand-primary);
+  color: var(--brand-primary-ink);
   font-family: var(--font-ui);
   font-size: 10px;
   font-weight: var(--font-weight-semibold);
@@ -240,31 +302,24 @@
 
 .profileName {
   font-family: var(--font-ui);
-  font-size: var(--text-ui);
+  font-size: 13px;
   font-weight: var(--font-weight-medium);
-  color: var(--text);
+  color: var(--ink);
   white-space: nowrap;
 }
 
 /* Bottom center — ask bar, filter, graph settings. */
 
-/*
- * Centred with `left/right: 0` + `justify-content` rather than
- * `left: 50%; transform: translateX(-50%)`. A transformed ancestor can establish
- * a new backdrop root, which would leave the ask bar's `backdrop-filter` with
- * nothing to sample — i.e. silently back to a flat translucent fill, the exact
- * failure this lab exists to rule out.
- */
 .askRow {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: var(--space-4);
+  bottom: var(--space-6);
   z-index: 20;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   pointer-events: none;
 }
 
@@ -273,10 +328,9 @@
 }
 
 .askField {
-  width: min(35rem, calc(100vw - 220px)); /* min(560px, ...) */
-  height: var(--ask-height);
-  padding: 0 var(--space-3) 0 var(--space-4);
-  gap: var(--space-2);
+  width: min(35rem, calc(100vw - 220px));
+  padding: 0 20px;
+  gap: var(--space-3);
 }
 
 .askInput {
@@ -286,402 +340,399 @@
   background: transparent;
   outline: 0;
   font-family: var(--font-ui);
-  font-size: var(--text-ui);
-  color: var(--text);
+  font-size: 15px;
+  color: var(--ink);
 }
 
 .askInput::placeholder {
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .askSend {
-  width: 2rem;
-  height: 2rem;
   border: 0;
   background: transparent;
   box-shadow: none;
-  border-radius: var(--radius-pill);
-  display: grid;
-  place-items: center;
-  color: var(--text-muted);
+  font-size: 15px;
+  color: var(--ink-muted);
   cursor: pointer;
   flex-shrink: 0;
-  transition:
-    color var(--duration-fast) var(--ease-out),
-    background var(--duration-fast) var(--ease-out);
+  padding: 0;
+  line-height: 1;
 }
 
 .askSend:hover {
-  color: var(--text);
-  background: color-mix(in oklab, var(--text) 8%, transparent);
+  color: var(--ink);
+}
+
+.filterButton {
+  flex-shrink: 0;
+  height: var(--ask-height-brutal);
+  padding: 0 20px;
+  border: var(--border-ink);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-control);
+  background: var(--bg-panel);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.filterButton:hover {
+  background: var(--bg-card);
+}
+
+.filterButton:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.settingsButton {
+  flex-shrink: 0;
+  width: var(--ask-height-brutal);
+  height: var(--ask-height-brutal);
+}
+
+.settingsGlyph {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+}
+
+/* Lab-only — toggles Explore without overlapping the canvas stack. */
+.exploreToggle {
+  flex-shrink: 0;
+  font-family: var(--font-ui);
+  font-size: var(--text-button);
+  font-weight: var(--font-weight-button);
+  letter-spacing: var(--letter-spacing-button);
+  line-height: 1;
+  height: var(--ask-height-brutal);
+  padding: 0 16px;
+  border: var(--border-ink);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-control);
+  background: var(--bg-panel);
+  color: var(--ink);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.exploreToggle:hover {
+  background: var(--bg-card);
+}
+
+.exploreToggle:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.exploreToggle[aria-pressed="true"] {
+  background: var(--brand-primary);
+  color: var(--brand-primary-ink);
+}
+
+.canvasStatus {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: var(--status-offset);
+  z-index: 20;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 /* Floating right panel — Explore results. */
 
 .explorePanel {
   position: fixed;
-  top: calc(var(--space-4) + var(--ctl-size) + var(--space-2));
-  right: var(--space-4);
+  top: var(--chrome-top);
+  right: var(--space-6);
   z-index: 15;
-  width: 18.75rem; /* 300 */
-  max-height: 22.5rem; /* 360 */
+  width: min(var(--panel-width-explore), calc(100vw - var(--space-6) * 2));
+  max-height: var(--panel-max-height);
   overflow-y: auto;
-  padding: var(--space-4);
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 
 .exploreHeaderRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-3);
+  padding-right: var(--panel-close-gutter);
+}
+
+.exploreLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
 }
 
 .exploreHeading {
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--text-h-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  color: var(--ink);
 }
 
 .exploreSummary {
   margin: 0;
   font-family: var(--font-ui);
-  font-size: var(--text-body);
-  line-height: 1.5;
-  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
 }
 
 .resultList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 4px;
 }
 
 .resultRow {
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-pill);
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  margin: 0 -10px;
+  border-radius: var(--radius-row);
+  cursor: pointer;
   transition: background var(--duration-fast) var(--ease-out);
 }
 
 .resultRow:hover {
-  background: color-mix(in oklab, var(--text) 6%, transparent);
+  background: var(--bg-card);
 }
 
 .resultTitle {
+  flex: 1;
+  min-width: 0;
   font-family: var(--font-ui);
-  font-size: var(--text-ui);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
-  color: var(--text);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .resultKind {
-  font-family: var(--font-ui);
+  flex: none;
+  margin-left: auto;
+  font-family: var(--font-mono);
   font-size: var(--text-label);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
-/* Node detail panel — left side, shown when a node is selected. */
+/* Node detail panel — left side. */
 
-/* Vertically centred via auto block margins rather than a `translateY(-50%)`,
-   for the same backdrop-root reason as `.askRow`. */
 .detailPanel {
   position: fixed;
-  left: var(--space-5);
-  top: 0;
-  bottom: 0;
+  left: var(--space-6);
+  top: var(--chrome-top);
   z-index: 20;
-  width: var(--panel-width-max);
-  height: fit-content;
-  margin-block: auto;
-  max-height: min(32rem, 80dvh);
+  width: min(var(--panel-width-brutal), calc(100vw - var(--space-6) * 2));
+  max-height: var(--panel-max-height);
   overflow-y: auto;
-  padding: var(--modal-padding);
+  padding: 0;
 }
 
-.detailClose {
-  position: absolute;
-  top: var(--space-2);
-  right: var(--space-2);
+.detailScroll {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
 .detailKicker {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding-right: var(--space-6);
+  gap: var(--space-3);
+  padding-right: var(--panel-close-gutter);
 }
 
 .detailKind {
-  font-size: var(--text-label);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.06em;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+  color: var(--brand-primary-ink);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--accent-text);
 }
 
 .detailStatus {
-  padding: 2px 8px;
-  border-radius: var(--radius-pill);
-  background: var(--bg-canvas);
-  color: var(--text-muted);
-  font-size: var(--text-label);
+  font-size: 11px;
+  color: var(--ink-muted);
   text-transform: capitalize;
 }
 
 .detailTitle {
-  margin: var(--space-2) 0 0;
+  margin: 0;
   font-family: var(--font-display);
-  font-size: var(--text-h-lg);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-h-sm);
+  font-weight: var(--font-weight-bold);
   line-height: 1.25;
-  color: var(--text);
+  color: var(--ink);
 }
 
 .detailTimeframe {
-  margin: var(--space-1) 0 0;
-  color: var(--text-muted);
-  font-size: var(--text-ui);
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 13px;
 }
 
 .detailSummary {
-  margin: var(--space-4) 0 0;
-  font-size: var(--text-body);
-  line-height: 1.6;
-  color: var(--text);
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
 }
 
 .detailEmpty {
-  margin: var(--space-4) 0 0;
-  color: var(--text-muted);
-  font-size: var(--text-body);
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 13px;
   font-style: italic;
 }
 
 .detailSection {
-  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .detailSectionLabel {
-  margin: 0 0 var(--space-2);
-  font-size: var(--text-label);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.04em;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .detailChips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .detailChip {
-  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 6px 12px;
   border-radius: var(--radius-pill);
-  background: var(--bg-canvas);
-  color: var(--text);
-  font-size: var(--text-ui);
+  border: var(--border-ink-soft);
+  background: var(--bg-card);
+  color: var(--ink-soft);
+  font-size: 11px;
 }
 
-/* Hover card — small, follows the cursor, shown only while nothing is selected. */
+/* Hover card — compact peek near the cursor. */
 
 .hoverCard {
   position: fixed;
   z-index: 25;
-  width: max-content;
-  max-width: 16.25rem; /* 260 — keep in sync with CARD_WIDTH_PX in design-lab.tsx */
-  max-height: 220px;
-  overflow: hidden;
-  padding: var(--space-3);
+  box-sizing: border-box;
+  width: min(18.25rem, calc(100vw - 16px));
+  max-height: min(280px, calc(100dvh - 16px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: var(--space-4) 20px;
   pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .hoverKicker {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.hoverPending {
+  color: var(--brand-secondary-text);
 }
 
 .hoverKind {
-  font-size: var(--text-label);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--accent-text);
+  color: var(--brand-primary-text);
 }
 
 .hoverTimeframe {
-  font-size: var(--text-label);
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .hoverTitle {
-  margin-top: 2px;
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--text-ui-lg);
-  line-height: 1.3;
-  color: var(--text);
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--text-h-sm);
+  line-height: 1.12;
+  color: var(--ink);
 }
 
 .hoverSummary {
-  margin: var(--space-2) 0 0;
-  font-size: var(--text-label);
-  line-height: 1.45;
-  color: var(--text-muted);
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--ink-soft);
 }
 
-.hoverFacets {
-  margin: var(--space-2) 0 0;
-  font-size: var(--text-label);
-  color: var(--text-muted);
-}
-
-/* Lab-only instrumentation — the system switcher plus the panel toggles, all
-   styled the same deliberately-opaque way (see system-switcher.module.css). */
-
-/* A column, not a row: as a row this stack grew wide enough to sit underneath the
-   centred ask bar and clip its placeholder. Stacking keeps the lab's footprint to
-   one control's width, which the ask bar's `calc(100vw - 220px)` cap clears. */
-.labBar {
-  position: fixed;
-  left: var(--space-4);
-  bottom: var(--space-4);
-  z-index: 30;
+.hoverChips {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-2);
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
 }
 
-.labToggle {
-  padding: 6px 10px;
-  text-align: center;
-  border: 1px solid var(--edge-strong);
-  border-radius: var(--radius-pill);
-  background: var(--bg-elevated);
-  color: var(--text);
-  font-family: var(--font-ui);
-  font-size: var(--text-label);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-}
-
-.labToggle:hover {
-  background: var(--bg-canvas);
-}
-
-/* Frame rate for judging chrome cost over the live canvas. Tabular figures so the
-   number doesn't jitter its own width as it updates. */
-.labFps {
-  padding: 6px 10px;
-  border: 1px solid var(--edge-strong);
-  border-radius: var(--radius-pill);
-  background: var(--bg-elevated);
-  color: var(--text-muted);
-  font-family: var(--font-ui);
-  font-size: var(--text-label);
-  font-variant-numeric: tabular-nums;
+.hoverChip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
   white-space: nowrap;
-  text-align: center;
-}
-
-/* ——————————————————————— System: opaque ——————————————————————— */
-
-:global([data-design="opaque"]) .surface {
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow);
-}
-
-:global([data-design="opaque"]) .control {
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow-soft);
-}
-
-:global([data-design="opaque"]) .field {
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow);
-}
-
-:global([data-design="opaque"]) .control:hover {
-  background: color-mix(in oklab, var(--text) 6%, var(--bg-elevated));
-}
-
-/* ————————————————————— System: liquid-glass ————————————————————— */
-
-:global([data-design="liquid-glass"]) .surface {
-  background: var(--glass-strong);
-  /* Order matters: Lightning CSS collapses these two into one declaration and
-     keeps whichever comes first. Chrome 150 dropped -webkit-backdrop-filter, so
-     the unprefixed property must come LAST to survive the build. */
-  -webkit-backdrop-filter: blur(var(--glass-blur))
-    saturate(var(--glass-saturate-strong)) brightness(var(--glass-brightness));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate-strong))
-    brightness(var(--glass-brightness));
-  box-shadow:
-    inset 0 1px 0 var(--glass-rim),
-    inset 0 -1px 0 var(--glass-rim-shade),
-    inset 0 0 0 1px color-mix(in oklab, #fff 10%, transparent),
-    var(--glass-shadow);
-}
-
-:global([data-design="liquid-glass"]) .control {
-  background: var(--glass);
-  -webkit-backdrop-filter: blur(20px) saturate(var(--glass-saturate-strong))
-    brightness(var(--glass-brightness));
-  backdrop-filter: blur(20px) saturate(var(--glass-saturate-strong))
-    brightness(var(--glass-brightness));
-  box-shadow:
-    inset 0 1px 0 var(--glass-rim),
-    inset 0 -1px 0 var(--glass-rim-shade),
-    var(--shadow-soft);
-}
-
-:global([data-design="liquid-glass"]) .field {
-  background: var(--glass);
-  -webkit-backdrop-filter: blur(24px) saturate(var(--glass-saturate-strong))
-    brightness(var(--glass-brightness));
-  backdrop-filter: blur(24px) saturate(var(--glass-saturate-strong))
-    brightness(var(--glass-brightness));
-  box-shadow:
-    inset 0 1px 0 var(--glass-rim),
-    inset 0 -1px 0 var(--glass-rim-shade),
-    var(--glass-shadow);
-}
-
-:global([data-design="liquid-glass"]) .control:hover {
-  background: color-mix(in oklab, var(--accent) 14%, var(--glass));
-}
-
-:global([data-design="liquid-glass"]) .control:active {
-  transform: scale(0.94);
-}
-
-/* Specular sheen on text-heavy / field surfaces only — a control is too small
-   for the gradient to read as anything but noise. */
-:global([data-design="liquid-glass"]) .surface::before,
-:global([data-design="liquid-glass"]) .field::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(
-    135deg,
-    color-mix(in oklab, #fff 20%, transparent) 0%,
-    transparent 42%
-  );
-  mix-blend-mode: plus-lighter;
-  opacity: 0.55;
-  pointer-events: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  border: var(--border-ink-soft);
+  background: var(--bg-card);
+  font-size: var(--text-caption);
+  color: var(--ink-soft);
 }

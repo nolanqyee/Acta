@@ -12,8 +12,8 @@
  */
 
 /** Zoom limits. Below the minimum a graph is unreadable dust; above the maximum it's a few dots. */
-const MIN_SCALE = 0.15;
-const MAX_SCALE = 6;
+export const MIN_CAMERA_SCALE = 0.15;
+export const MAX_CAMERA_SCALE = 6;
 
 /** A rectangle in world units. */
 export interface WorldBounds {
@@ -130,7 +130,7 @@ export class Camera {
     viewHeight: number,
   ): void {
     const before = this.toWorld(screenX, screenY, viewWidth, viewHeight);
-    this.scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, this.scale * factor));
+    this.scale = Math.min(MAX_CAMERA_SCALE, Math.max(MIN_CAMERA_SCALE, this.scale * factor));
     const after = this.toWorld(screenX, screenY, viewWidth, viewHeight);
 
     this.centerX += before.x - after.x;
@@ -145,12 +145,18 @@ export class Camera {
    * @param viewWidth - Canvas width in CSS pixels.
    * @param viewHeight - Canvas height in CSS pixels.
    * @param padding - Screen-space margin to leave, in CSS pixels.
+   * @param screenOffsetX - Post-fit horizontal nudge in CSS px (positive moves the graph right).
+   * @param screenOffsetY - Post-fit vertical nudge in CSS px (positive moves the graph down).
+   * @param scaleBoost - Multiplier applied after the fit scale (values &gt; 1 zoom in).
    */
   fit(
     bounds: WorldBounds,
     viewWidth: number,
     viewHeight: number,
     padding = 80,
+    screenOffsetX = 0,
+    screenOffsetY = 0,
+    scaleBoost = 1,
   ): void {
     const width = Math.max(1, bounds.maxX - bounds.minX);
     const height = Math.max(1, bounds.maxY - bounds.minY);
@@ -158,15 +164,22 @@ export class Camera {
     this.centerX = (bounds.minX + bounds.maxX) / 2;
     this.centerY = (bounds.minY + bounds.maxY) / 2;
     this.scale = Math.min(
-      MAX_SCALE,
+      MAX_CAMERA_SCALE,
       Math.max(
-        MIN_SCALE,
+        MIN_CAMERA_SCALE,
         Math.min(
           (viewWidth - padding * 2) / width,
           (viewHeight - padding * 2) / height,
-        ),
+        ) * scaleBoost,
       ),
     );
+
+    if (screenOffsetX !== 0) {
+      this.centerX -= screenOffsetX / this.scale;
+    }
+    if (screenOffsetY !== 0) {
+      this.centerY -= screenOffsetY / this.scale;
+    }
   }
 }
 

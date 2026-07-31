@@ -3,11 +3,11 @@
 This is the **single repo** for Acta — one **Next.js (App Router) app** plus planning docs:
 
 ```
-docs/                 Planning SoT (product, data-model, surfaces, agents, graph-canvas, building-plan, tech plan)
+docs/                 Planning SoT (product, data-model, surfaces, agents, graph-canvas, building-plan, tech plan, design-handoff)
 docs/archive/         Superseded design docs — reasoning worth reading, specifics not canon
 src/app/              App Router: pages, root layout, and /api route handlers (the API)
 src/lib/contracts/    Shared Zod schemas + types (import via @/lib/contracts)
-src/features/         Graph canvas, capture composer + skim (client components)
+src/features/         Graph canvas, design lab, landing, capture composer + skim (client components)
 src/server/           Server-only domain logic (GraphRepository, extract, merge) — guarded by `import "server-only"`
 src/styles/tokens.css Design tokens — single source of truth (imported in the root layout)
 ```
@@ -29,7 +29,8 @@ changes (branches, commits, PRs, Definition of Done), see [`CONTRIBUTING.md`](CO
   so an accidental client import fails the build.
 - **Contracts are an internal module** (`src/lib/contracts`), imported via the `@/lib/contracts`
   alias by both client and server. They hold no secrets and are safe to import anywhere.
-- **Design tokens** live only at `src/styles/tokens.css` (SoT), imported once in the root layout.
+- **Design tokens** live only at `src/styles/tokens.css` (SoT), imported once in the root layout. Current visual direction is **Neubrutalism** (opaque surfaces, ink borders) — see [`docs/design-handoff.md`](docs/design-handoff.md). Do not implement from archived liquid-glass specs.
+- **Dev-only surfaces** (`/lab/graph`, `/lab/design`, `/landing`) return 404 in production; use them to iterate chrome and marketing before promoting to `/`.
 - **Long-running work** (bulk imports, embeddings backfill) must be kept off the request
  path — offload to Vercel Cron / a queue / a worker rather than blocking a route handler.
 - **`backdrop-filter` must be written last.** When a rule declares both

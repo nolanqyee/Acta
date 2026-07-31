@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Charis+SIL:ital,wght@0,400;0,700;1,400&family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  html, body { margin: 0; background: #0d0d0e; }
+  a { color: #7fe0b0; text-decoration: none; }
+  a:hover { color: #b9f2d6; }
+  * { scrollbar-width: thin; scrollbar-color: #10120f transparent; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #10120f; border: 2px solid transparent; background-clip: content-box; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #10120f; background-clip: padding-box; }
+  ::-webkit-scrollbar-corner { background: transparent; }
+</style>
+</helmet>
+
+<div style="min-height: 100vh; padding: 24px 32px 56px; display: flex; flex-direction: column; gap: 20px; font-family: 'Figtree', system-ui, sans-serif;">
+
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #6f7a75;">Acta · clickable mockup</div>
+      <div style="font-family: 'Charis SIL', Georgia, serif; font-weight: 700; font-size: 30px; line-height: 1.1; color: #f2f1ee;">Neubrutalism</div>
+      <div style="font-size: 13px; color: #8b948f;">Click any node: the detail panel takes on that endeavor kind's own layout. Click empty canvas to clear.</div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 12px; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #6f7a75;">
+    <span>State</span>
+    <sc-for list="{{stateTabs}}" as="s" hint-placeholder-count="5">
+      <span onClick="{{s.onClick}}" style="cursor: pointer; padding: 6px 12px; border-radius: 999px; color: {{s.fg}}; background: {{s.bg}};">{{s.name}}</span>
+    </sc-for>
+    <span style="margin-left: 8px; text-transform: none; letter-spacing: 0; font-family: 'Figtree', sans-serif; font-size: 13px; color: #6f7a75;">{{stateHint}}</span>
+  </div>
+
+  <div style="position: relative; width: 1280px; height: 800px; border-radius: 22px; overflow: hidden; background: {{t.canvas}}; font-family: {{t.ui}};">
+    <div onClick="{{clearSelection}}" style="position: absolute; inset: 0; background-image: {{t.overlayPattern}}; background-size: {{t.overlaySize}};"></div>
+
+    <div style="position: absolute; inset: {{fieldInset}};">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;">
+        <sc-for list="{{edges}}" as="e" hint-placeholder-count="21">
+          <line x1="{{e.x1}}" y1="{{e.y1}}" x2="{{e.x2}}" y2="{{e.y2}}" stroke="{{e.stroke}}" strokeWidth="{{e.w}}" strokeOpacity="{{e.o}}" strokeLinecap="round" vectorEffect="non-scaling-stroke"></line>
+        </sc-for>
+      </svg>
+      <sc-for list="{{nodes}}" as="n" hint-placeholder-count="18">
+        <div onClick="{{n.onClick}}" onMouseEnter="{{n.onEnter}}" onMouseLeave="{{n.onLeave}}" style="position: absolute; left: {{n.x}}%; top: {{n.y}}%; transform: translate(-50%,-50%); cursor: pointer; padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 132px; opacity: {{n.opacity}};">
+          <div style="width: {{n.size}}px; height: {{n.size}}px; border-radius: 50%; background: {{n.fill}}; border: {{n.border}}; box-shadow: {{n.ring}};"></div>
+          <div style="font-size: 11px; line-height: 1.25; text-align: center; color: {{t.labelColor}}; font-family: {{t.ui}}; font-style: {{t.labelStyle}}; font-weight: {{t.labelWeight}}; text-transform: {{t.labelTransform}}; letter-spacing: {{t.labelTracking}}; text-shadow: {{t.labelShadow}}; text-wrap: balance;">{{n.label}}</div>
+        </div>
+      </sc-for>
+      <sc-for list="{{pendingNodes}}" as="p" hint-placeholder-count="2">
+        <div style="position: absolute; left: {{p.x}}%; top: {{p.y}}%; transform: translate(-50%,-50%); padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 128px;">
+          <div style="width: 16px; height: 16px; border-radius: 50%; border: 1.5px dashed {{t.accent}}; background: {{t.accentWash}};"></div>
+          <div style="font-size: 11px; line-height: 1.25; text-align: center; color: {{t.labelColor}}; font-weight: {{t.labelWeight}}; text-transform: {{t.labelTransform}}; letter-spacing: {{t.labelTracking}};">{{p.l}}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="position: absolute; left: 24px; top: 24px; display: flex; flex-direction: column; gap: 16px; align-items: flex-start;">
+      <div style="font-family: {{t.display}}; font-weight: {{t.displayWeight}}; font-size: {{t.wordmarkSize}}; line-height: 1; letter-spacing: {{t.wordmarkTracking}}; text-transform: {{t.wordmarkTransform}}; color: {{t.strong}};">Acta</div>
+      <div onClick="{{toggleMenu}}" style="cursor: pointer; width: 36px; height: 36px; border-radius: {{t.pill}}; background: {{t.chip}}; border: {{t.controlBorder}}; box-shadow: {{t.controlShadow}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+        <span style="width: 14px; height: 1.5px; border-radius: 1px; background: {{t.strong}};"></span>
+        <span style="width: 14px; height: 1.5px; border-radius: 1px; background: {{t.strong}};"></span>
+        <span style="width: 14px; height: 1.5px; border-radius: 1px; background: {{t.strong}};"></span>
+      </div>
+      <sc-if value="{{menuOpen}}" hint-placeholder-val="{{true}}">
+        <div style="width: 236px; border-radius: {{t.panelRadius}}; padding: 12px; background: {{t.panel}}; -webkit-backdrop-filter: {{t.panelBlur}}; backdrop-filter: {{t.panelBlur}}; border: {{t.panelBorder}}; box-shadow: {{t.panelShadow}}; display: flex; flex-direction: column; gap: 4px;">
+          <div style="padding: 4px 12px 12px; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">Generate from the graph</div>
+          <sc-for list="{{adapters}}" as="a" hint-placeholder-count="4">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px 12px; border-radius: {{t.itemRadius}}; font-size: 13px; color: {{t.strong}}; cursor: pointer;" style-hover="background: {{t.chip}};">
+              {{a}}<span style="margin-left: auto; font-size: 13px; color: {{t.muted}};">→</span>
+            </div>
+          </sc-for>
+          <div style="padding: 12px 12px 4px; font-size: 11px; line-height: 1.5; color: {{t.muted}};">Each opens its own page. The graph stays here.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="position: absolute; right: 24px; top: 24px; display: flex; align-items: center; gap: 12px;">
+      <div onClick="{{openCapture}}" style="cursor: pointer; height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 20px; border-radius: {{t.pill}}; font-size: 13px; font-weight: 600; color: {{t.accentInk}}; background: {{t.accent}}; border: {{t.controlBorder}}; box-shadow: {{t.accentShadow}};">
+        <span style="font-size: 15px; line-height: 1;">+</span>Capture
+      </div>
+      <div onClick="{{openDeepen}}" style="cursor: pointer; position: relative; height: 38px; width: 38px; border-radius: {{t.pill}}; background: {{t.chip}}; border: {{t.controlBorder}}; box-shadow: {{t.controlShadow}}; display: flex; align-items: center; justify-content: center;">
+        <span style="width: 15px; height: 12px; border: 1.5px solid {{t.strong}}; border-radius: 2px;"></span>
+        <span style="position: absolute; right: -4px; top: -5px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; border: 2px solid {{t.ink}}; background: {{t.secondary}}; color: {{t.secondaryInk}}; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;">7</span>
+      </div>
+      <div style="height: 38px; width: 38px; border-radius: {{t.pill}}; background: {{t.chip}}; border: {{t.controlBorder}}; box-shadow: {{t.controlShadow}}; display: flex; align-items: center; justify-content: center;">
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: {{t.themeGlyphFill}}; box-shadow: {{t.themeGlyphShadow}};"></span>
+      </div>
+      <div style="height: 38px; display: flex; align-items: center; gap: 12px; padding: 0 16px 0 6px; border-radius: {{t.pill}}; background: {{t.chip}}; border: {{t.controlBorder}}; box-shadow: {{t.controlShadow}};">
+        <div style="width: 28px; height: 28px; border-radius: 50%; background: {{t.avatar}}; color: {{t.avatarInk}}; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center;">NY</div>
+        <span style="font-size: 13px; color: {{t.strong}};">Nolan</span>
+      </div>
+    </div>
+
+    <div style="position: absolute; left: {{barLeft}}; right: {{barRight}}; bottom: 24px; display: flex; align-items: center; gap: 12px;">
+      <div onClick="{{openExplore}}" style="cursor: pointer; flex: 1; height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 20px; border-radius: {{t.pill}}; background: {{t.panelSolid}}; -webkit-backdrop-filter: {{t.panelBlur}}; backdrop-filter: {{t.panelBlur}}; border: {{t.controlBorder}}; box-shadow: {{t.barShadow}};">
+        <span style="flex: 1; font-size: 15px; color: {{askColor}};">{{askText}}</span>
+        <span style="font-size: 15px; color: {{t.muted}};">↑</span>
+      </div>
+      <div style="height: 48px; display: flex; align-items: center; padding: 0 20px; border-radius: {{t.pill}}; font-size: 13px; color: {{t.strong}}; background: {{t.panelSolid}}; border: {{t.controlBorder}}; box-shadow: {{t.barShadow}};">Filter</div>
+      <div style="height: 48px; width: 48px; border-radius: {{t.pill}}; background: {{t.panelSolid}}; border: {{t.controlBorder}}; box-shadow: {{t.barShadow}}; display: flex; align-items: center; justify-content: center;">
+        <span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid {{t.strong}};"></span>
+      </div>
+    </div>
+
+    <div style="position: absolute; left: {{statusLeft}}; bottom: 84px; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">{{canvasStatus}}</div>
+
+    <sc-if value="{{showHoverCard}}" hint-placeholder-val="{{true}}">
+      <div style="position: absolute; left: {{hover.left}}px; top: {{hover.top}}px; width: 292px; border-radius: {{t.panelRadius}}; padding: 16px 20px; background: {{t.panel}}; -webkit-backdrop-filter: {{t.panelBlur}}; backdrop-filter: {{t.panelBlur}}; border: {{t.panelBorder}}; box-shadow: {{t.panelShadow}}; display: flex; flex-direction: column; gap: 12px; pointer-events: none;">
+        <div style="display: flex; align-items: center; gap: 12px; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase;">
+          <span style="color: {{t.accentText}};">{{hover.kind}}</span><span style="color: {{t.muted}};">{{hover.when}}</span>
+        </div>
+        <div style="font-family: {{t.display}}; font-weight: {{t.displayWeight}}; font-size: 20px; line-height: 1.12; letter-spacing: {{t.displayTracking}}; text-transform: {{t.displayTransform}}; color: {{t.strong}};">{{hover.title}}</div>
+        <div style="font-size: 13px; line-height: 1.5; color: {{t.text}};">{{hover.summary}}</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+          <sc-for list="{{hover.facets}}" as="f" hint-placeholder-count="3">
+            <span style="display: inline-flex; align-items: center; white-space: nowrap; font-size: 11px; color: {{t.text}}; padding: 4px 12px; border-radius: {{t.pill}}; background: {{t.chip}}; border: {{t.chipBorder}};">{{f}}</span>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{showDetail}}" hint-placeholder-val="{{true}}">
+      <div style="position: absolute; left: 24px; top: 134px; bottom: 24px; width: 364px; border-radius: {{t.panelRadius}}; overflow: hidden; background: {{t.panel}}; -webkit-backdrop-filter: {{t.panelBlur}}; backdrop-filter: {{t.panelBlur}}; border: {{t.panelBorder}}; box-shadow: {{t.panelShadow}}; display: flex; flex-direction: column;">
+        <span onClick="{{clearSelection}}" style="position: absolute; right: 16px; top: 12px; z-index: 3; cursor: pointer; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; color: {{skin.closeFg}}; font-family: {{t.ui}}; font-size: 20px; font-weight: 800; line-height: 1;">×</span>
+
+        <!-- CREDENTIAL · diploma: full-bleed crest photo, centred, double rule -->
+        <sc-if value="{{skin.isCertificate}}" hint-placeholder-val="{{true}}">
+          <div style="flex: none; height: 132px; background: {{t.chip}};">
+            <image-slot id="ct-skin-credential" shape="rect" fit="cover" placeholder="UT Tower at dusk"></image-slot>
+          </div>
+          <div style="flex: none; padding: 20px; background: {{t.chip}}; border-bottom: {{t.chipBorder}}; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
+            <div style="width: 100%; height: 4px; border-top: 2px solid {{t.ink}}; border-bottom: 1px solid {{t.ink}};"></div>
+            <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">Conferred</div>
+            <div style="font-family: {{t.display}}; font-weight: 700; font-size: 30px; line-height: 1.08; color: {{t.strong}};">{{detail.title}}</div>
+            <div style="font-family: {{t.display}}; font-weight: 700; font-size: 15px; line-height: 1.2; color: {{t.strong}};">{{skin.issuer}}</div>
+            <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">{{detail.when}}</div>
+            <div style="width: 100%; height: 4px; border-top: 1px solid {{t.ink}}; border-bottom: 2px solid {{t.ink}};"></div>
+          </div>
+        </sc-if>
+
+        <!-- PROJECT · spec sheet: photo plate over a three-cell readout -->
+        <sc-if value="{{skin.isPlate}}" hint-placeholder-val="{{true}}">
+          <div style="flex: none; height: 132px; background: {{t.chip}};">
+            <image-slot id="ct-skin-project" shape="rect" fit="cover" placeholder="screen, bench shot or sketch"></image-slot>
+          </div>
+          <div style="flex: none; padding: 16px 20px 12px; display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">Project · sheet {{skin.sheetNo}}</div>
+            <div style="font-family: {{t.display}}; font-weight: 700; font-size: 30px; line-height: 1.08; color: {{t.strong}};">{{detail.title}}</div>
+          </div>
+          <div style="flex: none; display: flex; border-top: {{t.chipBorder}}; border-bottom: {{t.chipBorder}}; background: {{t.chip}};">
+            <sc-for list="{{detail.facts}}" as="row" hint-placeholder-count="3">
+              <div style="flex: 1; min-width: 0; padding: 12px; border-right: 1px solid {{t.hairline}}; display: flex; flex-direction: column; gap: 4px;">
+                <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{row.k}}</div>
+                <div style="font-family: {{t.display}}; font-weight: 700; font-size: 15px; line-height: 1.2; color: {{t.strong}};">{{row.v}}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- COURSE · registrar card: code grid, no image -->
+        <sc-if value="{{skin.isCard}}" hint-placeholder-val="{{true}}">
+          <div style="flex: none; padding: 20px; background: {{t.chip}}; border-bottom: {{t.chipBorder}}; display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; align-items: stretch; border: {{t.chipBorder}}; border-radius: {{t.itemRadius}}; overflow: hidden; background: {{t.panel}};">
+              <sc-for list="{{detail.facts}}" as="row" hint-placeholder-count="3">
+                <div style="flex: 1; min-width: 0; padding: 8px 12px; border-right: 1px solid {{t.hairline}}; display: flex; flex-direction: column; gap: 4px;">
+                  <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">{{row.k}}</div>
+                  <div style="font-family: 'Space Mono', monospace; font-size: 15px; color: {{t.strong}};">{{row.v}}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-family: {{t.display}}; font-weight: 700; font-size: 20px; line-height: 1.15; color: {{t.strong}};">{{detail.title}}</div>
+            <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">Registrar · {{detail.when}}</div>
+          </div>
+        </sc-if>
+
+        <!-- ROLE · service record: date spine down the left -->
+        <sc-if value="{{skin.isSpine}}" hint-placeholder-val="{{true}}">
+          <div style="flex: none; padding: 20px; display: flex; gap: 16px; border-bottom: {{t.chipBorder}};">
+            <div style="flex: none; width: 4px; background: {{t.ink}};"></div>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+              <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">Service record</div>
+              <div style="font-family: {{t.display}}; font-weight: 700; font-size: 20px; line-height: 1.15; color: {{t.strong}};">{{detail.title}}</div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: {{t.accent}}; border: 2px solid {{t.ink}};"></span>
+                <span style="font-family: 'Space Mono', monospace; font-size: 11px; color: {{t.strong}};">{{detail.when}}</span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- CRAFT · liner note: photo beside running text, not stacked -->
+        <sc-if value="{{skin.isLiner}}" hint-placeholder-val="{{true}}">
+          <div style="flex: none; display: flex; border-bottom: {{t.chipBorder}}; background: {{t.chip}};">
+            <div style="flex: none; width: 132px; height: 132px; border-right: {{t.chipBorder}};">
+              <image-slot id="ct-skin-craft" shape="rect" fit="cover" placeholder="the quartet, or a frame"></image-slot>
+            </div>
+            <div style="flex: 1; min-width: 0; padding: 16px; display: flex; flex-direction: column; gap: 8px; justify-content: center;">
+              <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.bandInk}}; opacity: .7;">Liner note</div>
+              <div style="font-family: {{t.display}}; font-weight: 700; font-size: 20px; line-height: 1.15; color: {{t.bandInk}};">{{detail.title}}</div>
+              <div style="font-family: 'Space Mono', monospace; font-size: 11px; color: {{t.bandInk}}; opacity: .7;">{{detail.when}}</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ARTIFACT · gallery placard: plate, then centred placard -->
+        <sc-if value="{{skin.isPlacard}}" hint-placeholder-val="{{true}}">
+          <div style="flex: none; height: 132px; background: {{t.chip}};">
+            <image-slot id="ct-skin-artifact" shape="rect" fit="cover" placeholder="the printed object"></image-slot>
+          </div>
+          <div style="flex: none; padding: 12px 20px 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
+            <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">Plate 1 · artifact</div>
+            <div style="font-family: {{t.display}}; font-weight: 700; font-size: 20px; line-height: 1.15; color: {{t.strong}};">{{detail.title}}</div>
+            <div style="width: 44px; height: 2px; background: {{t.ink}};"></div>
+            <div style="font-family: 'Space Mono', monospace; font-size: 11px; color: {{t.muted}};">{{detail.when}}</div>
+          </div>
+        </sc-if>
+
+        <!-- EVENT · ticket stub: date block, perforation -->
+        <sc-if value="{{skin.isStub}}" hint-placeholder-val="{{true}}">
+          <div style="flex: none; display: flex; align-items: stretch; background: {{t.chip}};">
+            <div style="flex: none; width: 96px; padding: 16px 12px; border-right: 2px dashed {{t.ink}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+              <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">{{skin.stubMonth}}</div>
+              <div style="font-family: {{t.display}}; font-weight: 700; font-size: 30px; line-height: 1; color: {{t.strong}};">{{skin.stubYear}}</div>
+              <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; color: {{t.muted}};">{{skin.stubPlace}}</div>
+            </div>
+            <div style="flex: 1; min-width: 0; padding: 16px; display: flex; flex-direction: column; gap: 8px; justify-content: center;">
+              <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">Admit one · event</div>
+              <div style="font-family: {{t.display}}; font-weight: 700; font-size: 20px; line-height: 1.15; color: {{t.strong}};">{{detail.title}}</div>
+            </div>
+          </div>
+          <div style="flex: none; height: 8px; border-bottom: {{t.chipBorder}}; background: {{t.chip}};"></div>
+        </sc-if>
+
+        <!-- ENDEAVOR · standing commitment: cadence bars -->
+        <sc-if value="{{skin.isStanding}}" hint-placeholder-val="{{true}}">
+          <div style="flex: none; padding: 20px; border-bottom: {{t.chipBorder}}; display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">Standing commitment</div>
+              <div style="font-family: {{t.display}}; font-weight: 700; font-size: 20px; line-height: 1.15; color: {{t.strong}};">{{detail.title}}</div>
+              <div style="display: flex; align-items: flex-end; gap: 4px; height: 26px;">
+                <sc-for list="{{skin.cadence}}" as="bar" hint-placeholder-count="14">
+                  <div style="flex: 1; height: {{bar.h}}; background: {{bar.fill}}; border: 1px solid {{t.ink}};"></div>
+                </sc-for>
+              </div>
+              <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">{{detail.when}} · cadence</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <div style="flex: 1; min-height: 0; padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="display: inline-flex; align-items: center; white-space: nowrap; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; color: {{t.accentInk}}; background: {{t.accent}}; padding: 4px 8px; border-radius: {{t.pill}};">{{detail.kind}}</span>
+              <span style="flex: 1; min-width: 0; font-size: 11px; color: {{t.muted}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{detail.standing}}</span>
+            </div>
+            <div style="font-size: 13px; line-height: 1.55; color: {{t.text}}; text-wrap: pretty;">{{detail.summary}}</div>
+          </div>
+
+          <sc-if value="{{skin.showFactsList}}" hint-placeholder-val="{{true}}">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">{{skin.factsLabel}}</div>
+              <sc-for list="{{detail.facts}}" as="row" hint-placeholder-count="3">
+                <div style="display: flex; align-items: baseline; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid {{t.hairline}};">
+                  <span style="font-size: 13px; color: {{t.text}}; min-width: 0; flex: 1;">{{row.k}}</span>
+                  <span style="font-family: 'Space Mono', monospace; font-size: 11px; color: {{t.strong}}; white-space: nowrap;">{{row.v}}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">Skills, people &amp; orgs</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <sc-for list="{{detail.chips}}" as="c" hint-placeholder-count="5">
+                <span style="display: inline-flex; align-items: center; white-space: nowrap; font-size: 11px; color: {{t.text}}; padding: 6px 12px; border-radius: {{t.pill}}; background: {{t.chip}}; border: {{t.chipBorder}};">{{c}}</span>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">Linked endeavors · {{detail.linkCount}}</div>
+            <sc-for list="{{detail.links}}" as="l" hint-placeholder-count="4">
+              <div onClick="{{l.onClick}}" style="cursor: pointer; display: flex; align-items: baseline; gap: 12px; padding: 8px 12px; margin: 0 -10px; border-radius: {{t.itemRadius}};" style-hover="background: {{t.chip}};">
+                <span style="font-size: 13px; color: {{t.strong}}; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{l.title}}</span>
+                <span style="margin-left: auto; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .1em; color: {{t.muted}}; white-space: nowrap;">{{l.kind}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{showExplore}}" hint-placeholder-val="{{true}}">
+      <div style="position: absolute; right: 24px; top: 78px; bottom: 24px; width: 356px; border-radius: {{t.panelRadius}}; padding: 20px; background: {{t.panel}}; -webkit-backdrop-filter: {{t.panelBlur}}; backdrop-filter: {{t.panelBlur}}; border: {{t.panelBorder}}; box-shadow: {{t.panelShadow}}; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">Explore</span>
+          <span onClick="{{closePanel}}" style="cursor: pointer; margin-left: auto; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: {{t.ink}}; font-family: {{t.ui}}; font-size: 20px; font-weight: 800; line-height: 1;">×</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-family: {{t.display}}; font-weight: {{t.displayWeight}}; font-size: 20px; line-height: 1.3; color: {{t.strong}};">“what have I done with Redis?”</div>
+          <div style="font-size: 13px; line-height: 1.55; color: {{t.text}};">Four endeavors, all 2024. It starts as a caching layer at Bubble, ends up behind the vector store in your embedding study.</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <sc-for list="{{exploreHits}}" as="h" hint-placeholder-count="4">
+            <div onClick="{{h.onClick}}" style="cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 12px 12px; margin: 0 -10px; border-radius: {{t.itemRadius}};" style-hover="background: {{t.chip}};">
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 13px; color: {{t.strong}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{h.title}}</div>
+                <div style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .12em; color: {{t.muted}}; margin-top: 4px;">{{h.kind}} · {{h.when}}</div>
+              </div>
+              <div style="font-family: 'Space Mono', monospace; font-size: 11px; color: {{t.accentText}};">{{h.score}}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; gap: 8px;">
+            <span style="flex: 1; text-align: center; font-size: 13px; font-weight: 600; color: {{t.accentInk}}; padding: 12px 0; border-radius: {{t.pill}}; background: {{t.accent}}; border: {{t.controlBorder}};">Send to Resume</span>
+            <span style="flex: 1; text-align: center; font-size: 13px; color: {{t.strong}}; padding: 12px 0; border-radius: {{t.pill}}; background: {{t.chip}}; border: {{t.chipBorder}};">Save answer</span>
+          </div>
+          <div style="font-size: 11px; line-height: 1.5; color: {{t.muted}};">Read-only. Explore never writes to the graph.</div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{showDiff}}" hint-placeholder-val="{{true}}">
+      <div style="position: absolute; right: 24px; top: 78px; bottom: 24px; width: 356px; border-radius: {{t.panelRadius}}; overflow: hidden; background: {{t.panel}}; border: {{t.panelBorder}}; box-shadow: {{t.panelShadow}}; display: flex; flex-direction: column;">
+        <div style="padding: 20px 20px 0; display: flex; align-items: center; gap: 12px;">
+          <span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">Review changes</span>
+          <span onClick="{{closePanel}}" style="cursor: pointer; margin-left: auto; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: {{t.ink}}; font-family: {{t.ui}}; font-size: 20px; font-weight: 800; line-height: 1;">×</span>
+        </div>
+        <div style="flex: 1; min-height: 0; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 16px; overflow: hidden;">
+          <div style="border: {{t.chipBorder}}; border-radius: {{t.itemRadius}}; box-shadow: {{t.rowShadow}}; padding: 12px 16px; background: {{t.accent}}; font-family: 'Space Mono', monospace; font-size: 11px; line-height: 1.5; color: {{t.accentInk}};">2 created · 1 updated · 4 linked</div>
+          <div style="font-size: 13px; line-height: 1.5; color: {{t.text}}; padding-left: 12px; border-left: 4px solid {{t.ink}};">“Built Trailmap at HackNU in Feb. Offline-first trail tracker, won the transit-data prize.”</div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <sc-for list="{{diffRows}}" as="d" hint-placeholder-count="4">
+              <div style="border-radius: {{t.itemRadius}}; border: {{t.chipBorder}}; box-shadow: {{t.rowShadow}}; background: {{t.chip}}; overflow: hidden;">
+                <div style="display: flex; align-items: stretch;">
+                  <div style="flex: none; width: 46px; display: flex; align-items: center; justify-content: center; background: {{d.opBg}}; border-right: {{t.chipBorder}}; font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: .06em; color: {{d.opFg}};">{{d.op}}</div>
+                  <div style="flex: 1; min-width: 0; padding: 12px 12px; display: flex; flex-direction: column; gap: 4px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-family: {{t.display}}; font-weight: 700; font-size: 15px; color: {{t.strong}}; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{d.title}}</span>
+                      <span style="margin-left: auto; font-size: 11px; color: {{t.ink}};">▾</span>
+                    </div>
+                    <div style="font-size: 11px; line-height: 1.45; color: {{t.text}};">{{d.detail}}</div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; gap: 12px;">
+              <span onClick="{{closePanel}}" style="cursor: pointer; flex: 1; text-align: center; font-size: 13px; font-weight: 600; color: {{t.accentInk}}; padding: 12px 0; border-radius: {{t.pill}}; background: {{t.accent}}; border: {{t.controlBorder}}; box-shadow: {{t.rowShadow}};">Confirm 4 changes</span>
+              <span onClick="{{closePanel}}" style="cursor: pointer; font-size: 13px; font-weight: 600; color: {{t.strong}}; padding: 12px 20px; border-radius: {{t.pill}}; background: {{t.chip}}; border: {{t.controlBorder}}; box-shadow: {{t.rowShadow}};">Discard</span>
+            </div>
+            <div style="font-size: 11px; line-height: 1.5; color: {{t.muted}};">Edit any field before confirming. Discard leaves it in Deepen.</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{showDeepen}}" hint-placeholder-val="{{true}}">
+      <div style="position: absolute; right: 24px; top: 78px; bottom: 24px; width: 356px; border-radius: {{t.panelRadius}}; overflow: hidden; background: {{t.panel}}; border: {{t.panelBorder}}; box-shadow: {{t.panelShadow}}; display: flex; flex-direction: column;">
+        <div style="padding: 20px 20px 0; display: flex; align-items: center; gap: 12px;">
+          <span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.muted}};">Deepen</span>
+          <span style="display: inline-flex; align-items: center; white-space: nowrap; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; color: {{t.secondaryInk}}; background: {{t.secondary}}; padding: 4px 8px; border-radius: {{t.pill}};">7</span>
+          <span onClick="{{closePanel}}" style="cursor: pointer; margin-left: auto; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: {{t.ink}}; font-family: {{t.ui}}; font-size: 20px; font-weight: 800; line-height: 1;">×</span>
+        </div>
+        <div style="flex: 1; min-height: 0; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 16px; overflow: hidden;">
+          <div style="font-size: 13px; line-height: 1.5; color: {{t.text}}; padding-left: 12px; border-left: 4px solid {{t.ink}};">Stuff worth filling in. No deadlines, no streaks. Open one when you feel like it.</div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <sc-for list="{{deepenRows}}" as="d" hint-placeholder-count="4">
+              <div onClick="{{d.onClick}}" style="cursor: pointer; border-radius: {{t.itemRadius}}; border: {{t.chipBorder}}; box-shadow: {{t.rowShadow}}; background: {{t.chip}}; overflow: hidden;">
+                <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: {{t.chipBorder}};">
+                  <span style="font-family: {{t.display}}; font-weight: 700; font-size: 15px; color: {{t.strong}}; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{d.title}}</span>
+                  <span style="margin-left: auto; flex: none; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: {{t.secondaryText}}; white-space: nowrap;">{{d.missing}}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; padding: 12px 12px;">
+                  <span style="flex: 1; font-size: 13px; line-height: 1.4; color: {{t.strong}};">{{d.prompt}}</span>
+                  <span style="flex: none; width: 26px; height: 26px; border-radius: 999px; background: {{t.secondary}}; border: 2px solid {{t.ink}}; color: {{t.secondaryInk}}; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">→</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top: auto; font-size: 11px; line-height: 1.5; color: {{t.muted}};">Answering a prompt goes through the same review step as a capture.</div>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1360,&quot;height&quot;:980},&quot;brandAccent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#6fb3e8&quot;,&quot;options&quot;:[&quot;#6fb3e8&quot;,&quot;#4f9fd8&quot;,&quot;#3f86c4&quot;,&quot;#8fb8e0&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Brand&quot;},&quot;brandSecondary&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#ff2861&quot;,&quot;options&quot;:[&quot;#ff2861&quot;,&quot;#d0479a&quot;,&quot;#e0609f&quot;,&quot;#f07ab0&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Brand&quot;}}">
+// [label, x, y, kind, when, summary, skills, people, facts]
+const RAW = [
+  ['President, Robotics Club', 30, 15, 'ROLE', '2021–2023', 'Ran a 40-person club: build nights, competition logistics, budget.', ['Leadership', 'Fundraising'], ['Ms. Alvarez', 'Robotics Club'], [['Scope', '40 members'], ['Budget held', '$14k'], ['Competitions run', '6']]],
+  ['Autonomous rover', 15, 25, 'PROJECT', '2021 · 6 months', 'Differential drive with LiDAR SLAM. Second at the regional qualifier.', ['ROS2', 'C++', 'CAD'], ['Dev Kapoor'], [['Outcome', '2nd, regionals'], ['Stack', 'ROS2 · C++'], ['Build time', '6 months']]],
+  ['Middle-school workshops', 45, 11, 'ENDEAVOR', '2022–2023', 'Taught Saturday robotics sessions to nine middle schoolers.', ['Teaching'], ['Lincoln Middle'], [['Cadence', 'Saturdays'], ['Reach', '9 students'], ['Sessions', '22']]],
+  ['B.S. Computer Science', 25, 51, 'CREDENTIAL', '2023–2027', 'UT Austin, Turing Scholars track. Six endeavors trace back to this node.', ['Algorithms', 'Systems'], ['UT Austin'], [['CS 439 · Distributed Systems', 'A'], ['CS 347 · Database Systems', 'A−'], ['CS 378 · HCI', 'A']]],
+  ['Distributed Systems', 10, 63, 'COURSE', 'Spring 2025', 'Raft, consistency models; final project on a replicated log.', ['Go', 'Raft'], ['Prof. Kim'], [['Code', 'CS 439'], ['Grade', 'A'], ['Produced', 'Replicated log']]],
+  ['Database Systems', 20, 78, 'COURSE', 'Fall 2024', 'Query planning and indexing; wrote a toy B-tree.', ['SQL', 'C'], ['Prof. Oyelaran'], [['Code', 'CS 347'], ['Grade', 'A−'], ['Produced', 'none']]],
+  ['Human–Computer Interaction', 38, 70, 'COURSE', 'Spring 2025', 'Where the offline-first thinking behind Trailmap came from.', ['Research', 'Figma'], ['Prof. Weiss'], [['Code', 'CS 378'], ['Grade', 'A'], ['Produced', 'Trailmap']]],
+  ['SWE Intern, Bubble', 73, 33, 'ROLE', 'Summer 2024', 'Backend intern: caching, billing webhooks, onboarding experiments.', ['TypeScript', 'Redis', 'Postgres'], ['Priya R.', 'Bubble'], [['Scope', 'Backend, 12 weeks'], ['Team', 'Platform'], ['Shipped', '3 projects']]],
+  ['Redis caching layer', 89, 22, 'PROJECT', 'Jun 2024', 'Cut p95 read latency 340ms → 90ms on the workspace endpoint.', ['Redis', 'Node'], ['Priya R.'], [['Outcome', 'p95 340→90ms'], ['Stack', 'Redis · Node'], ['Still running', 'Yes']]],
+  ['Billing webhook refactor', 88, 46, 'PROJECT', 'Aug 2024', 'Idempotent webhook pipeline; ended a class of duplicate charges.', ['Stripe', 'Redis'], ['Bubble'], [['Outcome', '0 dupes since'], ['Stack', 'Stripe · Redis'], ['Reviewed by', 'Priya R.']]],
+  ['Onboarding funnel exp.', 72, 57, 'PROJECT', 'Jul 2024', 'Three-variant test on first-run setup; +9% completion.', ['Analytics', 'React'], ['Growth team'], [['Outcome', '+9% completion'], ['Variants', '3'], ['Sample', '4.1k users']]],
+  ['Trailmap', 50, 40, 'PROJECT', 'Feb 2025 · 6 weeks', 'Offline-first trail tracker built at HackNU; won the transit-data prize. 412 km logged since.', ['React', 'TypeScript', 'IndexedDB'], ['Priya R.', 'HackNU'], [['Outcome', 'Transit-data prize'], ['Stack', 'React · TS · IDB'], ['Logged since', '412 km']]],
+  ['HackNU 2025', 52, 24, 'EVENT', 'Feb 2025', '36-hour hackathon. Two endeavors came out of this weekend.', ['Teamwork'], ['HackNU'], [['Where', 'Evanston'], ['Length', '36 hours'], ['Came out of it', '2 endeavors']]],
+  ['Research Assistant, Ardent', 66, 86, 'ROLE', 'Since 2025', 'Graph representation work in the Ardent lab, ten hours a week.', ['PyTorch', 'Graphs'], ['Dr. Sethi', 'Ardent Lab'], [['Scope', '10 hrs / week'], ['Lab', 'Ardent'], ['Output', '1 study']]],
+  ['Graph embedding study', 80, 72, 'PROJECT', 'Nov 2024', 'Node2vec over personal-record graphs; Redis-backed vector store.', ['PyTorch', 'Redis'], ['Dr. Sethi'], [['Outcome', 'Internal write-up'], ['Stack', 'PyTorch · Redis'], ['Corpus', 'Trailmap routes']]],
+  ['Jazz quartet, rhythm guitar', 45, 84, 'CRAFT', 'Since 2022', '42 sets played. Rhythm chair, occasional arranger.', ['Guitar', 'Arranging'], ['The Fourth Floor'], [['Sets played', '42'], ['Chair', 'Rhythm'], ['Since', '2022']]],
+  ['Analog photography', 11, 86, 'CRAFT', 'Since 2021', '31 rolls developed. Frame 14 became a zine cover.', ['Darkroom'], [], [['Rolls developed', '31'], ['Stock', 'Kodak 400TX'], ['Published', '1 cover']]],
+  ['Static (zine, issue 3)', 27, 95, 'ARTIFACT', 'Autumn 2024', 'Risograph on newsprint, edition of 60. Sold out.', ['Riso', 'Layout'], ['Coop Press'], [['Edition', '60, sold out'], ['Process', 'Riso on newsprint'], ['Size', '210 × 297 mm']]],
+];
+const LINKS = [[0,1],[0,2],[0,3],[3,4],[3,5],[3,6],[3,11],[11,12],[6,11],[12,7],[7,8],[7,9],[7,10],[9,10],[3,13],[13,14],[14,11],[14,10],[16,17],[17,15],[3,17]];
+const MATCHES = [7, 9, 10, 14];
+const THIN = [2, 5, 15, 16];
+
+const ADJ = (() => {
+  const m = RAW.map(() => []);
+  LINKS.forEach(([a, b]) => { m[a].push(b); m[b].push(a); });
+  return m;
+})();
+
+// per-kind panel skin: the chassis never moves, only the crest band changes
+// Kinds differ by STRUCTURE, not colour: a diploma, a spec sheet, a registrar card,
+// a service record, a liner note, a gallery placard, a ticket stub, a standing tally.
+// Palette stays ink + three surfaces + the two brand colours.
+const SKINS = {
+  CREDENTIAL: { isCertificate: true, factsLabel: 'Coursework that produced something', showFactsList: true, closeFg: '#f4f1e9' },
+  PROJECT:    { isPlate: true, factsLabel: 'Outcome', showFactsList: false, closeFg: '#f4f1e9' },
+  COURSE:     { isCard: true, factsLabel: 'Registrar', showFactsList: false, closeFg: '#10120f' },
+  ROLE:       { isSpine: true, factsLabel: 'Terms of service', showFactsList: true, closeFg: '#10120f' },
+  CRAFT:      { isLiner: true, factsLabel: 'Tally', showFactsList: true, closeFg: '#f4f1e9' },
+  ARTIFACT:   { isPlacard: true, factsLabel: 'Specification', showFactsList: true, closeFg: '#f4f1e9' },
+  EVENT:      { isStub: true, factsLabel: 'Stub', showFactsList: true, closeFg: '#10120f' },
+  ENDEAVOR:   { isStanding: true, factsLabel: 'Shape of it', showFactsList: true, closeFg: '#10120f' },
+};
+
+const RETIRED = {
+  glass: {
+    name: 'Liquid glass',
+    canvas: 'radial-gradient(120% 90% at 20% 6%, #14211e 0%, #0b1210 46%, #070a09 100%)',
+    overlayPattern: 'radial-gradient(60% 60% at 12% 78%, rgba(62,195,168,.10), transparent 70%)',
+    overlaySize: 'auto',
+    edge: 'rgba(168,226,205,1)', edgeHot: 'rgba(127,224,176,1)', edgeW: 1, edgeO: 0.16, edgeODim: 0.07, edgeOHot: 0.85,
+    dot: 'rgba(236,244,241,.6)', dotStrong: '#ffffff', dotHalo: 'rgba(9,15,13,.9)',
+    accent: '#3ec3a8', accentInk: '#06201a', accentText: '#7fe0b0', accentWash: 'rgba(62,195,168,.14)',
+    accentShadow: '0 6px 18px rgba(46,140,120,.35)',
+    panel: 'linear-gradient(160deg, rgba(255,255,255,.11), rgba(255,255,255,.04))',
+    panelSolid: 'linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.04))',
+    panelBlur: 'blur(28px) saturate(170%)',
+    panelShadow: '0 1px 0 rgba(255,255,255,.35) inset, 0 24px 60px rgba(0,0,0,.55)',
+    panelBorder: 'none', panelRadius: '22px', itemRadius: '12px',
+    controlBorder: 'none', controlShadow: 'none',
+    chip: 'rgba(255,255,255,.09)', chipBorder: 'none', hairline: 'rgba(255,255,255,.09)',
+    strong: '#f4f8f6', text: 'rgba(226,238,233,.8)', muted: 'rgba(214,229,223,.5)',
+    labelColor: 'rgba(226,236,231,.78)', labelStyle: 'normal', labelWeight: '400', labelTransform: 'none', labelTracking: '0',
+    labelShadow: '0 1px 6px rgba(0,0,0,.75)',
+    display: "'Charis SIL', Georgia, serif", ui: "'Figtree', system-ui, sans-serif",
+    displayTracking: '0', displayTransform: 'none',
+    wordmarkSize: '27px', wordmarkTracking: '0', wordmarkTransform: 'none',
+    pill: '999px', avatar: 'linear-gradient(150deg, #6fd8ab, #2f7d61)', avatarInk: '#05130e',
+    themeGlyphFill: 'transparent', themeGlyphShadow: 'inset -4px 0 0 0 #dfe6e3',
+  },
+  paper: {
+    name: 'Warm paper light',
+    canvas: 'radial-gradient(120% 100% at 30% 0%, #fdfbf6 0%, #f6f2ea 55%, #efeae0 100%)',
+    overlayPattern: 'none', overlaySize: 'auto',
+    edge: '#b9b0a0', edgeHot: '#2f9c8a', edgeW: 1, edgeO: 0.5, edgeODim: 0.22, edgeOHot: 1,
+    dot: '#98928a', dotStrong: '#2f9c8a', dotHalo: 'rgba(250,248,242,.95)',
+    accent: '#2f9c8a', accentInk: '#ffffff', accentText: '#2d7d6b', accentWash: 'rgba(47,156,138,.13)',
+    accentShadow: '0 6px 16px rgba(46,140,120,.26)',
+    panel: '#fffdf8', panelSolid: '#fffdf8', panelBlur: 'none',
+    panelShadow: '0 18px 40px rgba(60,50,36,.15), 0 2px 6px rgba(60,50,36,.06)',
+    panelBorder: 'none', panelRadius: '20px', itemRadius: '12px',
+    controlBorder: 'none', controlShadow: '0 6px 16px rgba(60,50,36,.09)',
+    chip: 'rgba(42,38,32,.06)', chipBorder: 'none', hairline: 'rgba(42,38,32,.09)',
+    strong: '#26221c', text: '#5f594f', muted: '#98928a',
+    labelColor: '#6e6961', labelStyle: 'normal', labelWeight: '400', labelTransform: 'none', labelTracking: '0',
+    labelShadow: 'none',
+    display: "'Charis SIL', Georgia, serif", ui: "'Figtree', system-ui, sans-serif",
+    displayTracking: '0', displayTransform: 'none',
+    wordmarkSize: '27px', wordmarkTracking: '0', wordmarkTransform: 'none',
+    pill: '999px', avatar: '#cfc6b6', avatarInk: '#4a443c',
+    themeGlyphFill: '#57514a', themeGlyphShadow: '0 0 0 2.5px rgba(87,81,74,.2)',
+  },
+  graphite: {
+    name: 'Graphite dark',
+    canvas: 'radial-gradient(120% 100% at 28% 0%, #1e2223 0%, #16191a 55%, #101213 100%)',
+    overlayPattern: 'none', overlaySize: 'auto',
+    edge: 'rgba(236,244,241,1)', edgeHot: '#3ec3a8', edgeW: 1, edgeO: 0.1, edgeODim: 0.05, edgeOHot: 0.9,
+    dot: 'rgba(236,244,241,.55)', dotStrong: '#3ec3a8', dotHalo: 'rgba(19,22,23,.95)',
+    accent: '#3ec3a8', accentInk: '#0d2a24', accentText: '#7fe0b0', accentWash: 'rgba(62,195,168,.12)',
+    accentShadow: '0 6px 18px rgba(46,140,120,.32)',
+    panel: '#212527', panelSolid: '#212527', panelBlur: 'none',
+    panelShadow: '0 30px 70px rgba(0,0,0,.6)',
+    panelBorder: 'none', panelRadius: '24px', itemRadius: '12px',
+    controlBorder: 'none', controlShadow: 'none',
+    chip: 'rgba(236,244,241,.08)', chipBorder: 'none', hairline: 'rgba(236,244,241,.08)',
+    strong: '#f0f4f2', text: '#b9c0be', muted: '#7f8886',
+    labelColor: '#c3cac7', labelStyle: 'normal', labelWeight: '400', labelTransform: 'none', labelTracking: '0',
+    labelShadow: '0 1px 6px rgba(0,0,0,.6)',
+    display: "'Charis SIL', Georgia, serif", ui: "'Figtree', system-ui, sans-serif",
+    displayTracking: '0', displayTransform: 'none',
+    wordmarkSize: '26px', wordmarkTracking: '0', wordmarkTransform: 'none',
+    pill: '999px', avatar: '#3a4144', avatarInk: '#e6ebe9',
+    themeGlyphFill: 'transparent', themeGlyphShadow: 'inset -4px 0 0 0 #dfe6e3',
+  },
+};
+
+const THEMES = {
+  brutal: {
+    name: 'Neubrutalism',
+    canvas: '#f4f1e9',
+    overlayPattern: 'linear-gradient(rgba(16,18,15,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(16,18,15,.08) 1px, transparent 1px)',
+    overlaySize: '36px 36px',
+    edge: '#10120f', edgeHot: '#0e8f5c', edgeW: 1.5, edgeO: 0.5, edgeODim: 0.25, edgeOHot: 1,
+    dot: '#f4f1e9', dotStrong: '#3ddc97', dotHalo: 'none',
+    accent: '#3ddc97', accentInk: '#10120f', accentText: '#0e7a4f', accentWash: 'rgba(61,220,151,.24)',
+    accentShadow: '4px 4px 0 #10120f',
+    panel: '#f9f7f1', panelSolid: '#f9f7f1', panelBlur: 'none',
+    panelShadow: '8px 8px 0 #10120f', barShadow: '3px 3px 0 #10120f',
+    panelBorder: '3px solid #10120f', panelRadius: '18px', itemRadius: '12px',
+    controlBorder: '3px solid #10120f', controlShadow: '3px 3px 0 #10120f',
+    chip: '#ffffff', chipBorder: '2px solid #10120f', hairline: 'rgba(16,18,15,.18)',
+    rowShadow: '3px 3px 0 #10120f', stampShadow: '2px 2px 0 #10120f',
+    ink: '#10120f', bandInk: '#f4f1e9', hatch: 'repeating-linear-gradient(45deg, rgba(16,18,15,.14) 0 2px, transparent 2px 7px)',
+    strong: '#10120f', text: 'rgba(16,18,15,.72)', muted: 'rgba(16,18,15,.52)',
+    labelColor: '#10120f', labelStyle: 'normal', labelWeight: '700', labelTransform: 'uppercase', labelTracking: '.03em',
+    labelShadow: 'none',
+    display: "'Charis SIL', Georgia, serif", ui: "'Figtree', system-ui, sans-serif",
+    displayTracking: '0', displayTransform: 'none', displayWeight: '700',
+    wordmarkSize: '30px', wordmarkTracking: '.01em', wordmarkTransform: 'none',
+    pill: '999px', avatar: '#3ddc97', avatarInk: '#10120f',
+    themeGlyphFill: '#10120f', themeGlyphShadow: 'none',
+  },
+};
+
+const RETIRED_EDITORIAL = {
+  editorial: {
+    name: 'Editorial print',
+    canvas: '#fffefb',
+    overlayPattern: 'none', overlaySize: 'auto',
+    edge: '#16150f', edgeHot: '#9c3a2b', edgeW: 1, edgeO: 0.22, edgeODim: 0.1, edgeOHot: 0.9,
+    dot: '#2b2a20', dotStrong: '#9c3a2b', dotHalo: 'rgba(255,254,251,.95)',
+    accent: '#9c3a2b', accentInk: '#fffefb', accentText: '#9c3a2b', accentWash: 'rgba(156,58,43,.10)',
+    accentShadow: 'none',
+    panel: '#fffefb', panelSolid: '#fffefb', panelBlur: 'none',
+    panelShadow: '6px 7px 0 rgba(22,21,15,.10)',
+    panelBorder: '1px solid #16150f', panelRadius: '2px', itemRadius: '2px',
+    controlBorder: '1px solid #16150f', controlShadow: 'none',
+    chip: '#f6f3ea', chipBorder: '1px solid #ded9c9', hairline: '#e3ddcd',
+    strong: '#16150f', text: '#43402f', muted: '#8b8674',
+    labelColor: '#4b4838', labelStyle: 'italic', labelWeight: '400', labelTransform: 'none', labelTracking: '0',
+    labelShadow: 'none',
+    display: "'Charis SIL', Georgia, serif", ui: "'Figtree', system-ui, sans-serif",
+    displayTracking: '0', displayTransform: 'none',
+    wordmarkSize: '30px', wordmarkTracking: '.02em', wordmarkTransform: 'none',
+    pill: '2px', avatar: '#e6e0d0', avatarInk: '#43402f',
+    themeGlyphFill: '#16150f', themeGlyphShadow: 'none',
+  },
+};
+
+function rgb(hex) {
+  const h = String(hex).replace('#', '');
+  const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+const rgba = (hex, a) => { const [r, g, b] = rgb(hex); return `rgba(${r}, ${g}, ${b}, ${a})`; };
+const lum = (hex) => { const [r, g, b] = rgb(hex); return (0.299 * r + 0.587 * g + 0.114 * b) / 255; };
+// WCAG relative luminance + contrast ratio, so ink is chosen by what actually reads
+const relLum = (hex) => {
+  const [r, g, b] = rgb(hex).map(v => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const contrast = (a, b) => {
+  const [x, y] = [relLum(a), relLum(b)].sort((m, n) => n - m);
+  return (x + 0.05) / (y + 0.05);
+};
+const inkOn = (bg, dark, light) => (contrast(dark, bg) >= contrast(light, bg) ? dark : light);
+const shift = (hex, k) => {
+  const [r, g, b] = rgb(hex);
+  const f = (v) => Math.round(k > 0 ? v + (255 - v) * k : v * (1 + k));
+  return `rgb(${f(r)}, ${f(g)}, ${f(b)})`;
+};
+
+// One brand colour drives the accent, its ink, its wash and its glow, per theme,
+// so a light shell gets a darker accent text and a dark shell a lifted one.
+function tintTheme(base, accent, secondary) {
+  if (!accent) return base;
+  const light = lum(base.strong) < 0.5; // light shell = dark text
+  const sec = secondary || '#ff2861';
+  return {
+    ...base,
+    accent,
+    // secondary carries attention: gaps, edits, anything asking for the user's judgement
+    secondary: sec,
+    secondaryInk: inkOn(sec, '#10120f', '#ffffff'),
+    secondaryText: light ? shift(sec, -0.24) : shift(sec, 0.32),
+    secondaryWash: rgba(sec, light ? 0.14 : 0.18),
+    accentInk: inkOn(accent, '#10120f', '#ffffff'),
+    accentText: light ? shift(accent, -0.28) : shift(accent, 0.34),
+    accentWash: rgba(accent, light ? 0.13 : 0.16),
+    accentShadow: base.accentShadow === 'none' ? 'none'
+      : base.accentShadow.includes('0 #10120f') ? base.accentShadow
+      : `0 6px 18px ${rgba(accent, 0.34)}`,
+    edgeHot: accent,
+    dotStrong: accent,
+    avatar: base.name === 'Neubrutalism' ? accent : base.avatar,
+  };
+}
+
+
+// standing per kind: the one thing no head or summary states
+const STATUS = {
+  CREDENTIAL: 'In progress', PROJECT: 'Shipped', COURSE: 'Completed', ROLE: 'Ended',
+  CRAFT: 'Ongoing', ARTIFACT: 'Out of print', EVENT: 'Attended', ENDEAVOR: 'Ongoing',
+};
+
+const STATES = [['idle', 'Idle'], ['selected', 'Selected'], ['explore', 'Explore'], ['diff', 'Diff-skim'], ['deepen', 'Deepen']];
+const HINTS = {
+  idle: 'Hover a node for the peek card; click to select.',
+  selected: 'Left panel opaque, no scrim; each endeavor kind opens with its own object.',
+  explore: 'Ranked hits right; matches lit on canvas; graph shifted left.',
+  diff: 'Pending endeavors ghost in dashed until you confirm.',
+  deepen: 'Thin endeavors ringed on canvas; a row opens the detail panel.',
+};
+
+class Component extends DCLogic {
+  state = { theme: 'brutal', view: 'idle', sel: 11, hover: null, menu: false };
+  setView = (view) => this.setState({ view, menu: false, hover: null });
+  select = (i) => this.setState({ view: 'selected', sel: i, hover: null, menu: false });
+
+  renderVals() {
+    const { theme, view, sel, hover, menu } = this.state;
+    const base = THEMES[theme] ?? THEMES.brutal;
+    const t = tintTheme(base, this.props.brandAccent, this.props.brandSecondary);
+
+    const labelled = (i) => {
+      if (view === 'diff') return false;
+      if (view === 'explore') return MATCHES.includes(i);
+      if (view === 'deepen') return THIN.includes(i);
+      if (view === 'selected') return i === sel || ADJ[sel].includes(i);
+      if (hover != null) return i === hover;
+      return true;
+    };
+    const bright = (i) => {
+      if (view === 'diff') return false;
+      if (view === 'explore') return MATCHES.includes(i);
+      if (view === 'deepen') return THIN.includes(i);
+      if (view === 'selected') return i === sel || ADJ[sel].includes(i);
+      if (hover != null) return i === hover || ADJ[hover].includes(i);
+      return true;
+    };
+
+    const halo = t.dotHalo === 'none' ? '' : `0 0 0 3px ${t.dotHalo}`;
+    const nodes = RAW.map(([l, x, y], i) => {
+      const isSel = view === 'selected' && i === sel;
+      const isHot = isSel || (hover === i && view !== 'diff') || (view === 'explore' && MATCHES.includes(i));
+      const isThin = view === 'deepen' && THIN.includes(i);
+      const ring = [halo, isThin ? `inset 0 0 0 2px ${t.secondary}` : '']
+        .filter(Boolean).join(', ') || 'none';
+      return {
+        x, y,
+        label: labelled(i) ? l : '',
+        opacity: bright(i) ? 1 : 0.18,
+        size: isSel ? 15 : isHot ? 12 : 8,
+        fill: isThin ? 'transparent' : isHot ? t.dotStrong : t.dot,
+        border: theme === 'brutal' ? '2.5px solid #10120f' : theme === 'editorial' && isHot ? '2px solid #9c3a2b' : 'none',
+        ring,
+        onClick: (e) => { e.stopPropagation(); this.select(i); },
+        onEnter: () => { if (this.state.view === 'idle') this.setState({ hover: i }); },
+        onLeave: () => { if (this.state.view === 'idle') this.setState({ hover: null }); },
+      };
+    });
+
+    const litEdge = (a, b) => {
+      if (view === 'selected') return a === sel || b === sel;
+      if (hover != null && view === 'idle') return a === hover || b === hover;
+      return false;
+    };
+    const edges = LINKS.map(([a, b]) => {
+      const lit = litEdge(a, b);
+      const recede = !lit && (view !== 'idle' || hover != null);
+      return {
+        x1: RAW[a][1], y1: RAW[a][2], x2: RAW[b][1], y2: RAW[b][2],
+        stroke: lit ? t.edgeHot : t.edge,
+        w: lit ? t.edgeW + 0.7 : t.edgeW,
+        o: lit ? t.edgeOHot : recede ? t.edgeODim : t.edgeO,
+      };
+    });
+
+    const d = RAW[sel];
+    const skin = SKINS[d[3]] ?? SKINS.PROJECT;
+    const detail = {
+      kind: d[3], when: d[4], title: d[0], summary: d[5],
+      facts: (d[8] ?? []).map(([k, v]) => ({ k, v })),
+      chips: [...d[6], ...d[7]],
+      linkCount: ADJ[sel].length,
+      standing: `${STATUS[d[3]] ?? 'Recorded'} · ${ADJ[sel].length} links`,
+      links: ADJ[sel].slice(0, 4).map(j => ({
+        title: RAW[j][0], kind: RAW[j][3],
+        onClick: (e) => { e.stopPropagation(); this.select(j); },
+      })),
+    };
+
+    const h = hover != null ? RAW[hover] : null;
+    const rightPanel = view === 'explore' || view === 'diff' || view === 'deepen';
+
+    return {
+      t,
+      skin: {
+        ...skin,
+        isCertificate: !!skin.isCertificate, isPlate: !!skin.isPlate, isCard: !!skin.isCard,
+        isSpine: !!skin.isSpine, isLiner: !!skin.isLiner, isPlacard: !!skin.isPlacard,
+        isStub: !!skin.isStub, isStanding: !!skin.isStanding,
+        showFactsList: !!skin.showFactsList,
+        sheetNo: String(sel).padStart(2, '0'),
+        issuer: (d[7] ?? []).slice(-1)[0] ?? 'Issuing institution',
+        stubMonth: String(d[4]).split(' ')[0],
+        stubYear: (String(d[4]).match(/\d{4}/) ?? ['n/a'])[0],
+        stubPlace: (d[8] ?? []).find(([k]) => k === 'Where')?.[1] ?? (d[7] ?? [])[0] ?? '',
+        cadence: [8, 14, 20, 12, 22, 16, 10, 24, 18, 12, 20, 14, 22, 16].map((h, i) => ({
+          h: h + 'px', fill: i % 3 === 0 ? t.accent : t.chip,
+        })),
+      },
+      fieldInset: `${rightPanel ? 120 : 108}px ${view === 'selected' ? 76 : rightPanel ? 428 : 100}px 108px ${view === 'selected' ? 424 : rightPanel ? 64 : 100}px`,
+      statusLeft: view === 'selected' ? '424px' : rightPanel ? '64px' : '26px',
+      barLeft: view === 'selected' ? '424px' : rightPanel ? '64px' : '352px',
+      barRight: view === 'selected' ? '76px' : rightPanel ? '428px' : '352px',
+      nodes, edges,
+      adapters: ['Resume', 'LinkedIn bio', 'Cover letter', 'Brag doc'],
+      menuOpen: menu,
+      toggleMenu: (e) => { e.stopPropagation(); this.setState({ menu: !menu }); },
+      clearSelection: () => this.setView('idle'),
+      closePanel: (e) => { e.stopPropagation(); this.setView('idle'); },
+      openExplore: (e) => { e.stopPropagation(); this.setView('explore'); },
+      openCapture: (e) => { e.stopPropagation(); this.setView('diff'); },
+      openDeepen: (e) => { e.stopPropagation(); this.setView('deepen'); },
+      showDetail: view === 'selected',
+      showExplore: view === 'explore',
+      showDiff: view === 'diff',
+      showDeepen: view === 'deepen',
+      showHoverCard: view === 'idle' && hover != null,
+      hover: h ? {
+        kind: h[3], when: h[4], title: h[0], summary: h[5], facets: h[6].slice(0, 3),
+        left: Math.min(920, Math.max(28, 100 + (h[1] / 100) * 1080 + 26)),
+        top: Math.min(520, Math.max(84, 108 + (h[2] / 100) * 584 + 20)),
+      } : { facets: [] },
+      detail,
+      askText: view === 'explore' ? 'what have I done with Redis?' : view === 'selected' ? `Ask about ${d[0]}…` : 'Ask your graph…',
+      askColor: view === 'explore' ? t.strong : t.muted,
+      canvasStatus: view === 'explore' ? '4 of 142 shown · filter · 2'
+        : view === 'diff' ? '2 pending endeavors · nothing written yet'
+        : view === 'deepen' ? '7 endeavors are thin · ringed on canvas'
+        : view === 'selected' ? `${ADJ[sel].length} direct links lit · rest dimmed`
+        : '142 endeavors · 388 links · zoom 82%',
+      pendingNodes: view === 'diff' ? [{ x: 44, y: 30, l: 'Trailmap' }, { x: 57, y: 20, l: 'HackNU 2025' }] : [],
+      exploreHits: MATCHES.map(i => ({
+        title: RAW[i][0], kind: RAW[i][3], when: RAW[i][4],
+        score: ['0.94', '0.81', '0.77', '0.61'][MATCHES.indexOf(i)],
+        onClick: (e) => { e.stopPropagation(); this.select(i); },
+      })),
+      diffRows: [
+        { op: 'NEW', title: 'Trailmap', detail: 'Project · Feb 2025 · summary, 3 facets' },
+        { op: 'NEW', title: 'HackNU 2025', detail: 'Event · Feb 2025 · linked to Trailmap' },
+        { op: 'EDIT', title: 'Human–Computer Interaction', detail: 'adds link → Trailmap' },
+        { op: 'EDIT', title: 'React', detail: 'facet count 6 → 7' },
+      ].map(r => ({
+        ...r,
+        opBg: r.op === 'NEW' ? t.accent : t.secondaryWash,
+        opFg: r.op === 'NEW' ? t.accentInk : t.secondaryText,
+      })),
+      deepenRows: THIN.map(i => ({
+        title: RAW[i][0],
+        missing: ['no timeframe', 'no outcome', 'no facets', 'summary only'][THIN.indexOf(i)],
+        prompt: ['When did this start?', 'Did this produce anything?', 'Which skills does this exercise?', 'What was your role?'][THIN.indexOf(i)],
+        onClick: (e) => { e.stopPropagation(); this.select(i); },
+      })),
+      stateTabs: STATES.map(([key, name]) => ({
+        name,
+        bg: key === view ? 'rgba(232,231,228,.16)' : 'transparent',
+        fg: key === view ? '#e8e7e4' : '#6f7a75',
+        onClick: () => this.setView(key),
+      })),
+      stateHint: HINTS[view],
+    };
+  }
+}
+
+</script>
+</body>
+</html>

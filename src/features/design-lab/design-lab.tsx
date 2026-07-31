@@ -1,57 +1,38 @@
 /**
  * @fileoverview `/lab/design`'s composition root: the live graph canvas
- * full-bleed, with a mock of the full product chrome overlaid on top (brand,
+ * full-bleed, with Neubrutalism product chrome overlaid on top (brand,
  * adapters, capture/deepen/theme/profile, ask bar, Explore panel, node detail,
- * hover card), per the spatial layout in docs/archive/mockup-synthesis.md. Every
- * chrome surface uses one of two shared primitives
- * (`.surface`/`.control`/`.field`, defined in `design-lab.module.css`), so the
- * whole screen's visual treatment can be swapped between named design systems by
- * setting `data-design` on the shell.
+ * hover card). Chrome uses shared primitives (`.surface`/`.control`/`.field` in
+ * `design-lab.module.css`) styled with hard ink borders and offset shadows.
  *
  * Chrome here is deliberately dumb: buttons render and take hover/press states
- * but only three things actually do anything — the hamburger opens/closes an
- * adapter menu, a lab control toggles the Explore panel, and the theme button
- * flips light/dark (glass reads very differently in each, so it has to be
- * switchable here). Node selection and hover come straight from the live canvas,
- * same as `graph-view.tsx`, so the detail panel and hover card react to a real
- * running simulation.
- *
- * The theme button is rebuilt locally instead of reusing `ThemeToggle`: the
- * product component carries its own fixed styling, which would leave one control
- * in the top-right cluster not wearing the system under test.
+ * but only two things actually do anything — the hamburger opens/closes an
+ * adapter menu and a lab control toggles the Explore panel. Node selection and hover
+ * come straight from the live canvas, same as `graph-view.tsx`, so the detail panel
+ * and hover card react to a real running simulation. Neubrutalism is light-only here.
  */
 
 "use client";
 
 import {
-  useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { useSearchParams } from "next/navigation";
-import {
-  ArrowUp,
-  Inbox,
-  Menu,
-  Mic,
-  Moon,
-  Plus,
-  Settings,
-  SlidersHorizontal,
-  Sun,
-  X,
-} from "lucide-react";
 import { buildSampleGraph } from "@/lib/graph/sample-graph";
 import { GraphCanvas, type HoverInfo } from "@/features/graph/graph-canvas";
 import { formatTimeframe, humanize } from "@/features/graph/format-endeavor";
 import { animateFadeIn } from "@/features/motion/enter";
 import { useReducedMotion } from "@/features/motion/use-reduced-motion";
-import { useTheme } from "@/features/theme/use-theme";
+import {
+  HOVER_CARD_ESTIMATE_HEIGHT_PX,
+  HOVER_CARD_OFFSET_PX,
+  HOVER_CARD_WIDTH_PX,
+  resolveHoverCardPlacement,
+} from "@/features/graph/hover-card-placement";
 import styles from "./design-lab.module.css";
-import { SystemSwitcher } from "./system-switcher";
-import { parseDesignSystem, type DesignSystem } from "./systems";
 
 /** Adapter menu rows behind the hamburger — labels only, no real navigation. */
 const ADAPTER_OPTIONS = ["Resume", "LinkedIn bio", "Cover letter", "Brag doc"];
@@ -71,63 +52,13 @@ const EXPLORE_RESULTS: ExploreResult[] = [
 ];
 
 /** Gap between the pointer and the hover card, in CSS px. */
-const OFFSET_PX = 16;
+const OFFSET_PX = HOVER_CARD_OFFSET_PX;
 
-/** Must match `.hoverCard`'s `max-width` in design-lab.module.css. */
-const CARD_WIDTH_PX = 260;
-
-/**
- * Height estimate for deciding whether to flip above the pointer — not used for
- * vertical placement (see {@link placement}).
- */
-const CARD_FLIP_HEIGHT_PX = 120;
-
-/** Frame rate is sampled into React state this often; every frame would defeat the point. */
-const FPS_REPORT_INTERVAL_MS = 400;
+/** Must match `.hoverCard`'s width cap in design-lab.module.css. */
+const CARD_WIDTH_PX = HOVER_CARD_WIDTH_PX;
 
 /** Longest summary snippet shown before an ellipsis. */
 const MAX_SNIPPET_CHARS = 140;
-
-/**
- * @param summary - Full summary text, if any.
- * @returns A one-line-ish snippet short enough for a peek card.
- */
-function snippet(summary: string | undefined): string | null {
-  if (!summary) return null;
-  return summary.length <= MAX_SNIPPET_CHARS
-    ? summary
-    : `${summary.slice(0, MAX_SNIPPET_CHARS - 1).trimEnd()}…`;
-}
-
-/**
- * Picks a corner to grow from so the card stays on screen, without measuring it.
- *
- * @param x - Pointer x in viewport CSS px.
- * @param y - Pointer y in viewport CSS px.
- * @returns Inline `left`/`top`/`flipY` for the card. When `flipY`, the card grows
- *   upward from `top` via `translateY(-100%)` so the gap above the pointer matches
- *   the gap below.
- */
-function placement(
-  x: number,
-  y: number,
-): {
-  left: number;
-  top: number;
-  flipY: boolean;
-} {
-  const vw = typeof window === "undefined" ? Infinity : window.innerWidth;
-  const vh = typeof window === "undefined" ? Infinity : window.innerHeight;
-
-  const left =
-    x + OFFSET_PX + CARD_WIDTH_PX > vw
-      ? x - OFFSET_PX - CARD_WIDTH_PX
-      : x + OFFSET_PX;
-  const flipY = y + OFFSET_PX + CARD_FLIP_HEIGHT_PX > vh;
-  const top = flipY ? y - OFFSET_PX : y + OFFSET_PX;
-
-  return { left: Math.max(8, left), top: Math.max(8, top), flipY };
-}
 
 /**
  * Renders one labelled chip list in the node detail panel, or nothing if the
@@ -154,41 +85,30 @@ function FacetSection({ label, values }: { label: string; values: string[] }) {
 }
 
 /**
- * The full mocked homepage: live canvas background plus every chrome surface,
- * switchable between design systems.
+ * @param summary - Full summary text, if any.
+ * @returns A one-line-ish snippet short enough for a peek card.
+ */
+function snippet(summary: string | undefined): string | null {
+  if (!summary) return null;
+  return summary.length <= MAX_SNIPPET_CHARS
+    ? summary
+    : `${summary.slice(0, MAX_SNIPPET_CHARS - 1).trimEnd()}…`;
+}
+
+/**
+ * The full mocked homepage: live canvas background plus Neubrutalism chrome.
  *
  * @returns The `/lab/design` workbench surface.
  */
 export function DesignLab() {
-  const params = useSearchParams();
-  const { resolvedTheme, toggle: toggleTheme } = useTheme();
   const reducedMotion = useReducedMotion();
   const snapshot = useMemo(() => buildSampleGraph(), []);
-  const isDark = resolvedTheme === "dark";
 
-  const [designSystem, setDesignSystem] = useState<DesignSystem>(() =>
-    parseDesignSystem(params.get("design")),
-  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hover, setHover] = useState<HoverInfo | null>(null);
   const [adapterMenuOpen, setAdapterMenuOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
-
-  const [fps, setFps] = useState(0);
-  const lastFpsReport = useRef(0);
-
-  /**
-   * Records the frame rate at a human-readable cadence so chrome over the live
-   * canvas can be judged without staring at DevTools.
-   *
-   * @param value - Instantaneous frames per second from the render loop.
-   */
-  const handleFps = useCallback((value: number) => {
-    const now = performance.now();
-    if (now - lastFpsReport.current < FPS_REPORT_INTERVAL_MS) return;
-    lastFpsReport.current = now;
-    setFps(value);
-  }, []);
+  const [deepenOpen, setDeepenOpen] = useState(false);
 
   const hamburgerAreaRef = useRef<HTMLDivElement>(null);
   const hoverCardRef = useRef<HTMLDivElement>(null);
@@ -223,22 +143,51 @@ export function DesignLab() {
   }, [adapterMenuOpen]);
 
   const hoverNodeId = hover && !selectedId ? hover.node.id : null;
-  const hoverPlacement =
-    hover && !selectedId ? placement(hover.x, hover.y) : null;
+  const [hoverCardSize, setHoverCardSize] = useState({
+    width: CARD_WIDTH_PX,
+    height: HOVER_CARD_ESTIMATE_HEIGHT_PX,
+  });
   const hoverTimeframe =
     hover && !selectedId ? formatTimeframe(hover.node.timeframe) : null;
   const hoverSummaryText =
     hover && !selectedId ? snippet(hover.node.summary) : null;
-  const hoverFacetLine =
+  const hoverFacets =
     hover && !selectedId
       ? [
           ...hover.node.facets.skills,
           ...hover.node.facets.people,
           ...hover.node.facets.orgs,
-        ]
-          .slice(0, 3)
-          .join(" · ")
-      : null;
+        ].slice(0, 6)
+      : [];
+
+  useLayoutEffect(() => {
+    if (!hover || selectedId) return;
+    const el = hoverCardRef.current;
+    if (!el) return;
+    const { width, height } = el.getBoundingClientRect();
+    setHoverCardSize((prev) =>
+      prev.width === width && prev.height === height
+        ? prev
+        : { width, height },
+    );
+  }, [
+    hover,
+    selectedId,
+    hoverNodeId,
+    hoverSummaryText,
+    hoverFacets.length,
+  ]);
+
+  const hoverPlacement = useMemo(() => {
+    if (!hover || selectedId) return null;
+    return resolveHoverCardPlacement(
+      hover.x,
+      hover.y,
+      hoverCardSize.width,
+      hoverCardSize.height,
+      OFFSET_PX,
+    );
+  }, [hover, hoverCardSize.height, hoverCardSize.width, selectedId]);
 
   /**
    * Fades the hover card in when the hovered node changes, matching the product
@@ -255,12 +204,13 @@ export function DesignLab() {
   }, [hoverNodeId, reducedMotion]);
 
   return (
-    <main className={styles.shell} data-design={designSystem}>
+    <main className={styles.shell} data-design="neubrutalism" data-mode="light">
       <div className={styles.canvasLayer}>
         <GraphCanvas
           snapshot={snapshot}
-          resolvedTheme={resolvedTheme}
-          onFps={handleFps}
+          resolvedTheme="light"
+          transparentBackground
+          showThinNodes={deepenOpen}
           selectedId={selectedId}
           onSelect={(node) => setSelectedId(node.id)}
           onBackgroundClick={() => setSelectedId(null)}
@@ -268,14 +218,16 @@ export function DesignLab() {
         />
       </div>
 
-      {hover && hoverPlacement ? (
+      {hover && !selectedId && hoverPlacement ? (
         <div
           ref={hoverCardRef}
           className={`${styles.surface} ${styles.hoverCard}`}
           style={{
             left: hoverPlacement.left,
             top: hoverPlacement.top,
-            transform: hoverPlacement.flipY ? "translateY(-100%)" : undefined,
+            transform: hoverPlacement.flipY
+              ? "translateY(-100%)"
+              : undefined,
           }}
           role="status"
           aria-live="polite"
@@ -284,6 +236,9 @@ export function DesignLab() {
             <span className={styles.hoverKind}>
               {humanize(hover.node.kind)}
             </span>
+            {hover.node.state === "pending" ? (
+              <span className={styles.hoverPending}>Pending</span>
+            ) : null}
             {hoverTimeframe ? (
               <span className={styles.hoverTimeframe}>{hoverTimeframe}</span>
             ) : null}
@@ -292,85 +247,86 @@ export function DesignLab() {
           {hoverSummaryText ? (
             <p className={styles.hoverSummary}>{hoverSummaryText}</p>
           ) : null}
-          {hoverFacetLine ? (
-            <p className={styles.hoverFacets}>{hoverFacetLine}</p>
+          {hoverFacets.length > 0 ? (
+            <ul className={styles.hoverChips}>
+              {hoverFacets.map((facet) => (
+                <li key={facet} className={styles.hoverChip}>
+                  {facet}
+                </li>
+              ))}
+            </ul>
           ) : null}
         </div>
       ) : null}
 
       <div className={styles.brand}>
-        <span className={styles.wordmark}>Acta</span>
-        <div className={styles.hamburgerAnchor} ref={hamburgerAreaRef}>
-          <button
-            type="button"
-            className={styles.control}
-            aria-label={adapterMenuOpen ? "Close adapters" : "Open adapters"}
-            aria-expanded={adapterMenuOpen}
-            onClick={() => setAdapterMenuOpen((open) => !open)}
-          >
-            <Menu size={18} aria-hidden />
-          </button>
-          {adapterMenuOpen ? (
-            <div
-              className={`${styles.surface} ${styles.adapterMenu}`}
-              role="menu"
+        <div className={styles.brandRow} ref={hamburgerAreaRef}>
+          <div className={styles.hamburgerAnchor}>
+            <button
+              type="button"
+              className={styles.control}
+              aria-label={adapterMenuOpen ? "Close adapters" : "Open adapters"}
+              aria-expanded={adapterMenuOpen}
+              onClick={() => setAdapterMenuOpen((open) => !open)}
             >
-              {ADAPTER_OPTIONS.map((label) => (
-                <button
-                  key={label}
-                  type="button"
-                  role="menuitem"
-                  className={styles.adapterRow}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          ) : null}
+              <span className={styles.hamburgerLines} aria-hidden>
+                <span />
+                <span />
+                <span />
+              </span>
+            </button>
+            {adapterMenuOpen ? (
+              <div
+                className={`${styles.surface} ${styles.adapterMenu}`}
+                role="menu"
+              >
+                <div className={styles.adapterMenuLabel}>
+                  Generate from the graph
+                </div>
+                {ADAPTER_OPTIONS.map((label) => (
+                  <button
+                    key={label}
+                    type="button"
+                    role="menuitem"
+                    className={styles.adapterRow}
+                  >
+                    {label}
+                    <span className={styles.adapterRowArrow} aria-hidden>
+                      →
+                    </span>
+                  </button>
+                ))}
+                <p className={styles.adapterMenuFoot}>
+                  Each opens its own page. The graph stays here.
+                </p>
+              </div>
+            ) : null}
+          </div>
+          <span className={styles.wordmark}>Acta</span>
         </div>
       </div>
 
       <div className={styles.topRight}>
-        <div className={styles.captureCluster}>
-          <button type="button" className={styles.captureLabel}>
-            <Plus size={16} aria-hidden />
-            Capture
-          </button>
-          <button
-            type="button"
-            className={styles.captureMic}
-            aria-label="Capture by voice"
-          >
-            <Mic size={16} aria-hidden />
-          </button>
-        </div>
+        <button type="button" className={styles.captureButton}>
+          <span className={styles.capturePlus} aria-hidden>
+            +
+          </span>
+          Capture
+        </button>
 
         <div className={styles.deepenWrap}>
           <button
             type="button"
             className={styles.control}
-            aria-label="Deepen backlog"
+            aria-label={deepenOpen ? "Close deepen backlog" : "Open deepen backlog"}
+            aria-expanded={deepenOpen}
+            aria-pressed={deepenOpen}
+            onClick={() => setDeepenOpen((open) => !open)}
           >
-            <Inbox size={18} aria-hidden />
+            <span className={styles.deepenIcon} aria-hidden />
           </button>
-          <span className={styles.badge}>3</span>
+          <span className={styles.badge}>7</span>
         </div>
-
-        {/* The product ThemeToggle carries its own fixed styling, which would make it
-            the one control in this cluster not wearing the system under test. */}
-        <button
-          type="button"
-          className={styles.control}
-          aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-          aria-pressed={isDark}
-          onClick={toggleTheme}
-        >
-          {isDark ? (
-            <Sun size={18} aria-hidden />
-          ) : (
-            <Moon size={18} aria-hidden />
-          )}
-        </button>
 
         <button
           type="button"
@@ -391,22 +347,38 @@ export function DesignLab() {
             className={styles.askInput}
             placeholder='Ask your graph — "what have I done with Redis?"'
           />
-          {/* Deliberately not a glass surface — the send action stays flat. */}
           <button type="button" className={styles.askSend} aria-label="Send">
-            <ArrowUp size={18} aria-hidden />
+            ↑
           </button>
         </div>
-        <button type="button" className={styles.control} aria-label="Filter">
-          <SlidersHorizontal size={18} aria-hidden />
+        <button
+          type="button"
+          className={styles.exploreToggle}
+          aria-pressed={exploreOpen}
+          aria-label="Toggle explore panel"
+          onClick={() => setExploreOpen((open) => !open)}
+        >
+          Explore
+        </button>
+        <button type="button" className={styles.filterButton}>
+          Filter
         </button>
         <button
           type="button"
-          className={styles.control}
+          className={`${styles.control} ${styles.settingsButton}`}
           aria-label="Graph settings"
         >
-          <Settings size={18} aria-hidden />
+          <span className={styles.settingsGlyph} aria-hidden />
         </button>
       </div>
+
+      <p className={styles.canvasStatus}>
+        {selectedNode
+          ? `${selectedNode.facets.skills.length + selectedNode.facets.people.length + selectedNode.facets.orgs.length} facets · detail open`
+          : exploreOpen
+            ? "4 of 142 shown · filter · 2"
+            : "142 endeavors · 388 links · live simulation"}
+      </p>
 
       {exploreOpen ? (
         <div
@@ -414,17 +386,20 @@ export function DesignLab() {
           role="dialog"
           aria-label="Explore results"
         >
+          <button
+            type="button"
+            className="acta-panel-close"
+            aria-label="Close explore panel"
+            onClick={() => setExploreOpen(false)}
+          >
+            ×
+          </button>
           <div className={styles.exploreHeaderRow}>
-            <h2 className={styles.exploreHeading}>Explore</h2>
-            <button
-              type="button"
-              className={`${styles.control} ${styles.controlSm}`}
-              aria-label="Close explore panel"
-              onClick={() => setExploreOpen(false)}
-            >
-              <X size={16} aria-hidden />
-            </button>
+            <span className={styles.exploreLabel}>Explore</span>
           </div>
+          <h2 className={styles.exploreHeading}>
+            &ldquo;what have I done with Redis?&rdquo;
+          </h2>
           <p className={styles.exploreSummary}>
             4 endeavors mention Redis, ranked by relevance.
           </p>
@@ -447,60 +422,52 @@ export function DesignLab() {
         >
           <button
             type="button"
-            className={`${styles.control} ${styles.controlSm} ${styles.detailClose}`}
+            className="acta-panel-close"
             aria-label="Close"
             onClick={() => setSelectedId(null)}
           >
-            <X size={16} aria-hidden />
+            ×
           </button>
 
-          <div className={styles.detailKicker}>
-            <span className={styles.detailKind}>
-              {humanize(selectedNode.kind)}
-            </span>
-            {selectedNode.status !== "active" ? (
-              <span className={styles.detailStatus}>
-                {humanize(selectedNode.status)}
+          <div className={styles.detailScroll}>
+            <div className={styles.detailKicker}>
+              <span className={styles.detailKind}>
+                {humanize(selectedNode.kind)}
               </span>
+              {selectedNode.state === "pending" ? (
+                <span className={styles.hoverPending}>Pending</span>
+              ) : null}
+              {selectedNode.status !== "active" ? (
+                <span className={styles.detailStatus}>
+                  {humanize(selectedNode.status)}
+                </span>
+              ) : null}
+            </div>
+
+            <h2 className={styles.detailTitle}>{selectedNode.title}</h2>
+            {formatTimeframe(selectedNode.timeframe) ? (
+              <p className={styles.detailTimeframe}>
+                {formatTimeframe(selectedNode.timeframe)}
+              </p>
             ) : null}
+
+            {selectedNode.summary ? (
+              <p className={styles.detailSummary}>{selectedNode.summary}</p>
+            ) : (
+              <p className={styles.detailEmpty}>
+                No summary yet — this endeavor hasn&rsquo;t been deepened.
+              </p>
+            )}
+
+            <FacetSection label="Skills" values={selectedNode.facets.skills} />
+            <FacetSection label="People" values={selectedNode.facets.people} />
+            <FacetSection
+              label="Organizations"
+              values={selectedNode.facets.orgs}
+            />
           </div>
-
-          <h2 className={styles.detailTitle}>{selectedNode.title}</h2>
-          {formatTimeframe(selectedNode.timeframe) ? (
-            <p className={styles.detailTimeframe}>
-              {formatTimeframe(selectedNode.timeframe)}
-            </p>
-          ) : null}
-
-          {selectedNode.summary ? (
-            <p className={styles.detailSummary}>{selectedNode.summary}</p>
-          ) : (
-            <p className={styles.detailEmpty}>
-              No summary yet — this endeavor hasn&rsquo;t been deepened.
-            </p>
-          )}
-
-          <FacetSection label="Skills" values={selectedNode.facets.skills} />
-          <FacetSection label="People" values={selectedNode.facets.people} />
-          <FacetSection
-            label="Organizations"
-            values={selectedNode.facets.orgs}
-          />
         </div>
       ) : null}
-
-      <div className={styles.labBar}>
-        <SystemSwitcher active={designSystem} onChange={setDesignSystem} />
-        <button
-          type="button"
-          className={styles.labToggle}
-          aria-pressed={exploreOpen}
-          onClick={() => setExploreOpen((open) => !open)}
-        >
-          {exploreOpen ? "Hide Explore" : "Show Explore"}
-        </button>
-        <span className={styles.labFps}>{Math.round(fps)} fps</span>
-      </div>
     </main>
   );
 }
