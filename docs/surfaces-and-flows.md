@@ -350,6 +350,9 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
 
 ## Changelog
 
+- **2026-08-03:** **`/` is the public waitlist landing** (no session required). Graph app
+  moves to `/home` in the next slice; `/landing` redirects to `/`.
+
 - **2026-08-03:** **Light mode only in the current slice.** Top-right theme toggle removed;
   dark mode deferred until the visual system is rebuilt on screen (see graph-canvas.md).
 
