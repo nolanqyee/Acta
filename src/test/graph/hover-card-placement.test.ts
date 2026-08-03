@@ -7,7 +7,7 @@ import {
   HOVER_CARD_OFFSET_PX,
   HOVER_CARD_WIDTH_PX,
   resolveHoverCardPlacement,
-} from "@/features/graph/hover-card-placement";
+} from "@/features/graph/surfaces/hover-card-placement";
 
 const VIEWPORT = { width: 1000, height: 800 };
 

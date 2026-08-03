@@ -13,7 +13,7 @@
 
 "use client";
 
-import { DEFAULT_TUNABLES, TUNABLE_RANGES, type Tunables } from "./tunables";
+import { DEFAULT_TUNABLES, TUNABLE_RANGES, type Tunables } from "../engine/tunables";
 
 /** Human labels for the sliders, in the order they should read. */
 const CONTROLS: { key: keyof Tunables; label: string }[] = [

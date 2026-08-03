@@ -7,8 +7,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GraphCanvas } from "@/features/graph/graph-canvas";
-import { HERO_TUNABLES } from "@/features/graph/tunables";
+import { GraphCanvas } from "@/features/graph/engine/graph-canvas";
+import { HERO_TUNABLES } from "@/features/graph/engine/tunables";
 import { buildHeroGraph, HERO_GRAPH_SELECTED_ID } from "@/lib/graph/hero-graph";
 
 /** Graph centroid target as a fraction of viewport width (⅔ from the left). */

@@ -11,7 +11,7 @@
  */
 
 import { notFound } from "next/navigation";
-import { GraphLab } from "@/features/graph/graph-lab";
+import { GraphLab } from "@/features/graph/lab/graph-lab";
 
 /**
  * Renders the canvas workbench outside production.
