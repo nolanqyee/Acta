@@ -62,7 +62,9 @@ Rebuilt 2026-07-26 on our own render loop. `react-force-graph-2d` is gone.
 | [`camera.ts`](../src/features/graph/camera.ts) | Pan/zoom/fit, the exact screen↔world inverse that drag and hit-testing depend on, and a screen-space focus offset (eased by the canvas loop) that nudges the graph clear of the left detail panel. |
 | [`render.ts`](../src/features/graph/render.ts) | One frame: hairline edges, small dots, and the captions that have room. |
 | [`palette.ts`](../src/features/graph/palette.ts) | Resolves `tokens.css` custom properties into values a canvas can draw with. |
+| [`node-visual.ts`](../src/features/graph/node-visual.ts) | Node fill/stroke/hover-dim paint states for the canvas renderer. |
 | [`graph-canvas.tsx`](../src/features/graph/graph-canvas.tsx) | The `<canvas>`, the `requestAnimationFrame` loop, pointer/wheel/resize handling. Nothing per-frame goes through React state. |
+| [`hover-card-placement.ts`](../src/features/graph/hover-card-placement.ts) | Pure geometry — keeps a hover peek card on-screen (flip above/below pointer). |
 | [`dev-hud.tsx`](../src/features/graph/dev-hud.tsx) | Opaque sliders for the forces plus a frame counter. **Lab only** — it used to render on `/` too, which it never should have. |
 | [`graph-view.tsx`](../src/features/graph/graph-view.tsx) | The `/` surface: fetch `GET /api/graph`, fall back to the sample fixture, canvas + hover/selection. Top-right **theme toggle** (sun/moon); sample/live readout top-left. |
 | [`graph-lab.tsx`](../src/features/graph/graph-lab.tsx) + [`/lab/graph`](../src/app/lab/graph/page.tsx) | Dev-only workbench (404s in production, open without a session outside it). `?n=140` generates a fixture of that size; `?gravity=0.5&repulsion=12&…` overrides forces. |
