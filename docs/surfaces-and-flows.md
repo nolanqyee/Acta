@@ -1,6 +1,6 @@
 # Acta — Surfaces & Core Flows
 
-Last updated: 2026-07-26
+Last updated: 2026-08-03
 
 **Owns:** information architecture (primary surfaces) and end-to-end interaction flows at contract altitude — not pixels, brand tokens, or full adapter editor design.
 
@@ -87,7 +87,7 @@ The homepage of the app. **The graph canvas is the entire background.** Every co
 
 11. **Capture** — distinct CTA **“Capture +”** plus a **connected mic** control for **eventual voice capture** (type remains MVP path; mic is chrome-forward, behavior can land post type-only). Opens capture → extract → diff-skim.
 12. **Deepen** — icon suggesting “things to fill” (**inbox-like** lean + **notification badge** count). Opens deepen backlog panel. Still a **pull** queue — not a Today/notifications home; naming can stay backlog-forward in copy even if icon reads inbox.
-13. **Theme toggle** — sun/moon for light / dark (both themes first-class; default follows OS elsewhere in brand).
+13. **Theme** — **light only for now** (dark mode deferred until the visual system is rebuilt on screen; no toggle in the current slice).
 14. **Profile** — avatar + **user name**; click expands menu: profile, account settings, app settings, logout, etc.
 
 #### Other
@@ -349,6 +349,9 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
 ---
 
 ## Changelog
+
+- **2026-08-03:** **Light mode only in the current slice.** Top-right theme toggle removed;
+  dark mode deferred until the visual system is rebuilt on screen (see graph-canvas.md).
 
 - **2026-07-26 (later):** **Node click surface reconsidered: left panel, not a centered
   modal.** The first node-detail build (docs/graph-canvas.md's ninth pass) followed this

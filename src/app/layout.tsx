@@ -13,7 +13,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Charis_SIL, Figtree } from "next/font/google";
-import { ThemeBootScript } from "@/features/theme/theme-boot-script";
 import "@/styles/tokens.css";
 import "@/styles/base.css";
 
@@ -43,21 +42,14 @@ export const metadata: Metadata = {
  *
  * @param props.children - The active route's rendered content.
  * @returns The root `<html>`/`<body>` document tree.
- *
- * `suppressHydrationWarning` is scoped to `<html>` alone: the boot script sets
- * `data-mode` before React hydrates, so the client element legitimately carries an
- * attribute the server markup cannot know about.
  */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
+      data-mode="light"
       className={`${displayFont.variable} ${uiFont.variable}`}
-      suppressHydrationWarning
     >
-      <head>
-        <ThemeBootScript />
-      </head>
       <body>{children}</body>
     </html>
   );

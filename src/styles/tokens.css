@@ -9,7 +9,7 @@
  * Usage (when app is bootstrapped after U-J):
  *   @import or link this file from the app stylesheet
  *   Prefer these variables over inventing hex/rem in components
- *   Theme: set html[data-mode="light"|"dark"], or rely on prefers-color-scheme below
+ *   Theme: light only for now — `html[data-mode="light"]` is set in the root layout.
  */
 
 :root {
@@ -87,7 +87,7 @@
   --state-danger-text: #a3382e;
   --state-danger-soft: color-mix(in oklab, var(--state-danger) 16%, transparent);
 
-  /* —— Light theme (default) —— */
+  /* —— Surface colours (light) —— */
   --bg-canvas: #f5f0e4;
   --bg-chrome: #f8f3e9;
   --bg-elevated: #fffdf8;
@@ -102,66 +102,6 @@
   --highlight-soft: var(--accent-soft);
   --glass: color-mix(in oklab, var(--bg-elevated) 55%, transparent);
   --focus-ring: var(--accent);
-}
-
-/* Dark — system preference when data-mode unset */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-mode="light"]) {
-    --accent-text: #5ed4a8;
-    --bg-canvas: #141414;
-    --bg-chrome: #1a1a1a;
-    --bg-elevated: #222222;
-    --text: #ececec;
-    --text-muted: #8f8f8f;
-    --node: #c8c8c8;
-    --edge: color-mix(in oklab, #fff 9%, transparent);
-    --edge-strong: color-mix(in oklab, #fff 24%, transparent);
-    --glass: color-mix(in oklab, #1c1c1c 55%, transparent);
-    --shadow-soft: 0 6px 20px color-mix(in oklab, #000 40%, transparent);
-    --shadow: 0 16px 48px color-mix(in oklab, #000 55%, transparent);
-    --state-success: #3db87a;
-    --state-success-text: #5ed4a8;
-    --state-danger: #e07070;
-    --state-danger-text: #f08080;
-  }
-}
-
-html[data-mode="dark"] {
-  --accent-text: #5ed4a8;
-  --bg-canvas: #141414;
-  --bg-chrome: #1a1a1a;
-  --bg-elevated: #222222;
-  --text: #ececec;
-  --text-muted: #8f8f8f;
-  --node: #c8c8c8;
-  --edge: color-mix(in oklab, #fff 9%, transparent);
-  --edge-strong: color-mix(in oklab, #fff 24%, transparent);
-  --glass: color-mix(in oklab, #1c1c1c 55%, transparent);
-  --shadow-soft: 0 6px 20px color-mix(in oklab, #000 40%, transparent);
-  --shadow: 0 16px 48px color-mix(in oklab, #000 55%, transparent);
-  --state-success: #3db87a;
-  --state-success-text: #5ed4a8;
-  --state-danger: #e07070;
-  --state-danger-text: #f08080;
-}
-
-html[data-mode="light"] {
-  --accent-text: #1e8a66;
-  --bg-canvas: #f5f0e4;
-  --bg-chrome: #f8f3e9;
-  --bg-elevated: #fffdf8;
-  --text: #1e1c18;
-  --text-muted: #6e695f;
-  --node: #6b6560;
-  --edge: color-mix(in oklab, var(--text) 12%, transparent);
-  --edge-strong: color-mix(in oklab, var(--text) 30%, transparent);
-  --glass: color-mix(in oklab, var(--bg-elevated) 55%, transparent);
-  --shadow-soft: 0 4px 16px color-mix(in oklab, #000 8%, transparent);
-  --shadow: 0 12px 40px color-mix(in oklab, #000 12%, transparent);
-  --state-success: #2f9e6a;
-  --state-success-text: #1d7a50;
-  --state-danger: #c4473a;
-  --state-danger-text: #a3382e;
 }
 
 /* —— Utility recipes (optional class hooks) —— */
