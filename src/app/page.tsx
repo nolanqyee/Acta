@@ -1,20 +1,15 @@
 /**
- * @fileoverview `/` — the graph surface. A one-line Server Component while the canvas
- * is being rebuilt slice by slice; the proxy has already redirected unauthenticated
- * callers to `/login`, so there is no gate to repeat here.
- *
- * It used to pass the signed-in user's email down for a profile control. That control
- * is gone with the rest of the first attempt's chrome and will come back with the
- * slice that needs it (docs/graph-canvas.md § Deliberately deferred).
+ * @fileoverview `/` — public marketing landing (waitlist). Reachable without a
+ * session; the graph app moves to `/home` in a follow-up PR.
  */
 
-import { GraphView } from "@/features/graph/graph-view";
+import { LandingPage } from "@/features/landing/landing-page";
 
 /**
- * Renders the graph canvas.
+ * Renders the public waitlist landing page.
  *
- * @returns The graph surface.
+ * @returns The marketing homepage.
  */
 export default function Page() {
-  return <GraphView />;
+  return <LandingPage />;
 }
