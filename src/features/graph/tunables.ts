@@ -54,6 +54,18 @@ export const TUNABLE_RANGES: Record<
 };
 
 /**
+ * Softer physics for the marketing hero — same forces, gentler springs and cohesion
+ * so nudges feel illustrative rather than app-like.
+ */
+export const HERO_TUNABLES: Tunables = {
+  gravity: 0.36,
+  repulsion: 9.5,
+  linkDistance: 44,
+  linkStrength: 0.48,
+  nodeRadius: 1,
+};
+
+/**
  * Calm defaults: a round, airy cloud of small dots.
  *
  * Chosen by shooting the same fixture at 26 and 140 nodes under a range of settings

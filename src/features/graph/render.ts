@@ -3,9 +3,9 @@
  *
  * Three of the canvas requirements are decided here rather than in the physics:
  *
- *  - **R2, small nodes.** A node is a dot a few pixels across. Its world radius is
- *    scaled by zoom but clamped, so zooming in never turns the constellation into a
- *    diagram of circles.
+ *  - **R2, design-system nodes.** Fixed screen sizes from Claude Design §07: 8px paper
+ *    default, 12px primary on hover, 15px on select. Deepen backlog nodes use the
+ *    same secondary fill + ink border as pending, but only when deepen mode is on.
  *  - **R6, subtle edges.** Hairline, straight, low-contrast, drawn beneath the dots.
  *    Crossings are allowed to happen and simply don't read as noise at this weight.
  *  - **R3, captions only when they don't block anything.** Captions are all-or-nothing
@@ -16,13 +16,26 @@
  * of the graph fades back, so a node's neighbourhood is legible without any chrome.
  *
  * Selection uses the identical dim/lit/accent language. Background dim snaps on when
- * something is selected; the green accent itself fades in and out — including when hover
+ * something is selected; the primary accent fades in and out — including when hover
  * over a different node temporarily takes it over and when hover clears again.
+ * Selected/hovered nodes fill with the accent colour and scale up; there is no
+ * selection ring (Neubrutalism house rule).
  */
 
 import type { Palette } from "./palette";
+import {
+  EDGE_OPACITY_BASE,
+  EDGE_OPACITY_LIT,
+  EDGE_OPACITY_RECEDED,
+  EDGE_WIDTH_BASE,
+  EDGE_WIDTH_LIT,
+  isThinEndeavor,
+  NODE_DIM_OPACITY,
+  resolveNodePaint,
+} from "./node-visual";
 import type { PositionedLink, PositionedNode } from "./types";
-import { nodeRadius, type Tunables } from "./tunables";
+import { MAX_CAMERA_SCALE } from "./camera";
+import { type Tunables } from "./tunables";
 
 /** Everything needed to draw a frame. */
 export interface Frame {
@@ -53,11 +66,14 @@ export interface Frame {
   draggedId: string | null;
   /** Caches the zoom level at which captions become readable. Owned by the canvas. */
   labelGate: LabelGate;
+  /** When true, skip the opaque canvas fill so a parent grid shows through. */
+  transparentBackground?: boolean;
+  /**
+   * When true, endeavors that need deepening show the hollow secondary ring. Off on the
+   * idle graph — only the Deepen backlog turns this on (see surfaces-and-flows.md).
+   */
+  showThinNodes?: boolean;
 }
-
-/** Screen-space clamps keeping dots small but always visible. */
-const MIN_DOT_RADIUS = 1.4;
-const MAX_DOT_RADIUS = 9;
 
 /** Label type size in CSS pixels; deliberately fixed so text stays legible at any zoom. */
 const LABEL_FONT_SIZE = 11;
@@ -72,16 +88,23 @@ const MAX_LABEL_CHARS = 28;
 const LABEL_CLEARANCE_PX = 7;
 
 /**
+ * Whether a node should use deepen backlog styling (secondary fill + ink border) this frame.
+ *
+ * @param node - Canvas node metadata.
+ * @param frame - Current frame state.
+ * @returns True when deepen mode is active and the endeavor reads as thin.
+ */
+function showsThinRing(node: PositionedNode, frame: Frame): boolean {
+  return Boolean(frame.showThinNodes) && isThinEndeavor(node);
+}
+
+/**
  * How dark the rest of the graph goes while a node is hovered.
  *
  * Dimming rather than hiding: the surrounding shape stays readable as context, so the
  * neighbourhood is seen *in* the graph rather than extracted from it.
  */
-const DIM_NODE_ALPHA = 0.16;
-const DIM_EDGE_ALPHA = 0.35;
-
-/** Opacity of the hovered node's own links, which are promoted to the accent colour. */
-const HOVER_EDGE_ALPHA = 0.7;
+const DIM_NODE_ALPHA = NODE_DIM_OPACITY;
 
 /** Milliseconds for the hover treatment to reach full strength, and to let go again. */
 const HOVER_FADE_IN_MS = 130;
@@ -248,7 +271,9 @@ export class LabelGate {
   measure(ctx: CanvasRenderingContext2D, text: string): number {
     const cached = this.widths.get(text);
     if (cached !== undefined) return cached;
+    ctx.letterSpacing = "0.03em";
     const measured = ctx.measureText(text).width;
+    ctx.letterSpacing = "0px";
     this.widths.set(text, measured);
     return measured;
   }
@@ -287,7 +312,7 @@ const RECOMPUTE_INTERVAL_MS = 500;
 /** Fraction of the threshold at which captions start fading in. */
 const FADE_BAND = 0.82;
 
-/** Percentile of per-node requirements the threshold satisfies (1 = every node). */
+/** Percentile of per-node requirements the threshold satisfies (0.6 = captions appear sooner). */
 const THRESHOLD_PERCENTILE = 0.6;
 
 /**
@@ -335,7 +360,7 @@ function measureThresholdScale(
     // Nothing within a cell of this node: it has all the room it could want.
     if (!Number.isFinite(nearest) || nearest <= 0) continue;
 
-    const text = shortLabel(node.title);
+    const text = labelText(node.title);
     required.push((gate.measure(ctx, text) + LABEL_CLEARANCE_PX) / nearest);
   }
 
@@ -345,7 +370,7 @@ function measureThresholdScale(
     required.length - 1,
     Math.floor(required.length * THRESHOLD_PERCENTILE),
   );
-  return required[index]!;
+  return Math.min(required[index]!, MAX_CAMERA_SCALE);
 }
 
 /** Shared so an absent neighbour set never allocates. */
@@ -426,21 +451,33 @@ function resolveHighlight(frame: Frame): Highlight {
 }
 
 /**
- * Screen radius of a node's dot.
+ * Screen radius for label placement — matches the painted dot size.
  *
  * @param node - The node.
  * @param frame - Current frame state.
- * @returns Radius in CSS pixels, clamped to stay small.
+ * @param highlight - Active highlight for this frame.
+ * @returns Radius in CSS pixels.
  */
 function dotRadius(
   node: PositionedNode,
   frame: Frame,
   highlight: Highlight,
 ): number {
-  const world = nodeRadius(node.degree, frame.tunables);
-  const raw =
-    world * frame.scale * (1 + 0.35 * emphasisOf(node.id, frame, highlight));
-  return Math.min(MAX_DOT_RADIUS, Math.max(MIN_DOT_RADIUS, raw));
+  const lit = isLit(node.id, highlight)
+    ? 1
+    : dimFactor(highlight, DIM_NODE_ALPHA);
+  return resolveNodePaint({
+    id: node.id,
+    thin: showsThinRing(node, frame),
+    lit,
+    primaryId: highlight.primaryId,
+    primaryAmount: highlight.primaryAmount,
+    secondaryId: highlight.secondaryId,
+    secondaryAmount: highlight.secondaryAmount,
+    dragged: node.id === frame.draggedId,
+    pending: node.state === "pending",
+    palette: frame.palette,
+  }).radius;
 }
 
 /**
@@ -501,6 +538,16 @@ function shortLabel(title: string): string {
 }
 
 /**
+ * Caption string as drawn on the canvas (uppercase per design system §07).
+ *
+ * @param title - Full endeavor title.
+ * @returns Truncated, uppercased label.
+ */
+function labelText(title: string): string {
+  return shortLabel(title).toUpperCase();
+}
+
+/**
  * Draws the whole frame.
  *
  * @param ctx - 2D context, already scaled for device pixel ratio so all coordinates
@@ -511,8 +558,12 @@ export function drawFrame(ctx: CanvasRenderingContext2D, frame: Frame): void {
   const { palette, width, height } = frame;
   const highlight = resolveHighlight(frame);
 
-  ctx.fillStyle = palette.background;
-  ctx.fillRect(0, 0, width, height);
+  if (frame.transparentBackground) {
+    ctx.clearRect(0, 0, width, height);
+  } else {
+    ctx.fillStyle = palette.background;
+    ctx.fillRect(0, 0, width, height);
+  }
 
   drawEdges(ctx, frame, highlight);
   drawNodes(ctx, frame, highlight);
@@ -534,16 +585,22 @@ function drawEdges(
   frame: Frame,
   highlight: Highlight,
 ): void {
-  // Thinner than a pixel at low zoom: the line fades rather than disappearing, which
-  // is exactly the "texture, not diagram" reading we want when zoomed out.
-  ctx.lineWidth = Math.min(1.1, Math.max(0.55, frame.scale * 0.5));
+  ctx.lineCap = "round";
 
   const touches = (link: PositionedLink, id: string | null): boolean =>
     id !== null && (link.source.id === id || link.target.id === id);
   const touchesEither = (link: PositionedLink): boolean =>
     touches(link, highlight.primaryId) || touches(link, highlight.secondaryId);
 
-  const trace = (only: (link: PositionedLink) => boolean): void => {
+  const trace = (
+    only: (link: PositionedLink) => boolean,
+    stroke: string,
+    width: number,
+    alpha: number,
+  ): void => {
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = width;
+    ctx.globalAlpha = alpha;
     ctx.beginPath();
     for (const link of frame.links) {
       if (!only(link)) continue;
@@ -555,30 +612,42 @@ function drawEdges(
     ctx.stroke();
   };
 
-  ctx.strokeStyle = frame.palette.edge;
   if (!highlight.primaryId && !highlight.secondaryId) {
+    trace(() => true, frame.palette.edge, EDGE_WIDTH_BASE, EDGE_OPACITY_BASE);
     ctx.globalAlpha = 1;
-    trace(() => true);
     return;
   }
 
-  // The graph at large recedes; the selected and/or hovered node's own links hold
-  // their normal weight and then take on the accent colour — the selected node's at
-  // full strength immediately (no fade of its own), the hovered node's easing in.
-  ctx.globalAlpha = dimFactor(highlight, DIM_EDGE_ALPHA);
-  trace((link) => !touchesEither(link));
+  trace(
+    (link) => !touchesEither(link),
+    frame.palette.edge,
+    EDGE_WIDTH_BASE,
+    EDGE_OPACITY_RECEDED * highlight.dimAmount +
+      EDGE_OPACITY_BASE * (1 - highlight.dimAmount),
+  );
 
-  ctx.globalAlpha = 1;
-  trace(touchesEither);
+  trace(
+    touchesEither,
+    frame.palette.edge,
+    EDGE_WIDTH_BASE,
+    EDGE_OPACITY_BASE,
+  );
 
-  ctx.strokeStyle = frame.palette.accent;
   if (highlight.primaryId) {
-    ctx.globalAlpha = HOVER_EDGE_ALPHA * highlight.primaryAmount;
-    trace((link) => touches(link, highlight.primaryId));
+    trace(
+      (link) => touches(link, highlight.primaryId),
+      frame.palette.accent,
+      EDGE_WIDTH_LIT,
+      EDGE_OPACITY_LIT * highlight.primaryAmount,
+    );
   }
   if (highlight.secondaryId) {
-    ctx.globalAlpha = HOVER_EDGE_ALPHA * highlight.secondaryAmount;
-    trace((link) => touches(link, highlight.secondaryId));
+    trace(
+      (link) => touches(link, highlight.secondaryId),
+      frame.palette.accent,
+      EDGE_WIDTH_LIT,
+      EDGE_OPACITY_LIT * highlight.secondaryAmount,
+    );
   }
   ctx.globalAlpha = 1;
 }
@@ -598,33 +667,31 @@ function drawNodes(
 ): void {
   for (const node of frame.nodes) {
     const { x, y } = frame.project(node.x, node.y);
-    const radius = dotRadius(node, frame, highlight);
-    const emphasis = emphasisOf(node.id, frame, highlight);
     const lit = isLit(node.id, highlight)
       ? 1
       : dimFactor(highlight, DIM_NODE_ALPHA);
+    const paint = resolveNodePaint({
+      id: node.id,
+      thin: showsThinRing(node, frame),
+      lit,
+      primaryId: highlight.primaryId,
+      primaryAmount: highlight.primaryAmount,
+      secondaryId: highlight.secondaryId,
+      secondaryAmount: highlight.secondaryAmount,
+      dragged: node.id === frame.draggedId,
+      pending: node.state === "pending",
+      palette: frame.palette,
+    });
 
-    ctx.globalAlpha = lit;
+    ctx.globalAlpha = paint.alpha;
     ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = frame.palette.node;
-    ctx.fill();
-
-    if (emphasis <= 0) continue;
-
-    // The brighter fill is laid over the normal one at the fade's opacity rather than
-    // swapped for it — cross-fading two solid colours is far simpler than trying to
-    // interpolate two resolved CSS colour strings.
-    ctx.globalAlpha = lit * emphasis;
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = frame.palette.nodeStrong;
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(x, y, radius + 3.5, 0, Math.PI * 2);
-    ctx.strokeStyle = frame.palette.accent;
-    ctx.lineWidth = 1.25;
+    ctx.arc(x, y, paint.radius, 0, Math.PI * 2);
+    if (paint.fill) {
+      ctx.fillStyle = paint.fill;
+      ctx.fill();
+    }
+    ctx.strokeStyle = paint.stroke;
+    ctx.lineWidth = paint.strokeWidth;
     ctx.stroke();
   }
   ctx.globalAlpha = 1;
@@ -647,7 +714,8 @@ function drawLabels(
   frame: Frame,
   highlight: Highlight,
 ): void {
-  ctx.font = `500 ${LABEL_FONT_SIZE}px ${frame.palette.fontFamily}`;
+  ctx.font = `700 ${LABEL_FONT_SIZE}px ${frame.palette.fontFamily}`;
+  ctx.letterSpacing = "0.03em";
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
 
@@ -674,7 +742,7 @@ function drawLabels(
     if (x < -80 || y < -40 || x > frame.width + 80 || y > frame.height + 40)
       continue;
 
-    const text = shortLabel(node.title);
+    const text = labelText(node.title);
     const top = y + dotRadius(node, frame, highlight) + LABEL_OFFSET;
 
     ctx.globalAlpha = alpha;

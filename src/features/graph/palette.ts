@@ -3,8 +3,7 @@
  *
  * `src/styles/tokens.css` stays the single source of truth for colour, but a canvas
  * context cannot consume `var(--edge)` or a `color-mix()` expression — it silently
- * draws black instead. So we let the browser resolve them: apply the custom property
- * to an offscreen probe, read the computed value back, and cache the result.
+ * draws black instead. So we let the browser resolve them on the document root.
  */
 
 /** Everything the renderer needs to draw a frame. */
@@ -14,6 +13,7 @@ export interface Palette {
   nodeStrong: string;
   edge: string;
   accent: string;
+  secondary: string;
   label: string;
   /** Resolved font family (a canvas `font` string can't contain `var()`). */
   fontFamily: string;
@@ -26,37 +26,36 @@ const COLOR_TOKENS: Record<Exclude<keyof Palette, "fontFamily">, string> = {
   nodeStrong: "--text",
   edge: "--edge",
   accent: "--accent",
+  secondary: "--brand-secondary",
   label: "--text-muted",
 };
 
 /** Used when there is no document to measure (SSR, tests). */
 const FALLBACK: Palette = {
-  background: "#0f0f10",
-  node: "#d6d2ca",
-  nodeStrong: "#f2efe9",
-  edge: "rgba(242, 239, 233, 0.14)",
-  accent: "#2aa77d",
-  label: "#9c968c",
-  fontFamily: "system-ui, -apple-system, sans-serif",
+  background: "#f4f1e9",
+  node: "#f4f1e9",
+  nodeStrong: "#10120f",
+  edge: "rgba(16, 18, 15, 0.5)",
+  accent: "#6fb3e8",
+  secondary: "#ff2861",
+  label: "rgba(16, 18, 15, 0.52)",
+  fontFamily: "Figtree, system-ui, -apple-system, sans-serif",
 };
 
-let cached: { key: string; palette: Palette } | null = null;
+let cached: Palette | null = null;
 
 /**
- * Resolves the palette for the theme currently applied to the document.
+ * Resolves the light-mode palette by measuring tokens on the document root.
  *
- * @param themeKey - Anything that changes when the theme changes; used as the cache
- *   key so flipping themes re-resolves instead of keeping stale colours.
  * @returns Canvas-ready colours and font family.
  */
-export function getPalette(themeKey: string): Palette {
+export function getPalette(): Palette {
   if (typeof document === "undefined") return FALLBACK;
-  if (cached?.key === themeKey) return cached.palette;
+  if (cached) return cached;
 
   const probe = document.createElement("span");
-  probe.style.position = "absolute";
-  probe.style.visibility = "hidden";
-  probe.style.pointerEvents = "none";
+  probe.style.cssText =
+    "position:fixed;visibility:hidden;pointer-events:none;top:0;left:0";
   document.body.appendChild(probe);
 
   try {
@@ -74,7 +73,7 @@ export function getPalette(themeKey: string): Palette {
     const family = window.getComputedStyle(probe).fontFamily;
     if (family) palette.fontFamily = family;
 
-    cached = { key: themeKey, palette };
+    cached = palette;
     return palette;
   } finally {
     probe.remove();

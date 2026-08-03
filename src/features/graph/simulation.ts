@@ -332,6 +332,8 @@ export class GraphSimulation {
   private bestSpeed = Number.POSITIVE_INFINITY;
   /** Consecutive ticks without a meaningful improvement on {@link bestSpeed}. */
   private stalledFor = 0;
+  /** Scales {@link DRAG_ALPHA} for softer hero interactions. */
+  private dragAlphaScale = 1;
 
   /**
    * Builds a simulation for a snapshot and pre-warms it.
@@ -571,7 +573,7 @@ export class GraphSimulation {
     this.simulation.velocityDecay(CONVERGE_VELOCITY_DECAY);
 
     for (let tick = 0; tick < CONVERGE_TICK_LIMIT; tick++) {
-      this.simulation.alpha(DRAG_ALPHA);
+      this.simulation.alpha(this.dragAlpha());
       this.simulation.tick(1);
 
       let peak = 0;
@@ -592,6 +594,39 @@ export class GraphSimulation {
   }
 
   /**
+   * Expands every node slightly from the layout centroid and reheats so the graph
+   * visibly springs into place — marketing hero intro only.
+   *
+   * @param spread - Outward nudge as a fraction of distance from centroid (0.14 ≈ gentle).
+   */
+  introBounce(spread = 0.14): void {
+    if (this.nodes.length === 0) return;
+
+    let cx = 0;
+    let cy = 0;
+    for (const node of this.nodes) {
+      cx += node.x ?? 0;
+      cy += node.y ?? 0;
+    }
+    cx /= this.nodes.length;
+    cy /= this.nodes.length;
+
+    const scale = 1 + spread;
+    for (const node of this.nodes) {
+      const dx = (node.x ?? 0) - cx;
+      const dy = (node.y ?? 0) - cy;
+      node.x = cx + dx * scale;
+      node.y = cy + dy * scale;
+      node.vx = 0;
+      node.vy = 0;
+    }
+
+    this.clearAnchors();
+    this.resetStall();
+    this.simulation.alpha(Math.max(this.simulation.alpha(), 0.52));
+  }
+
+  /**
    * Advances the physics by one frame.
    *
    * While a node is being dragged the simulation is kept warm so neighbours keep
@@ -603,7 +638,7 @@ export class GraphSimulation {
    */
   tick(): boolean {
     if (this.dragged) {
-      this.simulation.alpha(Math.max(this.simulation.alpha(), DRAG_ALPHA));
+      this.simulation.alpha(Math.max(this.simulation.alpha(), this.dragAlpha()));
     } else if (this.peakSpeed() > RESOLVE_SPEED && !this.hasStalled()) {
       // Still visibly moving, so keep enough energy to finish the job. Rest used to be
       // decided by the alpha clock alone, which meant a node dropped far from home
@@ -880,5 +915,19 @@ export class GraphSimulation {
   /** @returns The node currently being dragged, if any. */
   getDragged(): CanvasNode | null {
     return this.dragged;
+  }
+
+  /**
+   * Scales drag warmth for softer surfaces (e.g. the marketing hero).
+   *
+   * @param scale - Multiplier on {@link DRAG_ALPHA}, clamped to 0–1.
+   */
+  setDragAlphaScale(scale: number): void {
+    this.dragAlphaScale = Math.min(1, Math.max(0, scale));
+  }
+
+  /** @returns Effective alpha held while dragging. */
+  private dragAlpha(): number {
+    return DRAG_ALPHA * this.dragAlphaScale;
   }
 }

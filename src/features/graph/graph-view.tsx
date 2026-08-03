@@ -21,7 +21,6 @@ import styles from "./graph-view.module.css";
 import { HoverCard } from "./hover-card";
 import { NodeDetail } from "./node-detail";
 import { ThemeToggle } from "@/features/theme/theme-toggle";
-import { useTheme } from "@/features/theme/use-theme";
 
 /** Where the rendered graph came from, so the readout can say so honestly. */
 type Source = "loading" | "live" | "sample";
@@ -32,7 +31,6 @@ type Source = "loading" | "live" | "sample";
  * @returns The graph surface.
  */
 export function GraphView() {
-  const { resolvedTheme } = useTheme();
   const [snapshot, setSnapshot] = useState<GraphSnapshot | null>(null);
   const [source, setSource] = useState<Source>("loading");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -105,7 +103,6 @@ export function GraphView() {
       {snapshot ? (
         <GraphCanvas
           snapshot={snapshot}
-          resolvedTheme={resolvedTheme}
           selectedId={selectedId}
           onSelect={(node) => setSelectedId(node.id)}
           onBackgroundClick={() => setSelectedId(null)}
