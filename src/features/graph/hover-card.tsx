@@ -17,7 +17,6 @@ import { animateFadeIn } from "@/features/motion/enter";
 import { useReducedMotion } from "@/features/motion/use-reduced-motion";
 import type { PositionedNode } from "./types";
 import { formatTimeframe, humanize } from "./format-endeavor";
-import styles from "./hover-card.module.css";
 
 interface HoverCardProps {
   node: PositionedNode;
@@ -29,7 +28,7 @@ interface HoverCardProps {
 /** Gap between the pointer and the card, in CSS px. */
 const OFFSET_PX = 16;
 
-/** Must match `.card`'s `max-width` in hover-card.module.css. */
+/** Must match the hover card `max-w-[260px]` cap below. */
 const CARD_WIDTH_PX = 260;
 
 /**
@@ -114,7 +113,7 @@ export function HoverCard({ node, x, y }: HoverCardProps) {
   return (
     <div
       ref={cardRef}
-      className={styles.card}
+      className="acta-peek pointer-events-none fixed z-[15] box-border w-max max-w-[260px] max-h-[220px] overflow-hidden p-acta-3"
       style={{
         left,
         top,
@@ -123,15 +122,21 @@ export function HoverCard({ node, x, y }: HoverCardProps) {
       role="status"
       aria-live="polite"
     >
-      <div className={styles.kicker}>
-        <span className={styles.kind}>{humanize(node.kind)}</span>
+      <div className="flex items-baseline gap-acta-2">
+        <span className="text-label font-medium uppercase tracking-widest text-accent-text">
+          {humanize(node.kind)}
+        </span>
         {timeframe ? (
-          <span className={styles.timeframe}>{timeframe}</span>
+          <span className="text-label text-muted">{timeframe}</span>
         ) : null}
       </div>
-      <div className={styles.title}>{node.title}</div>
-      {summary ? <p className={styles.summary}>{summary}</p> : null}
-      {facetLine ? <p className={styles.facets}>{facetLine}</p> : null}
+      <div className="mt-0.5 text-ui-lg font-semibold leading-snug">{node.title}</div>
+      {summary ? (
+        <p className="mt-acta-2 text-label leading-snug text-muted">{summary}</p>
+      ) : null}
+      {facetLine ? (
+        <p className="mt-acta-2 text-label text-muted">{facetLine}</p>
+      ) : null}
     </div>
   );
 }

@@ -14,7 +14,11 @@ import { useSearchParams } from "next/navigation";
 import { buildSampleGraph } from "@/lib/graph/sample-graph";
 import { DevHud } from "./dev-hud";
 import { GraphCanvas, type GraphDebugApi } from "./graph-canvas";
-import styles from "./graph-view.module.css";
+import {
+  GRAPH_READOUT_BADGE_CLASS,
+  GRAPH_READOUT_CLASS,
+  GRAPH_SHELL_CLASS,
+} from "./graph-view";
 import { buildLabFixture } from "./lab-fixture";
 import { DEFAULT_TUNABLES, type Tunables } from "./tunables";
 
@@ -88,15 +92,15 @@ export function GraphLab() {
   }, []);
 
   return (
-    <main className={styles.shell}>
+    <main className={GRAPH_SHELL_CLASS}>
       <GraphCanvas
         snapshot={snapshot}
         tunables={tunables}
         onFps={handleFps}
         onDebugApi={handleDebugApi}
       />
-      <div className={styles.readout}>
-        <span className={styles.source}>
+      <div className={GRAPH_READOUT_CLASS}>
+        <span className={GRAPH_READOUT_BADGE_CLASS}>
           lab ·{" "}
           {size > 0 ? `${snapshot.nodes.length}-node fixture` : "sample graph"}
         </span>

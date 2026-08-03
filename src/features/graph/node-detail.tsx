@@ -18,7 +18,6 @@ import type { GraphNode } from "@/lib/contracts";
 import { animateEnter } from "@/features/motion/enter";
 import { useReducedMotion } from "@/features/motion/use-reduced-motion";
 import { formatTimeframe, humanize } from "./format-endeavor";
-import styles from "./node-detail.module.css";
 
 interface NodeDetailProps {
   node: GraphNode;
@@ -35,11 +34,11 @@ interface NodeDetailProps {
 function ChipSection({ label, values }: { label: string; values: string[] }) {
   if (values.length === 0) return null;
   return (
-    <div className={styles.section}>
-      <h3 className={styles.sectionLabel}>{label}</h3>
-      <ul className={styles.chips}>
+    <div className="mt-acta-4">
+      <h3 className="acta-label m-0 mb-acta-2">{label}</h3>
+      <ul className="m-0 flex list-none flex-wrap gap-acta-2 p-0">
         {values.map((value) => (
-          <li key={value} className={styles.chip}>
+          <li key={value} className="acta-chip">
             {value}
           </li>
         ))}
@@ -82,45 +81,55 @@ export function NodeDetail({ node, onClose }: NodeDetailProps) {
   const tags = node.applicationTags.map((tag) => humanize(tag.tag));
 
   return (
-    <div className={styles.shell}>
+    <div className="fixed left-acta-5 top-1/2 z-20 -translate-y-1/2">
       <div
         ref={panelRef}
-        className={styles.panel}
+        className="acta-panel relative max-h-[min(32rem,80dvh)] w-panel-max overflow-y-auto p-acta-4 font-ui text-ink"
         role="dialog"
         aria-modal="false"
         aria-label={node.title}
       >
-      <button
-        type="button"
-        className={styles.close}
-        onClick={onClose}
-        aria-label="Close"
-      >
-        ×
-      </button>
+        <button
+          type="button"
+          className="acta-panel-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          ×
+        </button>
 
-      <div className={styles.kicker}>
-        <span className={styles.kind}>{humanize(node.kind)}</span>
-        {node.status !== "active" ? (
-          <span className={styles.status}>{humanize(node.status)}</span>
+        <div className="flex items-center gap-acta-2 pr-[var(--panel-close-gutter)]">
+          <span className="text-label font-medium uppercase tracking-widest text-accent-text">
+            {humanize(node.kind)}
+          </span>
+          {node.status !== "active" ? (
+            <span className="rounded-ctl bg-canvas px-2 py-0.5 text-label capitalize text-muted">
+              {humanize(node.status)}
+            </span>
+          ) : null}
+        </div>
+
+        <h2 className="mt-acta-2 font-display text-h-lg font-semibold leading-tight">
+          {node.title}
+        </h2>
+        {timeframe ? (
+          <p className="mt-acta-1 text-ui text-muted">{timeframe}</p>
         ) : null}
-      </div>
 
-      <h2 className={styles.title}>{node.title}</h2>
-      {timeframe ? <p className={styles.timeframe}>{timeframe}</p> : null}
+        {node.summary ? (
+          <p className="mt-acta-4 whitespace-pre-wrap text-body leading-relaxed">
+            {node.summary}
+          </p>
+        ) : (
+          <p className="mt-acta-4 text-body italic text-muted">
+            No summary yet — this endeavor hasn&rsquo;t been deepened.
+          </p>
+        )}
 
-      {node.summary ? (
-        <p className={styles.summary}>{node.summary}</p>
-      ) : (
-        <p className={styles.empty}>
-          No summary yet — this endeavor hasn&rsquo;t been deepened.
-        </p>
-      )}
-
-      <ChipSection label="Tags" values={tags} />
-      <ChipSection label="Skills" values={node.facets.skills} />
-      <ChipSection label="People" values={node.facets.people} />
-      <ChipSection label="Organizations" values={node.facets.orgs} />
+        <ChipSection label="Tags" values={tags} />
+        <ChipSection label="Skills" values={node.facets.skills} />
+        <ChipSection label="People" values={node.facets.people} />
+        <ChipSection label="Organizations" values={node.facets.orgs} />
       </div>
     </div>
   );

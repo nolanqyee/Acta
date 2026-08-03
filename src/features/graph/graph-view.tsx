@@ -16,9 +16,20 @@ import { useEffect, useMemo, useState } from "react";
 import { GraphSnapshot } from "@/lib/contracts";
 import { buildSampleGraph } from "@/lib/graph/sample-graph";
 import { GraphCanvas, type HoverInfo } from "./graph-canvas";
-import styles from "./graph-view.module.css";
 import { HoverCard } from "./hover-card";
 import { NodeDetail } from "./node-detail";
+
+/** Full-bleed graph shell shared with `graph-lab.tsx`. */
+export const GRAPH_SHELL_CLASS =
+  "relative h-dvh w-full overflow-hidden bg-canvas";
+
+/** Top-left readout row for sample/live/lab status. */
+export const GRAPH_READOUT_CLASS =
+  "pointer-events-none absolute left-acta-4 top-acta-4 z-10 flex items-center gap-acta-2 font-ui text-[11px] text-muted";
+
+/** Opaque badge inside the readout. */
+export const GRAPH_READOUT_BADGE_CLASS =
+  "rounded-ctl border border-edge-strong bg-elevated px-2 py-1 uppercase tracking-widest";
 
 /** Where the rendered graph came from, so the readout can say so honestly. */
 type Source = "loading" | "live" | "sample";
@@ -97,7 +108,7 @@ export function GraphView() {
   }, []);
 
   return (
-    <main className={styles.shell}>
+    <main className={GRAPH_SHELL_CLASS}>
       {snapshot ? (
         <GraphCanvas
           snapshot={snapshot}
@@ -112,8 +123,8 @@ export function GraphView() {
         <HoverCard node={hover.node} x={hover.x} y={hover.y} />
       ) : null}
 
-      <div className={styles.readout}>
-        <span className={styles.source}>
+      <div className={GRAPH_READOUT_CLASS}>
+        <span className={GRAPH_READOUT_BADGE_CLASS}>
           {source === "sample"
             ? "sample graph"
             : source === "live"
