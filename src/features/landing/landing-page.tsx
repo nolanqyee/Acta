@@ -430,7 +430,7 @@ export function LandingPage() {
                   </div>
                   <div className="ml-auto flex items-center gap-acta-3">
                     <a
-                      href="/login"
+                      href="/login?next=/home"
                       className="text-body font-semibold text-ink no-underline hover:opacity-70 max-[900px]:hidden"
                     >
                       Sign in

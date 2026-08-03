@@ -66,7 +66,8 @@ Rebuilt 2026-07-26 on our own render loop. `react-force-graph-2d` is gone.
 | [`graph-canvas.tsx`](../src/features/graph/graph-canvas.tsx) | The `<canvas>`, the `requestAnimationFrame` loop, pointer/wheel/resize handling. Nothing per-frame goes through React state. |
 | [`hover-card-placement.ts`](../src/features/graph/hover-card-placement.ts) | Pure geometry — keeps a hover peek card on-screen (flip above/below pointer). |
 | [`dev-hud.tsx`](../src/features/graph/dev-hud.tsx) | Opaque sliders for the forces plus a frame counter. **Lab only** — it used to render on `/` too, which it never should have. |
-| [`graph-view.tsx`](../src/features/graph/graph-view.tsx) | The `/` surface: fetch `GET /api/graph`, fall back to the sample fixture, canvas + hover/selection. Sample/live readout top-left. |
+| [`graph-home.tsx`](../src/features/graph/graph-home.tsx) | The `/home` surface: fetch `GET /api/graph`, fall back to the sample fixture, Neubrutalism product chrome + canvas + hover/selection. |
+| [`graph-view.tsx`](../src/features/graph/graph-view.tsx) | Minimal canvas-only shell (lab constants); not routed in production. |
 | [`graph-lab.tsx`](../src/features/graph/graph-lab.tsx) + [`/lab/graph`](../src/app/lab/graph/page.tsx) | Dev-only workbench (404s in production, open without a session outside it). `?n=140` generates a fixture of that size; `?gravity=0.5&repulsion=12&…` overrides forces. |
 | [`node-detail.tsx`](../src/features/graph/node-detail.tsx) | Left-side, opaque panel for a selected node — title, kind, status, timeframe, summary, tags, facets. While a *different* node is hovered, the panel **previews** that node and returns to the selection on hover clear. Escape / close / background click deselect. Camera nudges the graph right while open. |
 | [`hover-card.tsx`](../src/features/graph/hover-card.tsx) | Compact peek following the pointer — **only when nothing is selected** (the detail panel owns the left edge once a node is clicked). |
@@ -228,6 +229,10 @@ graph fixture (see [`data-model.md`](data-model.md) § Canvas snapshot).
 ---
 
 ## Changelog
+
+- **2026-08-03:** **Graph app at `/home`.** `graph-home.tsx` ships Neubrutalism product
+  chrome (ask row, explore/deepen panels, Capture CTA) on the live canvas. Auth callback
+  and magic link default to `/home`; `/` stays the public landing.
 
 - **2026-08-03:** **Neubrutalism tokens.** R7 aligned with opaque ink-border chrome;
   accent colour is now brand blue (`--brand-primary`) via `--accent` alias. Token

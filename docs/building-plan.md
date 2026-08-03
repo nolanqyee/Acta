@@ -202,6 +202,9 @@ Code: **U-J U3 interaction slice verified (2026-07-28)** — canvas engine plus 
 
 ## Changelog
 
+- **2026-08-03:** **Graph app at `/home`.** Signed-in surface is `graph-home.tsx`
+  (Neubrutalism chrome + canvas). Magic link lands on `/home` by default.
+
 - **2026-08-03:** **`/` is the public waitlist landing** — marketing page with hero graph,
   slide-scroll sections, and waitlist CTAs. Graph app route moves to `/home` in PR 6.
 

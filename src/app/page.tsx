@@ -1,6 +1,6 @@
 /**
  * @fileoverview `/` — public marketing landing (waitlist). Reachable without a
- * session; the graph app moves to `/home` in a follow-up PR.
+ * session; the graph app lives at `/home` after sign-in.
  */
 
 import { LandingPage } from "@/features/landing/landing-page";
