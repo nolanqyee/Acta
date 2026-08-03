@@ -7,13 +7,12 @@
  */
 
 /**
- * Paths reachable without a session. `/` and `/landing` are the public waitlist
- * homepage; `/login` + `/auth/callback` are the sign-in flow; `/api/health` +
+ * Paths reachable without a session. `/` is the public waitlist homepage;
+ * `/login` + `/auth/callback` are the sign-in flow; `/api/health` +
  * `/api/meta` are unauthenticated liveness/contract probes.
  */
 export const PUBLIC_PATHS = [
   "/",
-  "/landing",
   "/login",
   "/auth/callback",
   "/api/health",

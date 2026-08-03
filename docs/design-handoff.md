@@ -127,7 +127,7 @@ These behaviors are **real on `/home`** and should not be designed away accident
 
 ## Marketing landing (`/` — public)
 
-Waitlist surface from the Claude Design import — **not** signed-in graph home. `/landing` redirects here.
+Waitlist surface from the Claude Design import — **not** signed-in graph home. Public at `/`.
 
 | Aspect | Current build |
 | --- | --- |
@@ -291,7 +291,7 @@ Most graph-adjacent UI is **overlays on `/home`**, not separate pages. No `/expl
 | Waitlist marketing + slide scroll | **No** | Yes |
 | Neubrutalism tokens + recipes | Yes | Yes |
 
-Dev route: `/lab/graph` (physics HUD; 404 in production). `/landing` redirects to `/`.
+Dev route: `/lab/graph` (physics HUD; 404 in production).
 
 Implementation map:
 
@@ -333,7 +333,7 @@ Implementation map:
 
 - **2026-08-03:** **Light mode only** — removed dark theme CSS, theme toggle, and `localStorage` preference. `html[data-mode="light"]` is set in the root layout.
 
-- **2026-08-03:** **`/` = public waitlist; `/home` = graph app.** Removed stale `/lab/design` references — chrome ships on `/home` only. `/landing` redirects to `/`. Deleted `docs/archive/` — superseded specs removed; lessons stay in this doc and `graph-canvas.md`.
+- **2026-08-03:** **`/` = public waitlist; `/home` = graph app.** Removed stale `/lab/design` references — chrome ships on `/home` only. Dropped `/landing` redirect route (no legacy traffic). Deleted `docs/archive/` — superseded specs removed; lessons stay in this doc and `graph-canvas.md`.
 
 - **2026-07-31:** Neubrutalism tokens + recipes documented; liquid-glass / design-system switcher removed; waitlist landing (slide scroll, per-slide `data-enter` motion); chrome layout updates (horizontal brand row, Explore in ask row, panel close rule, chrome bands); compare/outputs landing slide layout notes.
 - **2026-07-29:** Initial design-session handoff — synthesizes surfaces-and-flows IA, graph-canvas live behavior, post-scrap chrome rebuild status, left-panel pivot, opaque-over-graph rule.

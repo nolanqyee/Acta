@@ -54,7 +54,6 @@ Concrete URL ↔ surface mapping so route names don't drift. **Key distinction:*
 | `/login` (in `(auth)`) | Sign in | Route | U2 |
 | `/auth/callback` | Supabase code exchange | Route handler | U2 |
 | `/lab/graph` | Physics workbench (404 in production) | Route | — |
-| `/landing` | Legacy URL → redirects to `/` | Route | U-A |
 | `/api/*` | Backend API (`health`, `meta` now; `captures`, `proposals`, `graph`, `extract` later) | Route handlers | U1 → U5 |
 
 Explore and Capture are deliberately **not** routes (Explore "is not a separate Explore app"; both float over the visible graph). Don't scaffold `/explore` or `/capture` pages.
@@ -359,7 +358,7 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
 
 - **2026-08-03:** **Light mode only** — theme toggle removed from IA contract; dark mode deferred.
 
-- **2026-08-03:** **`/` = public waitlist landing; `/home` = graph app (auth required).** Magic-link callback defaults to `/home`. `/landing` redirects to `/`. Pixels on screen: [`design-handoff.md`](design-handoff.md). IA unchanged except confirming: ask bar = bottom opaque prompt control (liquid-glass language superseded); panel dismiss = top-right ×; dev route `/lab/graph` in route map.
+- **2026-08-03:** **`/` = public waitlist landing; `/home` = graph app (auth required).** Magic-link callback defaults to `/home`. Pixels on screen: [`design-handoff.md`](design-handoff.md). IA unchanged except confirming: ask bar = bottom opaque prompt control (liquid-glass language superseded); panel dismiss = top-right ×; dev route `/lab/graph` in route map.
 
 - **2026-07-26 (later):** **Node click surface reconsidered: left panel, not a centered
   modal.** The first node-detail build (docs/graph-canvas.md's ninth pass) followed this

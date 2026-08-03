@@ -10,7 +10,6 @@ import { isPublicPath, gateDecision } from "./auth-paths";
 describe("isPublicPath", () => {
   it("treats the marketing homepage and sign-in flow as public", () => {
     expect(isPublicPath("/")).toBe(true);
-    expect(isPublicPath("/landing")).toBe(true);
     expect(isPublicPath("/login")).toBe(true);
     expect(isPublicPath("/auth/callback")).toBe(true);
     expect(isPublicPath("/api/health")).toBe(true);
@@ -31,7 +30,6 @@ describe("isPublicPath", () => {
 describe("gateDecision", () => {
   it("allows any public path without a session", () => {
     expect(gateDecision("/", false)).toBe("allow");
-    expect(gateDecision("/landing", false)).toBe("allow");
     expect(gateDecision("/login", false)).toBe("allow");
     expect(gateDecision("/api/health", false)).toBe("allow");
   });

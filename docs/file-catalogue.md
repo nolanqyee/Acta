@@ -47,7 +47,6 @@ Last updated: 2026-08-03
 | `api/meta/route.ts` | Build/meta probe | U1 | shipped |
 | `api/graph/route.ts` | `GET` graph snapshot (RLS) | U3 | shipped |
 | `lab/graph/page.tsx` | Physics workbench (404 prod) | U3 | lab |
-| `landing/page.tsx` | Redirect `/landing` → `/` | U-A | shipped |
 | `settings/page.tsx` | Placeholder route name | U-E | placeholder |
 | `generate/page.tsx` | Adapter picker placeholder | U6 | placeholder |
 | `adapters/[kind]/page.tsx` | Adapter workspace placeholder | U-F | placeholder |
@@ -194,7 +193,8 @@ Import boundary: **`engine/`** must not import **`surfaces/`** or **`lab/`**. Su
 | Path | Why removed |
 | --- | --- |
 | `.design-import/*` | Claude Design reference HTML — already ported to code |
-| `docs/archive/*` | Superseded liquid-glass + pre-build physics/mocks — lessons captured in `graph-canvas.md` + `design-handoff.md`; deleted PR 8 |
+| `app/landing/page.tsx` | Legacy `/landing` redirect — removed (no traffic yet) |
+| `docs/archive/*` | Superseded liquid-glass + pre-build physics/mocks — lessons in `graph-canvas.md` + `design-handoff.md` |
 | `scripts/fetch-claude-design.mjs` | Fetch script for above |
 | `src/features/design-lab/*` | Superseded — chrome lives in `graph/surfaces/graph-home.tsx` |
 | `graph/graph-view.tsx`, `hover-card.tsx`, `node-detail.tsx` | Merged into `graph-home.tsx` |
