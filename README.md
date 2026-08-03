@@ -19,7 +19,6 @@ Planning docs live in [`docs/`](docs/). Building-plan units are **U-A…U-J** (s
 | [`docs/technical-implementation-plan.md`](docs/technical-implementation-plan.md) | **HOW** (**U-J** — locked) |
 | [`docs/design-handoff.md`](docs/design-handoff.md) | Pixels on screen today — Neubrutalism, `/home`, `/` landing |
 | [`docs/file-catalogue.md`](docs/file-catalogue.md) | Repo file inventory — what each area owns |
-| [`docs/archive/`](docs/archive/) | Superseded design docs (visual system, physics doctrine, mocks) — reasoning kept, specifics not canon |
 
 **Design tokens (source of truth):** [`src/styles/tokens.css`](src/styles/tokens.css)
 

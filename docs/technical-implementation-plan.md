@@ -3,7 +3,7 @@ title: "feat: Acta technical implementation plan (U-J)"
 type: feat
 status: active
 date: 2026-07-15
-origin: docs/building-plan.md (U-J); locked companions: personal-evidence-graph.md, data-model.md, surfaces-and-flows.md, agent-interaction-model.md; live canvas spec: graph-canvas.md (brand-design-system.md + graph-physics.md archived 2026-07-26)
+origin: docs/building-plan.md (U-J); locked companions: personal-evidence-graph.md, data-model.md, surfaces-and-flows.md, agent-interaction-model.md; live canvas spec: graph-canvas.md
 ---
 
 # feat: Acta technical implementation plan (U-J)
@@ -12,7 +12,7 @@ origin: docs/building-plan.md (U-J); locked companions: personal-evidence-graph.
 
 **Owns:** HOW to implement locked product docs — stack defaults, module map, capture+render slice, persistence/auth path, agent/runtime seams, sequenced milestones, risks. Does **not** re-litigate product IA, schema kinds, or brand look.
 
-**Companions:** [`building-plan.md`](building-plan.md) (roadmap), [`data-model.md`](data-model.md) (schema), [`agent-interaction-model.md`](agent-interaction-model.md) (write policy), [`surfaces-and-flows.md`](surfaces-and-flows.md) (chrome/flows), [`graph-canvas.md`](graph-canvas.md) (canvas behaviour — replaces the archived physics doctrine), [`src/styles/tokens.css`](../src/styles/tokens.css) (tokens; the up-front visual system is archived).
+**Companions:** [`building-plan.md`](building-plan.md) (roadmap), [`data-model.md`](data-model.md) (schema), [`agent-interaction-model.md`](agent-interaction-model.md) (write policy), [`surfaces-and-flows.md`](surfaces-and-flows.md) (chrome/flows), [`graph-canvas.md`](graph-canvas.md) (canvas behaviour), [`design-handoff.md`](design-handoff.md) (pixels on screen), [`src/styles/tokens.css`](../src/styles/tokens.css) (tokens).
 
 **Note on IDs:** Implementation units below (`U1`…) are **build milestones inside this plan**. Building-plan roadmap units remain **`U-A`…`U-J`**.
 
@@ -117,7 +117,7 @@ flowchart LR
 | Entity/edge Zod + ExtractProposal shape | `src/lib/contracts` (+ server persist) | `data-model.md` |
 | Capture → Extract → Proposal → Merge | `src/server/*` (route handlers call it) | `agent-interaction-model.md` |
 | Force canvas, overlays, skim chrome | `src/features/*` (client) | `surfaces-and-flows.md`, `graph-canvas.md` |
-| Tokens / visual | `src/styles/tokens.css` (imported in root layout) | itself — the prose visual system is archived; `graph-canvas.md` covers canvas visuals |
+| Tokens / visual | `src/styles/tokens.css` (imported in root layout) | itself — see `design-handoff.md` and `graph-canvas.md` for canvas visuals |
 | Auth session | browser client + `middleware.ts` cookie verify | **U-E** detail inside this plan’s early milestones |
 
 ### Capture / proposal state machine (KTD10)

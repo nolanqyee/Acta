@@ -2,9 +2,10 @@
 
 Last updated: 2026-08-03
 
-This replaces `archive/graph-physics.md`. That doc specified a canvas in detail before
-one existed; this one records only what is **true of the running canvas or required of
-it**, in terms you can check by looking at the screen.
+This doc records only what is **true of the running canvas or required of
+it**, in terms you can check by looking at the screen. The first attempt specified
+physics and chrome in advance of building; that approach failed (see § Why the
+first attempt failed).
 
 **How we work on this:** one slice at a time, verified in a browser before moving on.
 The canvas engine comes first and alone — no chrome, no modals, no panels — because
@@ -231,7 +232,7 @@ graph fixture (see [`data-model.md`](data-model.md) § Canvas snapshot).
 
 ## Changelog
 
-- **2026-08-03:** **Canon doc sync (PR 8).** Added [`design-handoff.md`](design-handoff.md) and [`file-catalogue.md`](file-catalogue.md); cross-linked from building-plan, surfaces-and-flows, README, and archive index.
+- **2026-08-03:** **Canon doc sync (PR 8).** Added [`design-handoff.md`](design-handoff.md) and [`file-catalogue.md`](file-catalogue.md); deleted superseded `docs/archive/` (lessons live here and in design-handoff).
 
 - **2026-08-03:** **Folder split.** `features/graph/` → `engine/` (physics + canvas),
   `surfaces/` (graph-home + formatting/placement), `lab/` (workbench + fixture).
@@ -396,9 +397,8 @@ graph fixture (see [`data-model.md`](data-model.md) § Canvas snapshot).
   `preventDefault` was silently ignored); a plain wheel pans. `layout-shape.test.ts`
   gained a locality guard, and the screenshot script a hover frame (that script has since
   been removed — see *How it.s verified*).
-- **2026-07-26:** Created, and the rebuild landed in the same pass. Replaces
-  `archive/graph-physics.md` after the first canvas was scrapped. `react-force-graph-2d`
-  removed; physics, camera, rendering and input are now ours (`d3-force` + `<canvas>` +
+- **2026-07-26:** Created, and the rebuild landed in the same pass. First canvas scrapped;
+  `react-force-graph-2d` removed; physics, camera, rendering and input are now ours (`d3-force` + `<canvas>` +
   `requestAnimationFrame`). Captions are gated on measured clear space rather than a
   zoom threshold. A dev-only `/lab/graph` workbench plus two Playwright scripts mean the
   canvas is reviewed by looking at it; the shape test now measures the real engine

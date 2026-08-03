@@ -4,7 +4,6 @@ This is the **single repo** for Acta — one **Next.js (App Router) app** plus p
 
 ```
 docs/                 Planning SoT (product, data-model, surfaces, agents, graph-canvas, building-plan, tech plan, design-handoff)
-docs/archive/         Superseded design docs — reasoning worth reading, specifics not canon
 src/app/              App Router: pages, root layout, and /api route handlers (the API)
 src/lib/contracts/    Shared Zod schemas + types (import via @/lib/contracts)
 src/features/         Graph: `engine/` (physics), `surfaces/` (UI), `lab/` (dev); landing; capture + skim (planned)
@@ -30,7 +29,7 @@ changes (branches, commits, PRs, Definition of Done), see [`CONTRIBUTING.md`](CO
   so an accidental client import fails the build.
 - **Contracts are an internal module** (`src/lib/contracts`), imported via the `@/lib/contracts`
   alias by both client and server. They hold no secrets and are safe to import anywhere.
-- **Design tokens** live only at `src/styles/tokens.css` (SoT), imported once in the root layout. Current visual direction is **Neubrutalism** (opaque surfaces, ink borders) — see [`docs/design-handoff.md`](docs/design-handoff.md). Do not implement from archived liquid-glass specs.
+- **Design tokens** live only at `src/styles/tokens.css` (SoT), imported once in the root layout. Current visual direction is **Neubrutalism** (opaque surfaces, ink borders) — see [`docs/design-handoff.md`](docs/design-handoff.md). Do not resurrect the superseded liquid-glass direction.
 - **Styling convention (added 2026-08-03):** **tokens.css + `.acta-*` + Tailwind** — no CSS modules.
   - **`tokens.css`:** CSS variables and global recipe classes (`.acta-panel`, `.acta-control`, `.acta-button`, `.acta-row`, `.acta-chip`, `.acta-label`, `.acta-panel-close`, surface-specific recipes like `.acta-landing-*` when selectors are too complex for utilities alone).
   - **`tailwind.css`:** Tailwind v4 with `@theme inline` mapping to existing `--*` tokens (`bg-canvas`, `p-acta-4`, `font-display`, …). Use for **layout variation** — grid, flex, spacing, responsive, positioning.

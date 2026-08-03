@@ -34,7 +34,7 @@ Last updated: 2026-08-03
 
 Personality: **living · minimal · fluid · personal · interactive**.
 
-Reference mood (non-binding archive): [`archive/mockup-synthesis.md`](archive/mockup-synthesis.md), [`archive/brand-decision-comparisons.html`](archive/brand-decision-comparisons.html).
+Reference mood (non-binding): the feel table above and early HTML mocks — not canon.
 
 ---
 
@@ -48,7 +48,7 @@ Reference mood (non-binding archive): [`archive/mockup-synthesis.md`](archive/mo
 | **Graph-home chrome** | **Shipped on `/home`** — full Neubrutalism overlay (`surfaces/graph-home.tsx`) | `src/features/graph/surfaces/` |
 | **Marketing / waitlist** | **Shipped at `/`** — slide-scroll waitlist landing (public) | `src/features/landing/` |
 
-**Important:** The first full-home chrome build was scrapped (2026-07-26). IA in surfaces-and-flows is still the target; pixels are rediscovered one slice at a time. The archived teal + liquid-glass system lives in [`archive/brand-design-system.md`](archive/brand-design-system.md) — **do not implement from it.** Prefer **what works on screen** and `tokens.css`.
+**Important:** The first full-home chrome build was scrapped (2026-07-26). IA in surfaces-and-flows is still the target; pixels are rediscovered one slice at a time. The up-front teal + liquid-glass direction was scrapped with it — **do not resurrect.** Prefer **what works on screen** and `tokens.css`.
 
 ---
 
@@ -143,7 +143,7 @@ Public — no session required. Sign in from the landing page goes to `/home`.
 
 ## Visual system — Neubrutalism (`tokens.css`)
 
-SoT: [`src/styles/tokens.css`](../src/styles/tokens.css). Archived teal/liquid-glass in [`archive/brand-design-system.md`](archive/brand-design-system.md) — do not implement.
+SoT: [`src/styles/tokens.css`](../src/styles/tokens.css). Superseded liquid-glass direction — do not resurrect.
 
 | Family | Notes |
 | --- | --- |
@@ -327,15 +327,13 @@ Implementation map:
 | [`agent-interaction-model.md`](agent-interaction-model.md) | Confirm vs auto writes |
 | [`building-plan.md`](building-plan.md) | Roadmap units U-A…U-J |
 
-**Archive (reasoning only, not implementation canon):** `docs/archive/mockup-synthesis.md`, `docs/archive/brand-design-system.md`, `docs/archive/brand-mockups.html`, `docs/archive/brand-decision-comparisons.html`.
-
 ---
 
 ## Changelog
 
 - **2026-08-03:** **Light mode only** — removed dark theme CSS, theme toggle, and `localStorage` preference. `html[data-mode="light"]` is set in the root layout.
 
-- **2026-08-03:** **`/` = public waitlist; `/home` = graph app.** Removed `/lab/design` references — chrome ships on `/home` only. `/landing` redirects to `/`.
+- **2026-08-03:** **`/` = public waitlist; `/home` = graph app.** Removed stale `/lab/design` references — chrome ships on `/home` only. `/landing` redirects to `/`. Deleted `docs/archive/` — superseded specs removed; lessons stay in this doc and `graph-canvas.md`.
 
 - **2026-07-31:** Neubrutalism tokens + recipes documented; liquid-glass / design-system switcher removed; waitlist landing (slide scroll, per-slide `data-enter` motion); chrome layout updates (horizontal brand row, Explore in ask row, panel close rule, chrome bands); compare/outputs landing slide layout notes.
 - **2026-07-29:** Initial design-session handoff — synthesizes surfaces-and-flows IA, graph-canvas live behavior, post-scrap chrome rebuild status, left-panel pivot, opaque-over-graph rule.

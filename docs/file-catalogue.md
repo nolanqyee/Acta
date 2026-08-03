@@ -31,7 +31,6 @@ Last updated: 2026-08-03
 | `building-plan.md` | Roadmap U-A…U-J | — | planning |
 | `technical-implementation-plan.md` | HOW, milestones U1–U6 | U-J | planning |
 | **`file-catalogue.md`** | **This inventory** | — | planning |
-| `archive/*` | Superseded reasoning — do not implement | — | archive |
 
 ---
 
@@ -195,6 +194,7 @@ Import boundary: **`engine/`** must not import **`surfaces/`** or **`lab/`**. Su
 | Path | Why removed |
 | --- | --- |
 | `.design-import/*` | Claude Design reference HTML — already ported to code |
+| `docs/archive/*` | Superseded liquid-glass + pre-build physics/mocks — lessons captured in `graph-canvas.md` + `design-handoff.md`; deleted PR 8 |
 | `scripts/fetch-claude-design.mjs` | Fetch script for above |
 | `src/features/design-lab/*` | Superseded — chrome lives in `graph/surfaces/graph-home.tsx` |
 | `graph/graph-view.tsx`, `hover-card.tsx`, `node-detail.tsx` | Merged into `graph-home.tsx` |

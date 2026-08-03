@@ -2,7 +2,7 @@
 
 Last updated: 2026-07-31 Update whenever planning decisions, scope, or open questions change.
 
-**Active ideation thread:** working brand = **Acta**. **U-A** visual system is being rebuilt from working screens — current pixels in [`design-handoff.md`](design-handoff.md); archived liquid-glass spec in [`archive/brand-design-system.md`](archive/brand-design-system.md) (do not implement).
+**Active ideation thread:** working brand = **Acta**. **U-A** visual system is being rebuilt from working screens — current pixels in [`design-handoff.md`](design-handoff.md). The up-front liquid-glass spec was scrapped (2026-07-26); do not resurrect it.
 
 **Doc altitude:** this is a **product spec** (what / why / scope). Detailed UI, UX, and user flows come later — capture product intent and capabilities here, not screen-level design.
 
@@ -607,8 +607,8 @@ Earlier working brand **Stilva** (still × vita) and soft candidate **Stiva** �
 
 - **2026-07-31:** **U-A in progress** — Neubrutalism tokens + `/home` graph chrome + `/` waitlist landing; link to [`design-handoff.md`](design-handoff.md). Next stack updated (U4 capture, not re-litigating U-J).
 
-- **2026-07-15:** Brand lore — Acta secondary reading **A Call To Action** (inspire deeds → capture). Visual system still in U-A via [`archive/brand-design-system.md`](archive/brand-design-system.md).
-- **2026-07-14:** Working brand → **Acta** (Latin *acta* — deeds/record). Cut **Stilva**. Finalists: Atlas, Stele, Ariadne. Domain TBD. **U-A** scaffold → [`archive/brand-design-system.md`](archive/brand-design-system.md).
+- **2026-07-15:** Brand lore — Acta secondary reading **A Call To Action** (inspire deeds → capture). Visual system in U-A rebuild.
+- **2026-07-14:** Working brand → **Acta** (Latin *acta* — deeds/record). Cut **Stilva**. Finalists: Atlas, Stele, Ariadne. Domain TBD. **U-A** specified up front, then scrapped for rebuild-from-screen.
 - **2026-07-13:** **U-D locked.** **U-J** (technical implementation plan) added to roadmap. Next = **U-A**.
 - **2026-07-13:** Building-plan units = **U-A…U-J**. Deepen backlog.
 - **2026-07-13:** Deepen UX = **backlog panel** (“stuff to fill”), not notifications/Today — see [`surfaces-and-flows.md`](surfaces-and-flows.md).

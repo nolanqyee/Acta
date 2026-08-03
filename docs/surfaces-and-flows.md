@@ -82,7 +82,7 @@ The homepage of the app. **The graph canvas is the entire background.** Every co
 
 #### Top-left chrome — brand + adapters
 
-9. **Logo + wordmark** — top left. Mark candidates: **stylistic A** or a **3-point star** rotated ~190° so one point sits at the bottom (open brand choice — see [`archive/brand-design-system.md`](archive/brand-design-system.md)).
+9. **Logo + wordmark** — top left. Mark candidates: **stylistic A** or a **3-point star** rotated ~190° so one point sits at the bottom (open brand choice).
 10. **Hamburger (under brand)** — expands **adapter selection** menu.
     - **Hover:** menu opens while pointer stays within the expansion; leave → closes.
     - **Click:** menu **stays open** until dismissed / navigated.
