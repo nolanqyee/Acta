@@ -1,6 +1,6 @@
 # Acta — Building Plan
 
-Last updated: 2026-07-31
+Last updated: 2026-08-03
 
 Overarching **build** roadmap (not business/GTM). Companion to:
 
@@ -44,7 +44,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 
 ---
 
-## Where we are (2026-07-15)
+## Where we are (2026-08-03)
 
 | Layer | Status |
 | --- | --- |
@@ -55,7 +55,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | Brand / visual (**U-A**) | **Unlocked again (2026-07-26)** — the up-front visual system was archived to [`archive/brand-design-system.md`](archive/brand-design-system.md); tokens stay in [`src/styles/tokens.css`](../src/styles/tokens.css) and the system gets rebuilt from working screens |
 | Tech implementation plan (**U-J**) | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 | Persistence / auth (**U-E**) | **In first build wave** — thin Supabase Auth/Postgres + proposals from U-J U2; extras (export, connectors) still queued |
-| Code | **U-J U3 interaction slice verified (2026-07-28)** — canvas engine + hover/selection/detail on `/` (see [`graph-canvas.md`](graph-canvas.md)). Theme toggle restored top-right. Next = **U-J U4** (Capture + LLM Extract stream) |
+| Code | **U-J U3 verified (2026-07-28)** — canvas + hover/selection/detail on `/`. **U-A in parallel** — Neubrutalism in `/lab/design` + `/landing`; not yet on shipped `/`. **Next = U-J U4** (Capture + LLM Extract stream) |
 
 **Docs layout:** planning specs under `docs/`; tokens under `styles/`. Building-plan units **U-A…U-J**.
 
@@ -114,7 +114,7 @@ Monetization, GTM, domain/legal, B2B/coach-share, essay adapters, voice, kitchen
 
 **Name (locked for now):** **Acta** — Latin *acta* (deeds / record of what was done). Supersedes Stilva. Domain TBD.
 
-**On screen today (2026-07-31):** Neubrutalism — 3px ink borders, offset shadows, opaque surfaces, blue primary / pink secondary, Charis + Figtree + Space Mono. Built in `/lab/design` (graph-home chrome mock), `/landing` (waitlist marketing), and partially on `/` (graph + left detail panel). No liquid glass; no backdrop blur over live graph (**R7**).
+**On screen today (2026-08-03):** Neubrutalism — 3px ink borders, offset shadows, opaque surfaces, blue primary / pink secondary, Charis + Figtree + Space Mono. **Light mode only** (dark deferred). Built in `/lab/design` (graph-home chrome mock), `/landing` (waitlist marketing), and partially on `/` (graph + left detail panel). No liquid glass; no backdrop blur over live graph (**R7**).
 
 **Deferred trailers:** motion choreography polish, full a11y audit, promoting lab look onto shipped `/`.
 
@@ -197,11 +197,13 @@ Practical order: **implement U-J milestones U1–U5** → Explore polish / thin 
 | U-J Technical implementation plan | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 
 Data model: **v1 draft locked** in `data-model.md`.  
-Code: **U-J U3 interaction slice verified (2026-07-28)** — canvas engine plus hover/selection/detail on `/` (see [`graph-canvas.md`](graph-canvas.md)); theme toggle back top-right. Next = **U-J U4** (Capture + Extract stream).
+Code: **U-J U3 verified** — canvas + hover/selection/detail on `/` (see [`graph-canvas.md`](graph-canvas.md)). **U-A Neubrutalism** in lab + landing; light mode only. Next = **U-J U4** (Capture + Extract stream).
 
 ---
 
 ## Changelog
+
+- **2026-08-03:** **Light mode only** — dark theme and toggle removed from code; docs aligned. U-A still in progress (Neubrutalism lab + landing).
 
 - **2026-07-31:** **U-A reopened — Neubrutalism rebuild in progress.** Archived liquid-glass look superseded; new tokens + recipes in `tokens.css`. Design lab (`/lab/design`) mocks full graph-home chrome; `/landing` waitlist surface (slide scroll) exercises marketing motion. Shipped `/` has canvas + left detail panel only — chrome overlays still deferred. See [`design-handoff.md`](design-handoff.md).
 

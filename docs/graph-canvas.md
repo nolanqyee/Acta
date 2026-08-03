@@ -1,6 +1,6 @@
 # Graph canvas — the live spec
 
-Last updated: 2026-07-31
+Last updated: 2026-08-03
 
 This replaces `archive/graph-physics.md`. That doc specified a canvas in detail before
 one existed; this one records only what is **true of the running canvas or required of
@@ -64,13 +64,12 @@ Rebuilt 2026-07-26 on our own render loop. `react-force-graph-2d` is gone.
 | [`palette.ts`](../src/features/graph/palette.ts) | Resolves `tokens.css` custom properties into values a canvas can draw with. |
 | [`graph-canvas.tsx`](../src/features/graph/graph-canvas.tsx) | The `<canvas>`, the `requestAnimationFrame` loop, pointer/wheel/resize handling. Nothing per-frame goes through React state. |
 | [`dev-hud.tsx`](../src/features/graph/dev-hud.tsx) | Opaque sliders for the forces plus a frame counter. **Lab only** — it used to render on `/` too, which it never should have. |
-| [`graph-view.tsx`](../src/features/graph/graph-view.tsx) | The `/` surface: fetch `GET /api/graph`, fall back to the sample fixture, canvas + hover/selection. Top-right **theme toggle** (sun/moon); sample/live readout top-left. |
+| [`graph-view.tsx`](../src/features/graph/graph-view.tsx) | The `/` surface: fetch `GET /api/graph`, fall back to the sample fixture, canvas + hover/selection. Sample/live readout top-left. Light mode only. |
 | [`graph-lab.tsx`](../src/features/graph/graph-lab.tsx) + [`/lab/graph`](../src/app/lab/graph/page.tsx) | Dev-only workbench (404s in production, open without a session outside it). `?n=140` generates a fixture of that size; `?gravity=0.5&repulsion=12&…` overrides forces. |
 | [`node-detail.tsx`](../src/features/graph/node-detail.tsx) | Left-side, opaque panel for a selected node — title, kind, status, timeframe, summary, tags, facets. **× dismiss** via `.acta-panel-close` (top-right). While a *different* node is hovered, the panel **previews** that node and returns to the selection on hover clear. Escape / close / background click deselect. Camera nudges the graph right while open. |
 | [`hover-card.tsx`](../src/features/graph/hover-card.tsx) | Compact peek following the pointer — **only when nothing is selected** (the detail panel owns the left edge once a node is clicked). |
 | [`format-endeavor.ts`](../src/features/graph/format-endeavor.ts) | Shared text formatting (kind/status humanizing, fuzzy-date spans) so the hover card and detail panel agree on how a field reads. |
 | [`../motion/enter.ts`](../src/features/motion/enter.ts) | Shared anime.js enter animations (detail panel fade/pop; hover card fade). |
-| [`../theme/theme-toggle.tsx`](../src/features/theme/theme-toggle.tsx) | Sun/moon light/dark toggle — minimal top-right chrome restored on `/`. |
 | [`../design-lab/`](../src/features/design-lab/) + [`/lab/design`](../src/app/lab/design/page.tsx) | Dev-only graph-home chrome mock (Neubrutalism ask row, Explore toggle, panels). 404 in production. Spec: [`design-handoff.md`](design-handoff.md). |
 | [`../landing/`](../src/features/landing/) + [`/landing`](../src/app/landing/page.tsx) | Dev-only waitlist marketing (slide scroll, per-slide enter motion). 404 in production. |
 
@@ -238,9 +237,7 @@ graph fixture (see [`data-model.md`](data-model.md) § Canvas snapshot).
   canvas (`SelectionAccentFade` eases selection accent out/in — background dim stays
   pinned while the panel is open). Hover card placement above the cursor uses
   `translateY(-100%)` so the gap matches below-cursor. Caption gate percentile lowered
-  to **0.6** (`THRESHOLD_PERCENTILE` in render.ts). **Theme toggle restored** top-right
-  on `/` (`theme-toggle.tsx`); canvas receives `resolvedTheme` and repaints on flip.
-  Pointer mapping stays Figma-style (scroll pans, pinch/⌘+scroll zooms) — a mouse-wheel
+  to **0.6** (`THRESHOLD_PERCENTILE` in render.ts). Pointer mapping stays Figma-style (scroll pans, pinch/⌘+scroll zooms) — a mouse-wheel
   zoom experiment was reverted after device detection proved unreliable.
 
 - **2026-07-26 (eleventh pass):** **Fixed a background flash during selection ↔ hover
@@ -374,6 +371,8 @@ graph fixture (see [`data-model.md`](data-model.md) § Canvas snapshot).
   `preventDefault` was silently ignored); a plain wheel pans. `layout-shape.test.ts`
   gained a locality guard, and the screenshot script a hover frame (that script has since
   been removed — see *How it.s verified*).
+
+- **2026-08-03:** **Light mode only** — theme toggle removed; canvas palette always reads light tokens.
 
 - **2026-07-31:** Cross-linked [`design-handoff.md`](design-handoff.md) for Neubrutalism chrome + dev surfaces. Documented `.acta-panel-close` on node detail. R7 wording aligned with opaque Neubrutalism (liquid glass fully shelved).
 

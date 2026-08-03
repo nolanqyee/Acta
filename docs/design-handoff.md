@@ -1,6 +1,6 @@
 # Acta — Design session handoff
 
-Last updated: 2026-07-31
+Last updated: 2026-08-03
 
 **Purpose:** Give a visual/design session enough product context to judge surfaces, flows, and chrome **without** reading the whole repo. This doc synthesizes the locked IA from [`surfaces-and-flows.md`](surfaces-and-flows.md) and the **live canvas behavior** from [`graph-canvas.md`](graph-canvas.md), and records **what is on screen today** in tokens, `/lab/design`, and `/landing`.
 
@@ -26,11 +26,11 @@ Last updated: 2026-07-31
 | --- | --- |
 | Full-bleed graph; substance on **hover** and in **panels/modals** | Content cards permanently glued to the canvas (Heptabase-style) |
 | Small constellation of dots; captions gated on zoom | Large diagram circles; half-labelled graph |
-| Warm paper light + neutral graphite dark | Warm brown dark; rainbow kind colors; AI purple glow |
+| Warm paper light only (dark mode deferred) | Warm brown dark; rainbow kind colors; AI purple glow |
 | **Neubrutalism:** hard **3px ink** borders, **offset shadows** (8px panels / 3px controls), opaque surfaces | Hairline 1px frames; soft elevation-only panels; liquid glass over live graph |
 | **Blue primary** (`#6fb3e8`) for settled/accent; **pink secondary** (`#ff2861`) for pending/unresolved | Teal-only accent lock; coral brand; enterprise chrome |
 | Pill controls + ask bar; ~18px panel radius; display serif + UI sans + mono caps labels | Mix of stadium pills and sharp boxes in the same cluster |
-| Typical readable icons (Lucide-style: sun/moon, gear, inbox, +) | Custom glyphs that need a legend |
+| Typical readable icons (Lucide-style: gear, inbox, +) | Custom glyphs that need a legend |
 
 Personality: **living · minimal · fluid · personal · interactive**.
 
@@ -173,7 +173,6 @@ SoT: [`src/styles/tokens.css`](../src/styles/tokens.css). Archived teal/liquid-g
 | --- | --- |
 | **Capture** | Primary CTA — distinct filled accent. Opens capture → extract → **diff-skim** flow (not wired in lab). **Mic** attached for future voice; type is MVP. |
 | **Deepen** | Inbox-like icon + **badge** (count of thin endeavors). Opens **pull backlog** panel — “stuff to fill,” **not** a Today inbox or push notification center. |
-| **Theme** | Sun/moon toggles light/dark. Both themes first-class; must actually repaint canvas + chrome. |
 | **Profile** | Avatar + name → menu: profile, account settings, app settings, logout (menu not fully mocked). |
 
 ### Bottom — ask / filter / graph settings
@@ -284,7 +283,7 @@ Most graph-adjacent UI is **overlays on `/`**, not separate pages. No `/explore`
 | Live graph + hover + selection | Yes | Yes (background) | Hero only |
 | Left detail panel | Yes | Yes (Neubrutal styling) | — |
 | Hover card | Yes | Yes | — |
-| Theme toggle | Yes (top-right) | Yes | — |
+| Theme toggle | Yes (top-right) | — (light only for now) | — |
 | Ask bar, filter, settings, Explore toggle | **No** | Mocked (ask row) | — |
 | Explore / diff-skim panels | **No** | Explore mocked | — |
 | Capture / deepen / profile menus | **No** | Mocked (mostly inert) | — |
@@ -334,6 +333,8 @@ Implementation map:
 ---
 
 ## Changelog
+
+- **2026-08-03:** **Light mode only** — removed dark theme CSS, theme toggle, and `localStorage` preference. `html[data-mode="light"]` is set in the root layout.
 
 - **2026-07-31:** Neubrutalism tokens + recipes documented; liquid-glass / design-system switcher removed from lab; `/landing` waitlist surface (slide scroll, per-slide `data-enter` motion); chrome layout updates (horizontal brand row, Explore in ask row, panel close rule, chrome bands); compare/outputs landing slide layout notes.
 - **2026-07-29:** Initial design-session handoff — synthesizes surfaces-and-flows IA, graph-canvas live behavior, post-scrap chrome rebuild status, left-panel pivot, opaque-over-graph rule, and `/lab/design` scope.

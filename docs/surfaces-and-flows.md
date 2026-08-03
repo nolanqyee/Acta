@@ -86,17 +86,17 @@ The homepage of the app. **The graph canvas is the entire background.** Every co
     - **Click:** menu **stays open** until dismissed / navigated.
     - Choosing an adapter **navigates away** from Graph to that adapter page (mini-graph peek on adapter routes still applies).
 
-#### Top-right chrome — capture, deepen, theme, account
+#### Top-right chrome — capture, deepen, account
 
 11. **Capture** — distinct CTA **“Capture +”** plus a **connected mic** control for **eventual voice capture** (type remains MVP path; mic is chrome-forward, behavior can land post type-only). Opens capture → extract → diff-skim.
 12. **Deepen** — icon suggesting “things to fill” (**inbox-like** lean + **notification badge** count). Opens deepen backlog panel. Still a **pull** queue — not a Today/notifications home; naming can stay backlog-forward in copy even if icon reads inbox.
-13. **Theme toggle** — sun/moon for light / dark (both themes first-class; default follows OS elsewhere in brand).
-14. **Profile** — avatar + **user name**; click expands menu: profile, account settings, app settings, logout, etc.
+13. **Profile** — avatar + **user name**; click expands menu: profile, account settings, app settings, logout, etc.
 
 #### Other
 
 15. **List mode (secondary)** — same underlying set for people who don’t want the force view. Not marketing default.
 16. **Panel separation** — overlay panels use the active visual system (currently Neubrutalism: ink border + offset shadow — see design-handoff). No translucent surfaces over the live graph (**R7**).
+17. **Light mode only (for now)** — dark mode and theme toggle deferred until the visual system is settled on screen.
 
 **Canvas node set (locked):** unchanged — Endeavors only on canvas; Skills / People / Orgs not physics nodes.
 
@@ -354,6 +354,8 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
 ---
 
 ## Changelog
+
+- **2026-08-03:** **Light mode only** — theme toggle removed from IA contract; dark mode deferred.
 
 - **2026-07-31:** **Visual system note — Neubrutalism in progress.** Pixels and chrome mock live in [`design-handoff.md`](design-handoff.md) (`/lab/design`, `/landing`, `tokens.css`). IA unchanged except confirming: ask bar = bottom opaque prompt control (liquid-glass language superseded); panel dismiss = top-right ×; dev routes `/lab/graph`, `/lab/design`, `/landing` added to route map.
 

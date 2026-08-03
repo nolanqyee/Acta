@@ -3,12 +3,8 @@
  *
  * `src/styles/tokens.css` stays the single source of truth for colour, but a canvas
  * context cannot consume `var(--edge)` or a `color-mix()` expression — it silently
- * draws black instead. So we let the browser resolve them under a hidden host element
- * carrying `data-mode`, matching the requested theme even when `html` is the other
- * mode (e.g. `/lab/design` forcing light Neubrutalism while the app is in dark mode).
+ * draws black instead. So we let the browser resolve them on the document root.
  */
-
-import type { ResolvedTheme } from "@/features/theme/theme-storage";
 
 /** Everything the renderer needs to draw a frame. */
 export interface Palette {
@@ -46,27 +42,21 @@ const FALLBACK: Palette = {
   fontFamily: "Figtree, system-ui, -apple-system, sans-serif",
 };
 
-let cached: { key: string; palette: Palette } | null = null;
+let cached: Palette | null = null;
 
 /**
- * Resolves the palette for the requested theme by measuring tokens on a hidden
- * `[data-mode]` host, not from whatever mode is on `<html>`.
+ * Resolves the light-mode palette by measuring tokens on the document root.
  *
- * @param themeKey - `"light"` or `"dark"` — must match {@link ResolvedTheme}.
  * @returns Canvas-ready colours and font family.
  */
-export function getPalette(themeKey: ResolvedTheme | string): Palette {
+export function getPalette(): Palette {
   if (typeof document === "undefined") return FALLBACK;
-  if (cached?.key === themeKey) return cached.palette;
-
-  const host = document.createElement("div");
-  host.setAttribute("data-mode", themeKey);
-  host.style.cssText =
-    "position:fixed;visibility:hidden;pointer-events:none;top:0;left:0;width:0;height:0;overflow:hidden";
+  if (cached) return cached;
 
   const probe = document.createElement("span");
-  host.appendChild(probe);
-  document.body.appendChild(host);
+  probe.style.cssText =
+    "position:fixed;visibility:hidden;pointer-events:none;top:0;left:0";
+  document.body.appendChild(probe);
 
   try {
     const palette = { ...FALLBACK };
@@ -83,16 +73,9 @@ export function getPalette(themeKey: ResolvedTheme | string): Palette {
     const family = window.getComputedStyle(probe).fontFamily;
     if (family) palette.fontFamily = family;
 
-    cached = { key: themeKey, palette };
+    cached = palette;
     return palette;
   } finally {
-    host.remove();
+    probe.remove();
   }
-}
-
-/**
- * Clears the palette cache so the next frame re-reads tokens (e.g. after a theme flip).
- */
-export function invalidatePaletteCache(): void {
-  cached = null;
 }

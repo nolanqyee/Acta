@@ -14,10 +14,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ResolvedTheme } from "@/features/theme/theme-storage";
 import type { GraphSnapshot } from "@/lib/contracts";
 import { boundsOf, Camera } from "./camera";
-import { getPalette, invalidatePaletteCache } from "./palette";
+import { getPalette } from "./palette";
 import { drawFrame, HoverFade, LabelGate, SelectionAccentFade } from "./render";
 import { GraphSimulation } from "./simulation";
 import { DEFAULT_TUNABLES, type Tunables } from "./tunables";
@@ -115,8 +114,6 @@ interface GraphCanvasProps {
   selectedId?: string | null;
   /** Development hook; receives a handle for inspecting the live canvas. */
   onDebugApi?: (api: GraphDebugApi) => void;
-  /** Resolved light/dark — repaints the canvas when the theme toggle flips. */
-  resolvedTheme?: ResolvedTheme;
   /**
    * When true, the canvas background is cleared instead of filled with `--bg-canvas`,
    * so a grid or paper texture on a parent element shows through (design lab).
@@ -168,7 +165,6 @@ export function GraphCanvas({
   onHover,
   selectedId = null,
   onDebugApi,
-  resolvedTheme = "dark",
   transparentBackground = false,
   interaction = DEFAULT_INTERACTION,
   fitPadding = 80,
@@ -208,7 +204,6 @@ export function GraphCanvas({
   const onHoverRef = useRef(onHover);
   const onFpsRef = useRef(onFps);
   const selectedIdRef = useRef(selectedId);
-  const resolvedThemeRef = useRef(resolvedTheme);
   const transparentBackgroundRef = useRef(transparentBackground);
   const interactionRef = useRef({ ...DEFAULT_INTERACTION, ...interaction });
   const fitPaddingRef = useRef(fitPadding);
@@ -232,12 +227,6 @@ export function GraphCanvas({
     selectedIdRef.current = selectedId;
     wakeRef.current();
   }, [selectedId]);
-
-  useEffect(() => {
-    resolvedThemeRef.current = resolvedTheme;
-    invalidatePaletteCache();
-    wakeRef.current();
-  }, [resolvedTheme]);
 
   useEffect(() => {
     transparentBackgroundRef.current = transparentBackground;
@@ -396,7 +385,7 @@ export function GraphCanvas({
         scale: camera.getScale(),
         width,
         height,
-        palette: getPalette(resolvedThemeRef.current),
+        palette: getPalette(),
         tunables: simulation.getTunables(),
         hoveredId: hovered,
         hoverAmount: hoverFadeRef.current.getAmount(),

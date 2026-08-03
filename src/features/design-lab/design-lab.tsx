@@ -208,7 +208,6 @@ export function DesignLab() {
       <div className={styles.canvasLayer}>
         <GraphCanvas
           snapshot={snapshot}
-          resolvedTheme="light"
           transparentBackground
           showThinNodes={deepenOpen}
           selectedId={selectedId}

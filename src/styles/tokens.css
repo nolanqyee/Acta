@@ -5,7 +5,7 @@
  * (primary = settled, secondary = unresolved). Hard 3px rule and offset shadows;
  * no blur, no scrims, no liquid glass.
  *
- * Theme: set `html[data-mode="light"|"dark"]`, or rely on `prefers-color-scheme`.
+ * Light mode only for now — dark mode deferred until the visual system is settled.
  */
 
 :root {
@@ -133,7 +133,6 @@
   --state-danger-text: #a3382e;
   --state-danger-soft: color-mix(in oklab, var(--state-danger) 16%, transparent);
 
-  /* —— Light theme (default) —— */
   --bg-canvas: var(--bg-paper);
   --bg-chrome: var(--bg-panel);
   --bg-elevated: var(--bg-card);
@@ -143,74 +142,6 @@
   --node-pending-opacity: 0.45;
   --edge: rgba(16, 18, 15, 0.5);
   --edge-strong: var(--brand-primary);
-}
-
-/* Dark — system preference when data-mode unset */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-mode="light"]) {
-    --bg-canvas: #141414;
-    --bg-chrome: #1a1a1a;
-    --bg-elevated: #222222;
-    --bg-paper: #141414;
-    --bg-panel: #1a1a1a;
-    --bg-card: #222222;
-    --text: #ececec;
-    --text-muted: #8f8f8f;
-    --ink-muted: #8f8f8f;
-    --ink-soft: rgba(236, 236, 236, 0.72);
-    --ink-faint: rgba(236, 236, 236, 0.18);
-    --ink-wash: rgba(236, 236, 236, 0.08);
-    --node: #c8c8c8;
-    --edge: rgba(236, 236, 236, 0.14);
-    --edge-strong: var(--brand-primary);
-    --shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.4);
-    --shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
-    --state-success: #3db87a;
-    --state-success-text: #5ed4a8;
-    --state-danger: #e07070;
-    --state-danger-text: #f08080;
-  }
-}
-
-html[data-mode="dark"],
-[data-mode="dark"] {
-  --bg-canvas: #141414;
-  --bg-chrome: #1a1a1a;
-  --bg-elevated: #222222;
-  --bg-paper: #141414;
-  --bg-panel: #1a1a1a;
-  --bg-card: #222222;
-  --text: #ececec;
-  --text-muted: #8f8f8f;
-  --ink-muted: #8f8f8f;
-  --ink-soft: rgba(236, 236, 236, 0.72);
-  --ink-faint: rgba(236, 236, 236, 0.18);
-  --ink-wash: rgba(236, 236, 236, 0.08);
-  --node: #c8c8c8;
-  --edge: rgba(236, 236, 236, 0.14);
-  --edge-strong: var(--brand-primary);
-  --shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.4);
-  --shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
-  --state-success: #3db87a;
-  --state-success-text: #5ed4a8;
-  --state-danger: #e07070;
-  --state-danger-text: #f08080;
-}
-
-html[data-mode="light"],
-[data-mode="light"] {
-  --bg-canvas: var(--bg-paper);
-  --bg-chrome: var(--bg-panel);
-  --bg-elevated: var(--bg-card);
-  --text: var(--ink);
-  --text-muted: var(--ink-muted);
-  --node: var(--bg-paper);
-  --edge: rgba(16, 18, 15, 0.5);
-  --edge-strong: var(--brand-primary);
-  --state-success: #2f9e6a;
-  --state-success-text: #1d7a50;
-  --state-danger: #c4473a;
-  --state-danger-text: #a3382e;
 }
 
 /* —— Utility recipes —— */

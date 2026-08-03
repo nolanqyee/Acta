@@ -60,7 +60,6 @@ export function HeroGraphCanvas() {
       <GraphCanvas
         snapshot={snapshot}
         tunables={HERO_TUNABLES}
-        resolvedTheme="light"
         transparentBackground
         selectedId={HERO_GRAPH_SELECTED_ID}
         interaction={{
