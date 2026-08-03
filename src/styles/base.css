@@ -1,10 +1,6 @@
 /*
- * Global base styles — the minimum a token-driven app needs before any surface
- * renders. Tokens stay the source of truth for values (src/styles/tokens.css);
- * this file only applies them to the document and normalises browser defaults.
- *
- * Kept deliberately small: Acta has no CSS framework, and per-surface styling lives
- * in colocated CSS modules under src/features.
+ * Global base styles — document defaults and normalisation.
+ * Tokens + reusable recipes live in tokens.css; this file stays minimal.
  */
 
 *,
@@ -53,6 +49,37 @@ select {
 
 ::selection {
   background: var(--accent-soft);
+}
+
+/* Standing app-wide rule: ink thumb, track-less (design system §01). */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ink);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {

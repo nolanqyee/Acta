@@ -29,7 +29,7 @@ changes (branches, commits, PRs, Definition of Done), see [`CONTRIBUTING.md`](CO
   so an accidental client import fails the build.
 - **Contracts are an internal module** (`src/lib/contracts`), imported via the `@/lib/contracts`
   alias by both client and server. They hold no secrets and are safe to import anywhere.
-- **Design tokens** live only at `src/styles/tokens.css` (SoT), imported once in the root layout.
+- **Design tokens** live only at `src/styles/tokens.css` (SoT), imported once in the root layout. Current visual direction is **Neubrutalism** — opaque surfaces, 3px ink borders, offset shadows, blue primary / pink secondary. Do not implement from archived liquid-glass specs (`docs/archive/brand-design-system.md`).
 - **Long-running work** (bulk imports, embeddings backfill) must be kept off the request
   path — offload to Vercel Cron / a queue / a worker rather than blocking a route handler.
 
