@@ -76,8 +76,8 @@ export function GraphLab() {
   }, []);
 
   /**
-   * Publishes the canvas inspection handle on `window` so `scripts/shoot-graph.mjs`
-   * can drag a real node. Lab-only: the product surface never exposes this.
+   * Publishes the canvas inspection handle on `window` for ad-hoc lab debugging.
+   * Lab-only: the product surface never exposes this.
    *
    * @param api - Handle provided by the canvas.
    */

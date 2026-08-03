@@ -8,8 +8,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // The floating dev-tools badge sits over the canvas and lands in every screenshot
-  // taken by scripts/shoot-graph.mjs, which is how front-end work is reviewed here.
+  // Hide the floating dev-tools badge so it doesn't cover the canvas during review.
   devIndicators: false,
 };
 

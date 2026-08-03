@@ -2,9 +2,9 @@
  * @fileoverview `/lab/graph` — a development workbench for the canvas.
  *
  * It renders the sample fixture with the physics HUD and no authentication, no
- * database read, and no product chrome, so the engine can be looked at directly: by a
- * human, or by `scripts/shoot-graph.mjs` taking screenshots. Being able to see the
- * thing is the whole point — the first canvas was tuned blind and it showed.
+ * database read, and no product chrome, so the engine can be looked at directly in
+ * the browser. Being able to see the thing is the whole point — the first canvas was
+ * tuned blind and it showed.
  *
  * Returns 404 in production. Nothing here reads user data, but a workbench shouldn't
  * be reachable on a deployed app.

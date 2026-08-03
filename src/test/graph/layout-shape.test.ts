@@ -9,8 +9,8 @@
  *     re-implemented the forces, so it could pass while the canvas looked wrong.
  *  2. **It is not the verdict.** Passing means "the layout is still roughly round and
  *     not overlapping", which is the thing that silently regresses when forces are
- *     retuned. Whether the canvas looks *good* is decided by looking at it
- *     (`scripts/shoot-graph.mjs`), never here.
+ *     retuned. Whether the canvas looks *good* is decided by looking at it in
+ *     `/lab/graph`, never here.
  *
  * Thresholds are loose on purpose: they should catch a collapse or a sprawl, not
  * ordinary variation between graphs.

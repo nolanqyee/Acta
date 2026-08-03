@@ -17,11 +17,12 @@ Planning docs live in [`docs/`](docs/). Building-plan units are **U-A…U-J** (s
 | [`docs/graph-canvas.md`](docs/graph-canvas.md) | The graph canvas — requirements + how we work on it |
 | [`docs/building-plan.md`](docs/building-plan.md) | Build roadmap |
 | [`docs/technical-implementation-plan.md`](docs/technical-implementation-plan.md) | **HOW** (**U-J** — locked) |
+| [`docs/file-catalogue.md`](docs/file-catalogue.md) | Repo file inventory — what each area owns |
 | [`docs/archive/`](docs/archive/) | Superseded design docs (visual system, physics doctrine, mocks) — reasoning kept, specifics not canon |
 
 **Design tokens (source of truth):** [`src/styles/tokens.css`](src/styles/tokens.css)
 
-**Where we are:** product, data model, Graph IA (**U-B/U-C**), agent model (**U-D**) and tech plan (**U-J**) hold up. **U-J U2 shipped** (Supabase Auth, migrations, RLS, session gate, rate limiting). **U3 is being rebuilt:** the first graph canvas was scrapped — the front end was specified in too much detail up front and built in one pass, and the physics ran inside a wrapper we couldn't control. The canvas is now being built on our own `d3-force` + `<canvas>` render loop, one verified slice at a time, starting with the physics engine alone. See [`docs/graph-canvas.md`](docs/graph-canvas.md).
+**Where we are:** product, data model, IA (**U-B/C**), agents (**U-D**), and tech plan (**U-J**) are locked. **U2** shipped (auth, DB, RLS). **U3** shipped (canvas engine + hover/selection/detail on `/`). **U-A** in progress (Neubrutalism in `/lab/design` + `/landing`; light mode only). **Next: U4** capture + extract. See [`docs/building-plan.md`](docs/building-plan.md) and [`docs/file-catalogue.md`](docs/file-catalogue.md).
 
 ## Getting started
 
@@ -62,7 +63,7 @@ AGENTS.md             Repo conventions for humans + coding agents
 CONTRIBUTING.md       Branch / commit / PR + Definition-of-Done workflow
 src/app/              App Router: pages, root layout, and /api route handlers
 src/lib/contracts/    Shared Zod schemas + types (import via @/lib/contracts)
-src/features/         Graph canvas, capture composer + skim (client)
+src/features/         Graph canvas, design lab, landing (client)
 src/server/           Server-only domain logic (GraphRepository, extract, merge)
 src/lib/supabase/     Supabase clients (browser anon+RLS / server user + service role)
 src/proxy.ts          Next Proxy: Supabase session refresh + route gating

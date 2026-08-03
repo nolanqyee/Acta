@@ -12,6 +12,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | [`agent-interaction-model.md`](agent-interaction-model.md) | Agents, confirm vs auto, pending proposals, write policy |
 | [`graph-canvas.md`](graph-canvas.md) | The live canvas spec (requirements + how we work on the graph) |
 | [`design-handoff.md`](design-handoff.md) | Design-session synthesis — pixels on screen today (`/lab/design`, `/landing`, tokens) |
+| [`file-catalogue.md`](file-catalogue.md) | Repo file inventory — what each path owns |
 | [`archive/`](archive/) | Superseded design docs — reasoning kept, specifics not canon |
 | [`technical-implementation-plan.md`](technical-implementation-plan.md) | **HOW** to implement locked plan docs (**U-J** — locked) |
 | **This doc** | What to harden next: brand, IA, flows, agents, tech plan, auth |
