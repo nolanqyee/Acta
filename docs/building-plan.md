@@ -1,6 +1,6 @@
 # Acta — Building Plan
 
-Last updated: 2026-07-28
+Last updated: 2026-08-03
 
 Overarching **build** roadmap (not business/GTM). Companion to:
 
@@ -194,11 +194,15 @@ Practical order: **implement U-J milestones U1–U5** → Explore polish / thin 
 | U-J Technical implementation plan | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 
 Data model: **v1 draft locked** in `data-model.md`.  
-Code: **U-J U3 interaction slice verified (2026-07-28)** — canvas engine plus hover/selection/detail on `/` (see [`graph-canvas.md`](graph-canvas.md)); theme toggle back top-right. Next = **U-J U4** (Capture + Extract stream).
+Code: **U-J U3 interaction slice verified (2026-07-28)** — canvas engine plus hover/selection/detail on `/` (see [`graph-canvas.md`](graph-canvas.md)); **light mode only** (theme toggle removed). Next = **U-J U4** (Capture + Extract stream).
 
 ---
 
 ## Changelog
+
+- **2026-08-03:** **Light mode only in code.** Theme toggle and dark tokens removed;
+  `html[data-mode="light"]` is fixed in the root layout until the rebuilt visual system
+  supports dark again.
 
 - **2026-07-28:** **U-J U3 hover/selection/detail verified on screen.** Polished
   interaction (panel previews hovered node while another stays selected; selection accent
