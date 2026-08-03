@@ -51,10 +51,10 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | Data model | **v1 draft locked** — [`data-model.md`](data-model.md) |
 | IA + core flows (**U-B** + **U-C**) | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | Agent write policy (**U-D**) | **Locked** — [`agent-interaction-model.md`](agent-interaction-model.md) |
-| Brand / visual (**U-A**) | **Unlocked again (2026-07-26)** — the up-front visual system was archived to [`archive/brand-design-system.md`](archive/brand-design-system.md); tokens stay in [`src/styles/tokens.css`](../src/styles/tokens.css) and the system gets rebuilt from working screens |
+| Brand / visual (**U-A**) | **In progress** — Neubrutalism tokens + `.acta-*` recipes in [`src/styles/tokens.css`](../src/styles/tokens.css); light mode only |
 | Tech implementation plan (**U-J**) | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 | Persistence / auth (**U-E**) | **In first build wave** — thin Supabase Auth/Postgres + proposals from U-J U2; extras (export, connectors) still queued |
-| Code | **U-J U3 interaction slice verified (2026-07-28)** — canvas engine + hover/selection/detail on `/` (see [`graph-canvas.md`](graph-canvas.md)). Theme toggle restored top-right. Next = **U-J U4** (Capture + LLM Extract stream) |
+| Code | **U-J U3 interaction slice verified (2026-07-28)** — canvas engine + hover/selection/detail on `/` (see [`graph-canvas.md`](graph-canvas.md)). Light mode only. Next = **U-J U4** (Capture + LLM Extract stream) |
 
 **Docs layout:** planning specs under `docs/`; tokens under `styles/`. Building-plan units **U-A…U-J**.
 
@@ -81,7 +81,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | **U-B** | **IA & primary surfaces** | Screens + jobs | **Done (locked)** |
 | **U-C** | **Core interaction flows** | Flow contracts | **Done (locked)** |
 | **U-D** | **Agent / system interaction model** | Extract/deepen/explore/synth write policy; confirm vs auto; pending | **Done (locked)** |
-| **U-A** | **Brand & visual system** | Force-graph WOW needs one composition language | **Done (look locked)** — trailers deferred |
+| **U-A** | **Brand & visual system** | Force-graph WOW needs one composition language | **In progress** — Neubrutalism in [`tokens.css`](../src/styles/tokens.css) |
 | **U-J** | **Technical implementation plan** | Turn locked what/why docs into a concrete HOW (stack choices, modules, sequencing, risks) | **Done (locked)** |
 | **U-E** | **Persistence & auth** | Real user + Supabase graph survives refresh | **Started via U-J** — thin Auth/DB/proposals in first slice; remaining polish queued |
 
@@ -107,15 +107,17 @@ Monetization, GTM, domain/legal, B2B/coach-share, essay adapters, voice, kitchen
 
 ## Now — detail & exit criteria
 
-### U-A. Brand & visual system — **done (look locked)**
+### U-A. Brand & visual system — **in progress (Neubrutalism rebuild)**
 
-**Deliverable:** [`archive/brand-design-system.md`](archive/brand-design-system.md) (archived) + [`src/styles/tokens.css`](../src/styles/tokens.css) — brand + UI foundation (tokens, type, color, graph chrome, do/don’t). HTML decision/mock tools under `docs/`.
+**Deliverable:** [`src/styles/tokens.css`](../src/styles/tokens.css) — brand + UI foundation rebuilt from working screens. Archived teal + liquid-glass spec: [`archive/brand-design-system.md`](archive/brand-design-system.md) — **do not implement from it.**
 
 **Name (locked for now):** **Acta** — Latin *acta* (deeds / record of what was done). Supersedes Stilva. Domain TBD.
 
-**Deferred trailers:** motion choreography, full a11y audit, deeper app restyle. (The Next app now imports the token file in its root layout as of U-J U1.) Keep updating §12 Do/don’t.
+**On screen in tokens (2026-08-03):** Neubrutalism — 3px ink borders, offset shadows, opaque surfaces, blue primary (`#6fb3e8`) / pink secondary (`#ff2861`), Charis + Figtree + Space Mono (mono via `--font-mono` fallback). `.acta-*` recipes for panels, controls, and buttons. No liquid glass; no backdrop blur over live graph (**R7**). Light mode only.
 
-**Exit met for planning:** composition language + token file exist; agents should not invent look. Greenfield UI after **U-J** imports `src/styles/tokens.css`.
+**Deferred trailers:** motion choreography polish, full a11y audit, promoting recipes onto all shipped surfaces, dark mode.
+
+**Exit (when met):** one composition language verified on graph home + marketing; agents should not invent look; `tokens.css` is the SoT.
 
 ### U-B. IA & primary surfaces — **complete**
 
@@ -159,7 +161,7 @@ Monetization, GTM, domain/legal, B2B/coach-share, essay adapters, voice, kitchen
 U-B Surfaces ──► U-C Flows ──► U-D Agents     ✅ locked
                                     │
                                     ▼
-                               U-A Brand          ✅ look locked
+                               U-A Brand          🔁 Neubrutalism rebuild
                                     │
                                     ▼
                                U-J Tech plan      ✅ locked
@@ -182,7 +184,7 @@ Practical order: **implement U-J milestones U1–U5** → Explore polish / thin 
 
 | Unit | Status |
 | --- | --- |
-| U-A Brand & visual | **Done (look locked)** — tokens [`src/styles/tokens.css`](../src/styles/tokens.css) |
+| U-A Brand & visual | **In progress** — Neubrutalism in [`src/styles/tokens.css`](../src/styles/tokens.css) |
 | U-B IA & surfaces | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | U-C Core flows | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | U-D Agent model | **Locked** — [`agent-interaction-model.md`](agent-interaction-model.md) |
@@ -199,6 +201,11 @@ Code: **U-J U3 interaction slice verified (2026-07-28)** — canvas engine plus 
 ---
 
 ## Changelog
+
+- **2026-08-03:** **Neubrutalism tokens land.** `tokens.css` rebuilt: ink + paper/panel/card
+  surfaces, blue primary / pink secondary, 3px borders, offset shadows, `.acta-*`
+  recipes (panels, controls, buttons, landing layout hooks). Liquid-glass tokens and
+  `.acta-glass` removed. **U-A** back to in progress.
 
 - **2026-08-03:** **Light mode only in code.** Theme toggle and dark tokens removed;
   `html[data-mode="light"]` is fixed in the root layout until the rebuilt visual system

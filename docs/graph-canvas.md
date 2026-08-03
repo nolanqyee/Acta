@@ -46,7 +46,7 @@ screenshot or a screen recording.
 | R9 | **Hover answers "what is this and what does it touch?"** | Pointing at a node names **only that node**, lights its links in the accent colour and keeps its neighbours' dots bright; the rest of the graph fades back but stays visible as context. Works at any zoom, including where captions are off. The whole treatment fades in over ~130ms rather than switching on — check by hovering, not from a still. |
 | R5 | **Forces: centre, node-node repulsion, link spring with a link distance.** | All four exist as real, separately tunable forces. Centre gravity must pull every node (a force that only recentres the average position is not gravity — that was the first build's bug). |
 | R6 | **Edges may cross, but must stay visually subtle** so they never compete with the nodes. | Hairline, low-contrast, straight. At a glance you see the nodes; the edges are texture. Crossings are acceptable and should be unremarkable. |
-| R7 | **No translucent surfaces over live content for now.** | Any panel or card is opaque. The "liquid glass" direction is shelved until the basics read well — translucency over a moving graph made text unreadable. |
+| R7 | **No translucent surfaces over live content for now.** | Any panel or card is opaque. Liquid glass and backdrop blur are shelved — translucency over a moving graph made text unreadable. Current chrome direction: Neubrutalism (ink border + offset shadow); see [`tokens.css`](../src/styles/tokens.css) `.acta-*` recipes. |
 
 ---
 
@@ -228,6 +228,10 @@ graph fixture (see [`data-model.md`](data-model.md) § Canvas snapshot).
 ---
 
 ## Changelog
+
+- **2026-08-03:** **Neubrutalism tokens.** R7 aligned with opaque ink-border chrome;
+  accent colour is now brand blue (`--brand-primary`) via `--accent` alias. Token
+  recipes live in [`tokens.css`](../src/styles/tokens.css).
 
 - **2026-08-03:** **Light mode only.** Removed the theme toggle, boot script, and
   `src/features/theme/*`. Root layout sets `html[data-mode="light"]`; dark tokens and

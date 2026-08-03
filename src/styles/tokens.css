@@ -1,85 +1,131 @@
 /**
- * Acta design tokens — code reference for U-A locks.
- * This file is the source of truth for tokens. The prose that once described the
- * visual system is archived (docs/archive/brand-design-system.md) — it locked a
- * "liquid glass" direction before anything was rendered, and translucent surfaces
- * over a live graph proved unreadable. Tokens are kept; the system around them is
- * being rebuilt from working screens.
+ * Acta design tokens — Neubrutalism system of record (Claude Design import).
  *
- * Usage (when app is bootstrapped after U-J):
- *   @import or link this file from the app stylesheet
- *   Prefer these variables over inventing hex/rem in components
- *   Theme: light only for now — `html[data-mode="light"]` is set in the root layout.
+ * One ink (#10120f), three surfaces (paper / panel / card), two brand colours
+ * (primary = settled, secondary = unresolved). Hard 3px rule and offset shadows;
+ * no blur, no scrims, no liquid glass.
+ *
+ * Light mode only for now — dark mode deferred until the visual system is settled.
  */
 
 :root {
-  /* —— Fonts ——
-     The `--font-*-loaded` vars are set by next/font in the root layout; the
-     literal family name is the fallback when the webfont isn't available. */
+  /* —— Fonts —— */
   --font-display: var(--font-display-loaded, "Charis SIL"), Georgia,
     "Times New Roman", serif;
   --font-ui: var(--font-ui-loaded, "Figtree"), system-ui, -apple-system,
     sans-serif;
+  --font-mono: var(--font-mono-loaded, "Space Mono"), ui-monospace, monospace;
 
-  /* —— Type scale (compact PKM) —— */
-  --text-label: 0.75rem; /* 12px */
-  --text-ui: 0.875rem; /* 14px */
-  --text-ui-lg: 1rem; /* 16px */
-  --text-body: 0.875rem; /* 14px */
-  --text-h-sm: 1.25rem; /* 20px */
-  --text-h: 1.5rem; /* 24px */
-  --text-h-lg: 1.75rem; /* 28px */
+  /* —— Type ladder (design system §02) —— */
+  --text-hero: 4.5rem; /* 72 — marketing only */
+  --text-display: 3rem; /* 48 */
+  --text-title: 1.875rem; /* 30 */
+  --text-subhead: 1.25rem; /* 20 */
+  --text-lede: 0.9375rem; /* 15 */
+  --text-row: 0.9375rem; /* 15 Charis row headings */
+  --text-body: 0.8125rem; /* 13 */
+  --text-caption: 0.6875rem; /* 11 */
+  --text-label: 0.625rem; /* 10 Space Mono caps */
+  --text-ui: var(--text-body);
+  --text-ui-lg: var(--text-lede);
+  --text-h-sm: var(--text-subhead);
+  --text-h: var(--text-title);
+  --text-h-lg: var(--text-display);
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  --font-weight-button: var(--font-weight-bold);
 
-  /* —— Spacing (4px base) —— */
+  /* —— Button / CTA type (design system §02 controls) —— */
+  --text-button: var(--text-body); /* 13 — default pill label */
+  --text-button-lg: var(--text-lede); /* 15 — hero / ask-height controls */
+  --letter-spacing-button: 0.02em;
+
+  /* —— Spacing ladder (design system §03) —— */
   --space-1: 0.25rem; /* 4 */
   --space-2: 0.5rem; /* 8 */
   --space-3: 0.75rem; /* 12 */
   --space-4: 1rem; /* 16 */
-  --space-5: 1.5rem; /* 24 */
-  --space-6: 2rem; /* 32 */
-  --space-7: 3rem; /* 48 */
+  --space-5: 1.25rem; /* 20 */
+  --space-6: 1.5rem; /* 24 */
+  --space-7: 3.5rem; /* 56 page margin */
   --space-8: 4rem; /* 64 */
 
-  /* —— Radius (medium — not stadium, not sharp) —— */
-  --radius-soft: 0.625rem; /* 10 */
-  --radius-ctl: 0.75rem; /* 12 */
-  --radius-panel: 0.875rem; /* 14 */
+  /* —— Radius (design system §04) —— */
+  --radius-panel-brutal: 18px;
+  --radius-row: 12px;
+  --radius-pill: 999px;
+  --radius-soft: var(--radius-row);
+  --radius-ctl: var(--radius-row);
+  --radius-panel: var(--radius-panel-brutal);
+  --radius-panel-lg: var(--radius-panel-brutal);
+
+  /* —— Ink + surfaces —— */
+  --ink: #10120f;
+  --ink-muted: rgba(16, 18, 15, 0.52);
+  --ink-soft: rgba(16, 18, 15, 0.72);
+  --ink-faint: rgba(16, 18, 15, 0.18);
+  --ink-wash: rgba(16, 18, 15, 0.08);
+  --bg-paper: #f4f1e9;
+  --bg-panel: #f9f7f1;
+  --bg-card: #ffffff;
+
+  /* —— Brand (design system §01) —— */
+  --brand-primary: #6fb3e8;
+  --brand-primary-ink: #10120f;
+  --brand-primary-text: color-mix(in oklab, var(--brand-primary) 60%, var(--ink));
+  --brand-secondary: #ff2861;
+  --brand-secondary-ink: #10120f;
+  --brand-secondary-text: color-mix(in oklab, var(--brand-secondary) 72%, var(--ink));
+  --brand-secondary-wash: color-mix(in oklab, var(--brand-secondary) 18%, transparent);
+
+  /* —— Elevation (design system §04) —— */
+  --border-ink: 3px solid var(--ink);
+  --border-ink-soft: 2px solid var(--ink);
+  --shadow-panel: 8px 8px 0 var(--ink);
+  --shadow-control: 3px 3px 0 var(--ink);
+  --shadow-row: 3px 3px 0 var(--ink);
+  --shadow-soft: var(--shadow-control);
+  --shadow: var(--shadow-panel);
 
   /* —— Control / chrome sizes —— */
-  --ctl-size: 2.5rem; /* 40 */
-  --ask-height: 2.75rem; /* 44 */
-  --panel-width: 20rem; /* 320 */
-  --panel-width-max: min(20rem, 92vw);
-  --modal-max-width: 32.5rem; /* 520 */
+  --ctl-size-brutal: 2.375rem; /* 38 */
+  --ask-height-brutal: 3rem; /* 48 */
+  --ctl-size: var(--ctl-size-brutal);
+  --ask-height: var(--ask-height-brutal);
+  --panel-width-brutal: 22.75rem; /* 364 */
+  --panel-width-explore: 22.25rem; /* 356 */
+  --panel-width: var(--panel-width-brutal);
+  --panel-width-max: min(var(--panel-width-brutal), 92vw);
+  --modal-max-width: 32.5rem;
   --modal-padding: var(--space-4);
-  --hover-card-width: 15.5rem; /* 248 */
 
-  /* —— Glass (heavy liquid) —— */
-  --glass-blur: 30px;
-  --glass-saturate: 1.25;
+  /* Floating panel / modal dismiss — × always top-right (design system § controls). */
+  --panel-close-size: 26px;
+  --panel-close-inset-y: var(--space-3);
+  --panel-close-inset-x: var(--space-4);
+  --panel-close-gutter: calc(
+    var(--panel-close-inset-x) + var(--panel-close-size) + var(--space-2)
+  );
+  --hover-card-width: 18.25rem; /* 292 */
 
-  /* —— Shadow (sparse; no multi-layer glow) —— */
-  --shadow-soft: 0 4px 16px color-mix(in oklab, #000 8%, transparent);
-  --shadow: 0 12px 40px color-mix(in oklab, #000 12%, transparent);
-
-  /* —— Motion placeholders (defer feel to build; durations only) —— */
+  /* —— Motion —— */
   --duration-fast: 120ms;
   --duration: 200ms;
   --duration-slow: 320ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* —— Brand accent (scarce) —— */
-  --accent: #2aa77d;
-  --accent-soft: color-mix(in oklab, var(--accent) 18%, transparent);
-  --accent-text: #1e8a66;
-  /* Ink for text/icons sitting on an accent fill (per §5 a11y note). */
-  --accent-contrast: #ffffff;
+  /* —— Accent aliases (graph + confirm actions use primary blue) —— */
+  --accent: var(--brand-primary);
+  --accent-soft: color-mix(in oklab, var(--brand-primary) 20%, transparent);
+  --accent-text: var(--brand-primary-text);
+  --accent-contrast: var(--brand-primary-ink);
+  --highlight: var(--accent);
+  --highlight-soft: var(--accent-soft);
+  --focus-ring: var(--brand-primary);
 
-  /* —— Semantic (Confirm / Discard — outside brand teal) —— */
+  /* —— Semantic (Confirm / Discard) —— */
   --state-success: #2f9e6a;
   --state-success-text: #1d7a50;
   --state-success-soft: color-mix(in oklab, var(--state-success) 18%, transparent);
@@ -87,31 +133,221 @@
   --state-danger-text: #a3382e;
   --state-danger-soft: color-mix(in oklab, var(--state-danger) 16%, transparent);
 
-  /* —— Surface colours (light) —— */
-  --bg-canvas: #f5f0e4;
-  --bg-chrome: #f8f3e9;
-  --bg-elevated: #fffdf8;
-  --text: #1e1c18;
-  --text-muted: #6e695f;
-  --node: #6b6560;
+  --bg-canvas: var(--bg-paper);
+  --bg-chrome: var(--bg-panel);
+  --bg-elevated: var(--bg-card);
+  --text: var(--ink);
+  --text-muted: var(--ink-muted);
+  --node: var(--bg-paper);
   --node-pending-opacity: 0.45;
-  --edge: color-mix(in oklab, var(--text) 12%, transparent);
-  /* Hovered subgraph: still hairline + neutral, just a step out of the lattice. */
-  --edge-strong: color-mix(in oklab, var(--text) 30%, transparent);
-  --highlight: var(--accent);
-  --highlight-soft: var(--accent-soft);
-  --glass: color-mix(in oklab, var(--bg-elevated) 55%, transparent);
-  --focus-ring: var(--accent);
+  --edge: rgba(16, 18, 15, 0.5);
+  --edge-strong: var(--brand-primary);
 }
 
-/* —— Utility recipes (optional class hooks) —— */
-.acta-glass {
-  background: var(--glass);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  box-shadow: var(--shadow-soft);
+/* —— Utility recipes —— */
+
+/** Panel elevation — detail, explore, adapter menu. */
+.acta-panel {
+  background: var(--bg-panel);
+  border: var(--border-ink);
+  border-radius: var(--radius-panel-brutal);
+  box-shadow: var(--shadow-panel);
+}
+
+/** Control elevation — ask bar, filter, buttons. */
+.acta-control {
+  background: var(--bg-panel);
+  border: var(--border-ink);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-control);
+}
+
+/** Button label — bold Figtree, slightly tracked; reads as a control not body copy. */
+.acta-button {
+  font-family: var(--font-ui);
+  font-size: var(--text-button);
+  font-weight: var(--font-weight-button);
+  letter-spacing: var(--letter-spacing-button);
+  line-height: 1;
+  color: var(--ink);
+}
+
+/** Primary filled pill — ink on brand blue. */
+.acta-button-primary {
+  color: var(--brand-primary-ink);
+}
+
+/** Secondary outline button — card fill, ink rule. */
+.acta-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--ctl-size-brutal);
+  padding: 0 var(--space-5);
+  white-space: nowrap;
+  border-radius: var(--radius-pill);
+  border: var(--border-ink);
+  background: var(--bg-card);
+  color: var(--ink);
+  box-shadow: var(--shadow-control);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.acta-button-secondary:hover {
+  background: var(--bg-panel);
+}
+
+.acta-button-secondary:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+/** Primary accent button — brand blue fill, ink rule + offset shadow. */
+.acta-button-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--ctl-size-brutal);
+  padding: 0 var(--space-5);
+  white-space: nowrap;
+  border-radius: var(--radius-pill);
+  border: var(--border-ink);
+  background: var(--brand-primary);
+  color: var(--brand-primary-ink);
+  box-shadow: var(--shadow-control);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    filter var(--duration-fast) var(--ease-out);
+}
+
+.acta-button-accent-lg {
+  height: var(--ask-height-brutal);
+  padding: 0 var(--space-6);
+  font-size: var(--text-ui-lg);
+}
+
+.acta-button-accent:hover {
+  filter: brightness(1.04);
+}
+
+.acta-button-accent:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+/** Waitlist CTA on dark footer — blue fill, cream border + paper shadow. */
+.acta-button-waitlist {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--ask-height-brutal);
+  padding: 0 var(--space-6);
+  white-space: nowrap;
+  border-radius: var(--radius-pill);
+  border: 3px solid var(--bg-canvas);
+  background: var(--brand-primary);
+  color: var(--brand-primary-ink);
+  box-shadow: 3px 3px 0 var(--bg-paper);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    filter var(--duration-fast) var(--ease-out);
+}
+
+.acta-button-waitlist:hover {
+  filter: brightness(1.04);
+}
+
+.acta-button-waitlist:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--bg-paper);
+}
+
+/** Panel with brand-blue fill (comparison cards, etc.). */
+.acta-panel-accent {
+  background: var(--brand-primary);
+}
+
+/** Chip with brand-blue fill (selected import source, etc.). */
+.acta-chip-accent {
+  background: var(--brand-primary);
+  color: var(--brand-primary-ink);
+}
+
+/** Row card inside a panel — diff / deepen rows. */
+.acta-row {
+  background: var(--bg-card);
+  border: var(--border-ink-soft);
+  border-radius: var(--radius-row);
+  box-shadow: var(--shadow-row);
+}
+
+/** Flat chip — no lift. */
+.acta-chip {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: var(--border-ink-soft);
+  background: var(--bg-card);
+  font-size: var(--text-caption);
+  color: var(--ink-soft);
+}
+
+/** Space Mono section label. */
+.acta-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/**
+ * Bare × dismiss — top-right of every floating panel / modal shell.
+ * No border, no shadow. Host must be `position: relative` (or fixed).
+ * First row of content needs `padding-right: var(--panel-close-gutter)`.
+ */
+.acta-panel-close {
+  position: absolute;
+  top: var(--panel-close-inset-y);
+  right: var(--panel-close-inset-x);
+  z-index: 1;
+  width: var(--panel-close-size);
+  height: var(--panel-close-size);
+  padding: 0;
   border: 0;
-  border-radius: var(--radius-ctl);
+  box-shadow: none;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-ui);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.acta-panel-close:hover {
+  background: transparent;
+  color: var(--ink-soft);
+}
+
+.acta-panel-close:active {
+  transform: none;
+  box-shadow: none;
 }
 
 .acta-focus-ring:focus-visible {
@@ -121,5 +357,184 @@
 
 .acta-node-pending {
   opacity: var(--node-pending-opacity);
-  /* dashed ring via stroke/box-shadow in canvas code */
+}
+
+/**
+ * Hero graph illustration — left fade mask + right-side pointer hit area.
+ * Used on marketing hero; mask values tuned for headline legibility.
+ */
+.acta-hero-graph-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 34%,
+    rgba(0, 0, 0, 0.35) 46%,
+    #000 58%
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 34%,
+    rgba(0, 0, 0, 0.35) 46%,
+    #000 58%
+  );
+}
+
+.acta-hero-graph-wrap canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  display: block;
+  width: 100%;
+  height: 100%;
+  clip-path: inset(0 0 0 34%);
+  touch-action: pan-y;
+}
+
+@media (max-width: 900px) {
+  .acta-hero-graph-wrap {
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      transparent 38%,
+      rgba(0, 0, 0, 0.35) 52%,
+      #000 68%
+    );
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      transparent 38%,
+      rgba(0, 0, 0, 0.35) 52%,
+      #000 68%
+    );
+  }
+
+  .acta-hero-graph-wrap canvas {
+    clip-path: inset(0 0 0 38%);
+  }
+}
+
+/**
+ * Landing page slide-scroll shell — structural layout only.
+ * Brand chrome on slides uses `.acta-*` recipes + Tailwind utilities in JSX.
+ */
+.acta-landing-page {
+  --hero-copy-nudge-y: 24px;
+}
+
+.acta-landing-page[data-slide-mode] {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.acta-landing-viewport {
+  height: 100%;
+}
+
+.acta-landing-page:not([data-slide-mode]) .acta-landing-viewport,
+.acta-landing-page:not([data-slide-mode]) .acta-landing-track {
+  display: contents;
+}
+
+.acta-landing-track {
+  will-change: transform;
+}
+
+.acta-landing-page[data-slide-mode] .acta-landing-slide {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.acta-landing-page[data-slide-mode] .acta-landing-slide-inner {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.acta-landing-page[data-slide-mode] [data-enter] {
+  will-change: transform, opacity;
+}
+
+.acta-landing-page[data-slide-mode] .acta-landing-slide[data-slide-pending] [data-enter] {
+  opacity: 0;
+}
+
+.acta-landing-page[data-slide-mode] .acta-landing-slide-inner-compact,
+.acta-landing-page[data-slide-mode] .acta-landing-slide-inner-fill {
+  display: flex;
+  align-items: center;
+}
+
+.acta-landing-page[data-slide-mode] .acta-landing-slide-compact .acta-landing-section-compact {
+  width: 100%;
+  padding: 32px 56px;
+  gap: 20px;
+}
+
+.acta-landing-page[data-slide-mode] .acta-landing-slide-outputs .acta-landing-section-outputs {
+  width: 100%;
+  min-height: 100%;
+  padding: 48px 56px;
+  justify-content: center;
+  gap: 40px;
+}
+
+.acta-landing-page[data-slide-mode] .acta-landing-slide-hero .acta-landing-slide-inner-hero {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.acta-landing-page[data-slide-mode] .acta-landing-slide-hero .acta-landing-hero {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.acta-landing-page[data-slide-mode] .acta-landing-slide-hero .acta-landing-marquee {
+  flex: none;
+}
+
+.acta-landing-page[data-slide-mode] .acta-landing-slide-footer .acta-landing-slide-inner-bleed {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.acta-landing-page[data-slide-mode] .acta-landing-slide-footer .acta-landing-footer-cta {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border-top: 0;
+}
+
+@media (max-width: 900px) {
+  .acta-landing-page {
+    --hero-copy-nudge-y: 0px;
+  }
+
+  .acta-landing-page[data-slide-mode] .acta-landing-slide-compact .acta-landing-section-compact {
+    padding: 32px 24px;
+  }
+
+  .acta-landing-page[data-slide-mode] .acta-landing-slide-outputs .acta-landing-section-outputs {
+    padding: 40px 24px;
+  }
+}
+
+/** Hover peek card — elevated soft surface (no ink border). */
+.acta-peek {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-soft);
+  box-shadow: var(--shadow-soft);
+  font-family: var(--font-ui);
+  color: var(--text);
 }
