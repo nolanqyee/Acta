@@ -4,6 +4,8 @@ Last updated: 2026-08-03
 
 **Owns:** information architecture (primary surfaces) and end-to-end interaction flows at contract altitude — not pixels, brand tokens, or full adapter editor design.
 
+**Visual pixels (current build):** [`design-handoff.md`](design-handoff.md) — Neubrutalism tokens, `/home` graph chrome, `/` waitlist landing. This doc stays the IA contract; where placement diverged (e.g. left detail panel vs centered modal), the changelog below marks what is superseded.
+
 Companions: [`personal-evidence-graph.md`](personal-evidence-graph.md) (product), [`data-model.md`](data-model.md) (schema), [`agent-interaction-model.md`](agent-interaction-model.md) (write policy), [`building-plan.md`](building-plan.md) (roadmap), [`graph-canvas.md`](graph-canvas.md) (the live canvas spec).
 
 Status: **v1 locked** for capture+render build (**U-B** + **U-C**). Graph-home chrome revised 2026-07-15 from founder sketch (full-bleed canvas + overlay controls).
@@ -14,7 +16,7 @@ Status: **v1 locked** for capture+render build (**U-B** + **U-C**). Graph-home c
 
 - **Home = Graph** — the durable object is the self-graph, not a daily planner. Other surfaces are **rooted in** the graph (overlays, sidebars, or routes that leave a mini-graph footprint).
 - **No “Today” / notifications home** — nothing day-ritual. Deepen lives as an optional **backlog** of thin items to fill (pull when you want), plus skippable JIT at Generate — never a morning inbox or push-notification center.
-- **Value mix:** find (query/filter) + add (capture) + open (node modal) + use (generate). Generate is a primary *outcome*, not the home.
+- **Value mix:** find (query/filter) + add (capture) + open (node detail) + use (generate). Generate is a primary *outcome*, not the home.
 - **Graph view is primary and marketable** — literal nodes on a surface, Obsidian graph–like (pan, zoom, navigate). **Canvas nodes = Endeavors only** (skills, people, and orgs are **not** canvas nodes — see below).
 - **First implementation unit:** **capture + render** (yap/import → extract → merge → nodes appear on the canvas). Adapter editors deepen later.
 - **Adapter editors (resume UI polish)** deferred in detail — see building-plan **U-F**. Thin generate entry + adapter *routing* is in scope here.
@@ -28,7 +30,7 @@ Status: **v1 locked** for capture+render build (**U-B** + **U-C**). Graph-home c
 | Surface | Job (one purpose) | Chrome |
 | --- | --- | --- |
 | **Graph home** | See and navigate the life graph; filter; physics/display; NL search; quick-add | **Full-bleed canvas** = entire app background; all other chrome **overlays** the canvas |
-| **Node (modal)** | Read/edit one entity (endeavor, org, skill, person, story, …) | Centered modal over Graph; **header image** + title straddling image/body |
+| **Node detail (panel)** | Read/edit one entity (endeavor, org, skill, person, story, …) | **Left-side opaque panel** on Graph (built on `/home`); no scrim; camera nudges graph right while open. *Superseded IA:* centered modal + header image — see changelog |
 | **Explore results** | Ranked hits for an NL ask | **Floating right panel** (same family as diff-skim) + canvas highlight; graph CoG shifts left |
 | **Capture / diff-skim** | Confirm extract proposal, then merge | **Floating right panel** under top-right controls + pending nodes on canvas |
 | **Onboarding import** | Connectors + Qs → skeleton graph while watching it grow | Floating panel / flow over Graph; graph updates live |
@@ -39,17 +41,20 @@ Status: **v1 locked** for capture+render build (**U-B** + **U-C**). Graph-home c
 
 ### Route map (Next App Router)
 
-Concrete URL ↔ surface mapping so route names don't drift. **Key distinction:** most graph-adjacent surfaces are **overlays on `/`** (client state / intercepting routes), *not* separate pages — only adapters, settings, and auth are their own routes. Placeholder segments already exist in `src/app/` to pin these names.
+Concrete URL ↔ surface mapping so route names don't drift. **Key distinction:** most graph-adjacent surfaces are **overlays on `/home`** (client state / intercepting routes), *not* separate pages — only adapters, settings, and auth are their own routes. Placeholder segments already exist in `src/app/` to pin these names.
 
 | URL / segment | Surface | Kind | Built in |
 | --- | --- | --- | --- |
-| `/` | **Graph home** — full-bleed canvas + overlays | Route (client canvas island) | U3 |
-| ↳ on `/` | Node modal, Explore results, Capture / diff-skim, Onboarding, Deepen backlog | **Overlays** (client / intercepting routes) — **not** separate routes | U3–U5 |
+| `/` | **Marketing landing** — waitlist (public) | Route | U-A |
+| `/home` | **Graph home** — full-bleed canvas + overlays (auth required) | Route (client canvas island) | U3 |
+| ↳ on `/home` | Node detail panel, Explore results, Capture / diff-skim, Onboarding, Deepen backlog | **Overlays** (client / intercepting routes) — **not** separate routes | U3–U5 |
 | `/generate` | Adapter picker (hamburger target) | Route | U6 (thin) → U-F |
 | `/adapters/[kind]` | Adapter workspace (resume, interview, app Q) | Route (+ mini-graph peek) | U-F |
 | `/settings` | Account, connectors, export, hard-delete | Route (via profile menu) | U2 (auth/connectors) → U-E |
 | `/login` (in `(auth)`) | Sign in | Route | U2 |
 | `/auth/callback` | Supabase code exchange | Route handler | U2 |
+| `/lab/graph` | Physics workbench (404 in production) | Route | — |
+| `/landing` | Legacy URL → redirects to `/` | Route | U-A |
 | `/api/*` | Backend API (`health`, `meta` now; `captures`, `proposals`, `graph`, `extract` later) | Route handlers | U1 → U5 |
 
 Explore and Capture are deliberately **not** routes (Explore "is not a separate Explore app"; both float over the visible graph). Don't scaffold `/explore` or `/capture` pages.
@@ -64,11 +69,11 @@ The homepage of the app. **The graph canvas is the entire background.** Every co
 2. **Force layout** — nodes are **draggable**; simulation should **resolve toward a circular / radial balance** in the Obsidian graph spirit (not a free scatter that never settles). Related nodes still cluster via edges.
 3. **Graph settings** (control next to Filters) — user can dial **forces / physics**, **display**, **sizing**, and related view options. Highly customizable; defaults stay calm and Obsidian-like.
 4. **Hover** → compact **kind-rich hover card** at the cursor (peek only). Pending nodes: distinct pending state; hover shows proposed change.
-5. **Click** → **centered node modal** (see Node).
+5. **Click** → **left node detail panel** (see Node detail). *Superseded contract text below still describes the old centered modal — read changelog.*
 
 #### Bottom chrome — ask / filter / graph settings
 
-6. **Ask bar** — persistent **bottom** control, **liquid-glass–esque**, prompt/chat-like (familiar AI-chat affordance). NL query (“what have I done related to Redis?”). Results → Explore floating panel + canvas highlight — not a separate Explore app.
+6. **Ask bar** — persistent **bottom** prompt/chat-like control (opaque in current visual system — see design-handoff). NL query (“what have I done related to Redis?”). Results → Explore floating panel + canvas highlight — not a separate Explore app.
 7. **Filters** — **not** always-visible chips. A **filter button** beside the ask cluster opens a panel. Filtering is **facet selection that slices endeavors**, not “toggle entity types onto the canvas”:
     - **Kind** — include/exclude endeavor kinds (role, project, …).
     - **Specific skills / people / orgs** — pick concrete values (e.g. skill=`Redis`, person=`Alex`, org=`Bubble`) to **highlight** related **endeavors** (accent). Optional search within each facet list. Active filters show as removable pills. Dimming non-matches deferred until density needs it (see brand).
@@ -83,17 +88,17 @@ The homepage of the app. **The graph canvas is the entire background.** Every co
     - **Click:** menu **stays open** until dismissed / navigated.
     - Choosing an adapter **navigates away** from Graph to that adapter page (mini-graph peek on adapter routes still applies).
 
-#### Top-right chrome — capture, deepen, theme, account
+#### Top-right chrome — capture, deepen, account
 
 11. **Capture** — distinct CTA **“Capture +”** plus a **connected mic** control for **eventual voice capture** (type remains MVP path; mic is chrome-forward, behavior can land post type-only). Opens capture → extract → diff-skim.
 12. **Deepen** — icon suggesting “things to fill” (**inbox-like** lean + **notification badge** count). Opens deepen backlog panel. Still a **pull** queue — not a Today/notifications home; naming can stay backlog-forward in copy even if icon reads inbox.
-13. **Theme** — **light only for now** (dark mode deferred until the visual system is rebuilt on screen; no toggle in the current slice).
-14. **Profile** — avatar + **user name**; click expands menu: profile, account settings, app settings, logout, etc.
+13. **Profile** — avatar + **user name**; click expands menu: profile, account settings, app settings, logout, etc.
 
 #### Other
 
 15. **List mode (secondary)** — same underlying set for people who don’t want the force view. Not marketing default.
-16. **No visible hairline borders** between overlay panels and canvas — separate by elevation / blur / soft bg (brand).
+16. **Panel separation** — overlay panels use the active visual system (currently Neubrutalism: ink border + offset shadow — see design-handoff). No translucent surfaces over the live graph (**R7**).
+17. **Light mode only (for now)** — dark mode and theme toggle deferred until the visual system is settled on screen.
 
 **Canvas node set (locked):** unchanged — Endeavors only on canvas; Skills / People / Orgs not physics nodes.
 
@@ -110,16 +115,18 @@ Job: a **pull** queue of “stuff to fill,” not alerts.
 5. **Never blocks** capture, explore, or generate. Empty backlog = healthy enough skeleton (or everything dismissed).
 6. **Naming:** prefer backlog / “To deepen” in copy; icon may be inbox-like for recognition.
 
-### Node (modal) — composition (contract)
+### Node detail (panel) — composition (contract)
 
-Centered modal over Graph home:
+**Built on `/home` (2026-07-26+):** opaque **left-side floating panel** — title, kind, status, timeframe, summary, tags, facets; **× dismiss top-right** (`.acta-panel-close`). While another node is selected, hovering a different node **previews** it in the panel. Camera nudges the graph right while open; no scrim.
 
-- **Header image** — AI-generated from content *or* curated **kind presets** (open implementation choice; visual required).
-- **Title** sits **straddling** the header image and the body (half on image, half on content). Use a **drop shadow** (or equivalent) so the title stays legible on the image.
+**Superseded IA (do not build):** centered modal with header image + title straddling image/body — shelved with liquid glass; no image field on endeavors yet.
+
+Shared content either way:
+
 - Kind, summary, timeframe, status, application tags (editable; user wins)
 - Parents / children (`part_of`)
 - Achievements, skills, people, orgs, metrics, evidence
-- Same pattern for endeavors; skill / person / org open as modals without being canvas nodes
+- Same pattern for endeavors; skill / person / org open as panels/modals without being canvas nodes
 - Stories when opened from deepen / generate
 - Actions: deepen prompts, propose/stamp story, focus endeavor on graph (when applicable), soft archive
 
@@ -132,7 +139,7 @@ Triggered by NL search from the **bottom ask bar**. **Not** a separate Explore a
 1. **Floating right panel** — same family as diff-skim (not a full-height docked sidebar). Sits **under** top-right controls, **right-aligned**.
 2. **Viewport adjust** — **center of gravity of the graph shifts left** so nodes remain visible while the panel is open.
 3. **Dual highlight** — matching endeavor nodes emphasized; panel may list skill/person/org hits that resolve to related endeavors.
-4. Click hit → **Node modal** (or focus endeavor on canvas).
+4. Click hit → **Node detail panel** (or focus endeavor on canvas).
 
 Clear search / close panel → graph recenters to normal framing.
 
@@ -318,7 +325,7 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
 
 ## Build note (implementation order)
 
-**First unit:** capture + render — get material in and see nodes on the Obsidian-like **full-bleed** canvas (hover cards + node modal can follow immediately after nodes exist). Overlay panels (Explore / diff-skim / onboarding live-build) and adapter pages come once the graph surface is real. Do not start with resume-editor depth (**U-F**).
+**First unit:** capture + render — get material in and see nodes on the Obsidian-like **full-bleed** canvas (hover cards + node detail panel can follow immediately after nodes exist). Overlay panels (Explore / diff-skim / onboarding live-build) and adapter pages come once the graph surface is real. Do not start with resume-editor depth (**U-F**).
 
 ---
 
@@ -338,8 +345,8 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
 - [x] v1 canvas default: **force-directed** (related clusters = product WOW); hierarchy projections optional later, not default
 - [x] Canvas node set: **Endeavors only**; **Skills, People, and Orgs are not canvas nodes** (skills muddle; people low utility; orgs redundant with role/education endeavors via `at_org`). Still data entities; skill = filter / modal / Explore → endeavors
 - [x] Quick-add / diff-skim: **floating right panel** (under top-right controls) + **changelog** + **pending nodes**; graph CoG shifts left
-- [x] Ask vs filters: **separate** — **bottom** liquid-glass ask bar + **filter button** (menu, not always-on chips) + **graph settings** (physics/display/sizing)
-- [x] Hover card density: **kind-rich** (compact); click → modal with **header image** + title straddling image/body
+- [x] Ask vs filters: **separate** — **bottom** ask bar + **filter button** (menu, not always-on chips) + **graph settings** (physics/display/sizing)
+- [x] Hover card density: **kind-rich** (compact); click → **left detail panel** (centered modal + header image **superseded**)
 - [x] Generate entry: **top-left hamburger** → adapter menu (hover expand / click pin) → adapter pages
 - [x] Adapter page mini-graph: **expandable peek**; not always-on
 - [x] Agent connectors: **after classic MVP only**
@@ -350,14 +357,9 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
 
 ## Changelog
 
-- **2026-08-03:** **Graph app at `/home`.** `graph-home.tsx` with Neubrutalism product
-  chrome; auth defaults to `/home` after sign-in.
+- **2026-08-03:** **Light mode only** — theme toggle removed from IA contract; dark mode deferred.
 
-- **2026-08-03:** **`/` is the public waitlist landing** (no session required). Graph app
-  lives at `/home`; `/landing` redirects to `/`.
-
-- **2026-08-03:** **Light mode only in the current slice.** Top-right theme toggle removed;
-  dark mode deferred until the visual system is rebuilt on screen (see graph-canvas.md).
+- **2026-08-03:** **`/` = public waitlist landing; `/home` = graph app (auth required).** Magic-link callback defaults to `/home`. `/landing` redirects to `/`. Pixels on screen: [`design-handoff.md`](design-handoff.md). IA unchanged except confirming: ask bar = bottom opaque prompt control (liquid-glass language superseded); panel dismiss = top-right ×; dev route `/lab/graph` in route map.
 
 - **2026-07-26 (later):** **Node click surface reconsidered: left panel, not a centered
   modal.** The first node-detail build (docs/graph-canvas.md's ninth pass) followed this

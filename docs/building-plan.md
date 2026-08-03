@@ -11,6 +11,8 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | [`surfaces-and-flows.md`](surfaces-and-flows.md) | IA / surfaces + core interaction flows |
 | [`agent-interaction-model.md`](agent-interaction-model.md) | Agents, confirm vs auto, pending proposals, write policy |
 | [`graph-canvas.md`](graph-canvas.md) | The live canvas spec (requirements + how we work on the graph) |
+| [`design-handoff.md`](design-handoff.md) | Design-session synthesis — pixels on screen today (`/home`, `/`, tokens) |
+| [`file-catalogue.md`](file-catalogue.md) | Repo file inventory — what each path owns |
 | [`archive/`](archive/) | Superseded design docs — reasoning kept, specifics not canon |
 | [`technical-implementation-plan.md`](technical-implementation-plan.md) | **HOW** to implement locked plan docs (**U-J** — locked) |
 | **This doc** | What to harden next: brand, IA, flows, agents, tech plan, auth |
@@ -43,7 +45,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 
 ---
 
-## Where we are (2026-07-15)
+## Where we are (2026-08-03)
 
 | Layer | Status |
 | --- | --- |
@@ -51,10 +53,10 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | Data model | **v1 draft locked** — [`data-model.md`](data-model.md) |
 | IA + core flows (**U-B** + **U-C**) | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | Agent write policy (**U-D**) | **Locked** — [`agent-interaction-model.md`](agent-interaction-model.md) |
-| Brand / visual (**U-A**) | **In progress** — Neubrutalism tokens + `.acta-*` recipes in [`src/styles/tokens.css`](../src/styles/tokens.css); light mode only |
+| Brand / visual (**U-A**) | **In progress** — Neubrutalism on `/home` + `/` landing; see [`design-handoff.md`](design-handoff.md) |
 | Tech implementation plan (**U-J**) | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 | Persistence / auth (**U-E**) | **In first build wave** — thin Supabase Auth/Postgres + proposals from U-J U2; extras (export, connectors) still queued |
-| Code | **U-J U3 interaction slice verified (2026-07-28)** — canvas engine + hover/selection/detail on `/` (see [`graph-canvas.md`](graph-canvas.md)). Light mode only. Next = **U-J U4** (Capture + LLM Extract stream) |
+| Code | **U-J U3 verified (2026-07-28)** — canvas + hover/selection/detail on `/home`. **U-A in progress** — Neubrutalism chrome shipped; controls inert until U4+. **Next = U-J U4** (Capture + LLM Extract stream) |
 
 **Docs layout:** planning specs under `docs/`; tokens under `styles/`. Building-plan units **U-A…U-J**.
 
@@ -62,10 +64,10 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 
 ### Locked IA highlights (build against these)
 
-- Home = Graph; **full-bleed** force-directed canvas (Endeavors only); chrome **overlays** canvas
-- Bottom liquid-glass ask + **filter button** (menu) + **graph settings** (physics/display); Explore = floating right panel + highlight
+- Home = Graph at **`/home`**; **full-bleed** force-directed canvas (Endeavors only); chrome **overlays** canvas
+- Bottom **ask bar** + **filter button** (menu) + **graph settings** (physics/display); Explore = floating right panel + highlight (chrome on `/home` — behavior mocked until U4+)
 - Diff-skim = floating right panel + changelog + **incremental** pending nodes (proposals **stored until confirm/discard**)
-- Node = centered modal with **header image** + title straddling image/body; kind-rich hover cards
+- Node detail = **left-side opaque panel** (built on `/home`); centered modal + header-image language in surfaces-and-flows is **superseded**; kind-rich hover cards
 - Deepen = top-right inbox-like control + badge → backlog panel (pull queue)
 - Generate = top-left **hamburger** → adapter pages + expandable mini-graph peek; adapters are a **family** with thin citation UX
 - Agent chat-history connectors = **after** classic MVP imports
@@ -81,7 +83,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | **U-B** | **IA & primary surfaces** | Screens + jobs | **Done (locked)** |
 | **U-C** | **Core interaction flows** | Flow contracts | **Done (locked)** |
 | **U-D** | **Agent / system interaction model** | Extract/deepen/explore/synth write policy; confirm vs auto; pending | **Done (locked)** |
-| **U-A** | **Brand & visual system** | Force-graph WOW needs one composition language | **In progress** — Neubrutalism in [`tokens.css`](../src/styles/tokens.css) |
+| **U-A** | **Brand & visual system** | Force-graph WOW needs one composition language | **In progress** — Neubrutalism on `/home` + `/` landing; chrome visible, most controls inert until U4+ |
 | **U-J** | **Technical implementation plan** | Turn locked what/why docs into a concrete HOW (stack choices, modules, sequencing, risks) | **Done (locked)** |
 | **U-E** | **Persistence & auth** | Real user + Supabase graph survives refresh | **Started via U-J** — thin Auth/DB/proposals in first slice; remaining polish queued |
 
@@ -109,13 +111,13 @@ Monetization, GTM, domain/legal, B2B/coach-share, essay adapters, voice, kitchen
 
 ### U-A. Brand & visual system — **in progress (Neubrutalism rebuild)**
 
-**Deliverable:** [`src/styles/tokens.css`](../src/styles/tokens.css) — brand + UI foundation rebuilt from working screens. Archived teal + liquid-glass spec: [`archive/brand-design-system.md`](archive/brand-design-system.md) — **do not implement from it.**
+**Deliverable:** [`src/styles/tokens.css`](../src/styles/tokens.css) — brand + UI foundation rebuilt from working screens. Session handoff for current pixels: [`design-handoff.md`](design-handoff.md). Archived teal + liquid-glass spec: [`archive/brand-design-system.md`](archive/brand-design-system.md) — **do not implement from it.**
 
 **Name (locked for now):** **Acta** — Latin *acta* (deeds / record of what was done). Supersedes Stilva. Domain TBD.
 
-**On screen in tokens (2026-08-03):** Neubrutalism — 3px ink borders, offset shadows, opaque surfaces, blue primary (`#6fb3e8`) / pink secondary (`#ff2861`), Charis + Figtree + Space Mono (mono via `--font-mono` fallback). `.acta-*` recipes for panels, controls, and buttons. No liquid glass; no backdrop blur over live graph (**R7**). Light mode only.
+**On screen today (2026-08-03):** Neubrutalism — 3px ink borders, offset shadows, opaque surfaces, blue primary / pink secondary, Charis + Figtree + Space Mono. **Light mode only** (dark deferred). Full graph-home chrome on `/home` (`graph/surfaces/graph-home.tsx`); public waitlist at `/`. No liquid glass; no backdrop blur over live graph (**R7**). Capture, ask, and profile controls are visible but inert until U4+.
 
-**Deferred trailers:** motion choreography polish, full a11y audit, promoting recipes onto all shipped surfaces, dark mode.
+**Deferred trailers:** motion choreography polish, full a11y audit, wiring chrome to real flows (U4+), dark mode.
 
 **Exit (when met):** one composition language verified on graph home + marketing; agents should not invent look; `tokens.css` is the SoT.
 
@@ -184,7 +186,7 @@ Practical order: **implement U-J milestones U1–U5** → Explore polish / thin 
 
 | Unit | Status |
 | --- | --- |
-| U-A Brand & visual | **In progress** — Neubrutalism in [`src/styles/tokens.css`](../src/styles/tokens.css) |
+| U-A Brand & visual | **In progress** — Neubrutalism in [`src/styles/tokens.css`](../src/styles/tokens.css); see [`design-handoff.md`](design-handoff.md) |
 | U-B IA & surfaces | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | U-C Core flows | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | U-D Agent model | **Locked** — [`agent-interaction-model.md`](agent-interaction-model.md) |
@@ -196,11 +198,13 @@ Practical order: **implement U-J milestones U1–U5** → Explore polish / thin 
 | U-J Technical implementation plan | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 
 Data model: **v1 draft locked** in `data-model.md`.  
-Code: **U-J U3 interaction slice verified (2026-07-28)** — canvas engine plus hover/selection/detail on `/` (see [`graph-canvas.md`](graph-canvas.md)); **light mode only** (theme toggle removed). Next = **U-J U4** (Capture + Extract stream).
+Code: **U-J U3 verified** — canvas + hover/selection/detail on `/home` (see [`graph-canvas.md`](graph-canvas.md)). **U-A Neubrutalism** on `/home` + `/` landing; light mode only. Next = **U-J U4** (Capture + Extract stream).
 
 ---
 
 ## Changelog
+
+- **2026-08-03:** **Canon doc sync (PR 8).** Added [`design-handoff.md`](design-handoff.md) and [`file-catalogue.md`](file-catalogue.md); synced IA, tech plan, and README to `/` landing + `/home` graph + `engine/`/`surfaces/`/`lab/` split.
 
 - **2026-08-03:** **Graph app at `/home`.** Signed-in surface is `graph-home.tsx`
   (Neubrutalism chrome + canvas). Magic link lands on `/home` by default.

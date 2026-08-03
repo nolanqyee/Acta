@@ -3,7 +3,7 @@
 This is the **single repo** for Acta — one **Next.js (App Router) app** plus planning docs:
 
 ```
-docs/                 Planning SoT (product, data-model, surfaces, agents, graph-canvas, building-plan, tech plan)
+docs/                 Planning SoT (product, data-model, surfaces, agents, graph-canvas, building-plan, tech plan, design-handoff)
 docs/archive/         Superseded design docs — reasoning worth reading, specifics not canon
 src/app/              App Router: pages, root layout, and /api route handlers (the API)
 src/lib/contracts/    Shared Zod schemas + types (import via @/lib/contracts)
@@ -30,15 +30,23 @@ changes (branches, commits, PRs, Definition of Done), see [`CONTRIBUTING.md`](CO
   so an accidental client import fails the build.
 - **Contracts are an internal module** (`src/lib/contracts`), imported via the `@/lib/contracts`
   alias by both client and server. They hold no secrets and are safe to import anywhere.
-- **Design tokens** live only at `src/styles/tokens.css` (SoT), imported once in the root layout. Current visual direction is **Neubrutalism** — opaque surfaces, 3px ink borders, offset shadows, blue primary / pink secondary. Do not implement from archived liquid-glass specs (`docs/archive/brand-design-system.md`).
+- **Design tokens** live only at `src/styles/tokens.css` (SoT), imported once in the root layout. Current visual direction is **Neubrutalism** (opaque surfaces, ink borders) — see [`docs/design-handoff.md`](docs/design-handoff.md). Do not implement from archived liquid-glass specs.
 - **Styling convention (added 2026-08-03):** **tokens.css + `.acta-*` + Tailwind** — no CSS modules.
   - **`tokens.css`:** CSS variables and global recipe classes (`.acta-panel`, `.acta-control`, `.acta-button`, `.acta-row`, `.acta-chip`, `.acta-label`, `.acta-panel-close`, surface-specific recipes like `.acta-landing-*` when selectors are too complex for utilities alone).
   - **`tailwind.css`:** Tailwind v4 with `@theme inline` mapping to existing `--*` tokens (`bg-canvas`, `p-acta-4`, `font-display`, …). Use for **layout variation** — grid, flex, spacing, responsive, positioning.
   - **Do not add `*.module.css`.** Compose JSX with `.acta-*` + Tailwind classes.
-  - **Canvas:** `palette.ts` still reads tokens for `<canvas>` drawing — it does not use Tailwind.
+  - **Chrome colors live in `.acta-*` recipes, not Tailwind utilities.** Tailwind utilities sit in `@layer utilities`; unlayered rules in `tokens.css` win the cascade — so `bg-accent` on an `.acta-control` / `.acta-panel` / `.acta-chip` element will not override the recipe background. Add a recipe variant (e.g. `.acta-button-accent`, `.acta-chip-accent`) instead.
+  - **Canvas:** `palette.ts` still reads tokens for `<canvas>` draw calls.
 - **Graph folder layout (added 2026-08-03):** `src/features/graph/engine/` (physics + canvas), `surfaces/` (UI), `lab/` (dev). **`engine/` must not import `surfaces/` or `lab/`.**
+- **Dev-only surfaces** (`/lab/graph`) return 404 in production; use them to iterate physics before promoting changes to `/home`.
 - **Long-running work** (bulk imports, embeddings backfill) must be kept off the request
   path — offload to Vercel Cron / a queue / a worker rather than blocking a route handler.
+- **`backdrop-filter` must be written last.** When a rule declares both
+  `-webkit-backdrop-filter` and `backdrop-filter`, Lightning CSS (Next's CSS pipeline)
+  collapses them into a single declaration and keeps whichever comes **first**. Chrome 150
+  removed support for `-webkit-backdrop-filter`, so writing the unprefixed property first
+  silently ships a build with no blur at all. Always put the `-webkit-` copy first and the
+  unprefixed copy last, with identical values. Browserslist targets do not change this.
 
 ## Front-end working agreement (added 2026-07-26)
 

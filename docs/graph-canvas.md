@@ -231,6 +231,8 @@ graph fixture (see [`data-model.md`](data-model.md) § Canvas snapshot).
 
 ## Changelog
 
+- **2026-08-03:** **Canon doc sync (PR 8).** Added [`design-handoff.md`](design-handoff.md) and [`file-catalogue.md`](file-catalogue.md); cross-linked from building-plan, surfaces-and-flows, README, and archive index.
+
 - **2026-08-03:** **Folder split.** `features/graph/` → `engine/` (physics + canvas),
   `surfaces/` (graph-home + formatting/placement), `lab/` (workbench + fixture).
   Removed superseded `graph-view`, `hover-card`, and `node-detail` modules (chrome

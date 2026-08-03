@@ -8,7 +8,7 @@ origin: docs/building-plan.md (U-J); locked companions: personal-evidence-graph.
 
 # feat: Acta technical implementation plan (U-J)
 
-**Last updated:** 2026-07-26
+**Last updated:** 2026-08-03
 
 **Owns:** HOW to implement locked product docs — stack defaults, module map, capture+render slice, persistence/auth path, agent/runtime seams, sequenced milestones, risks. Does **not** re-litigate product IA, schema kinds, or brand look.
 
@@ -238,8 +238,8 @@ Acta/                    # existing repo root (git) = the Next app; one Vercel d
         captures/  proposals/  graph/  extract/   # (U2–U5)
     components/          # shared UI (e.g. placeholder-surface)
     features/
-      graph/             # force canvas, physics settings, pending overlays (client, on `/`)
-      capture/           # composer + diff-skim panel (overlay on `/`, not a route)
+      graph/             # engine/ + surfaces/ + lab/ (client, graph app on `/home`)
+      capture/           # composer + diff-skim panel (overlay on `/home`, not a route)
     lib/
       contracts/         # shared Zod + types (folded from @acta/contracts)
       supabase/          # server.ts (service-role + user-scoped) / client.ts (anon)
@@ -340,17 +340,18 @@ Rationale: quality is built in per unit (readable code + tests), not bolted on l
   - Empty user sees zero nodes + Capture CTA.
   - Opening a stub right panel shifts force center left (not CSS-translated canvas).
   - Reduced-motion: land fully settled with no animated settle scramble (pending pulse covered in U4).
-- **Verification:** Dogfood: signed-in user sees seeded or empty graph matching physics calm defaults.
-- **Status:** 🔁 **rebuilt 2026-07-26 — canvas-only, chrome deferred.** See [`graph-canvas.md`](graph-canvas.md) for the live spec, the module map, and the measured numbers. What landed in the rebuild: `simulation.ts` (a `d3-force` layout with its timer disabled, driven by the render loop), `camera.ts` (pan/zoom/fit with an exact screen↔world inverse), `render.ts` (hairline edges, clamped dots, captions gated on measured clear space via a screen-space grid), `seed.ts` (deterministic containment-grouped spiral seeds), `palette.ts`, `graph-canvas.tsx` (RAF loop, pointer/wheel/resize, nothing per-frame through React state), `dev-hud.tsx` (opaque force sliders), and a dev-only `/lab/graph` workbench with URL-settable size and forces. Verification: the `/lab/graph` workbench is looked at directly (the Playwright capture scripts that drove the tuning were removed once the physics were signed off — see [`graph-canvas.md`](graph-canvas.md) § How it's verified); `src/test/graph/layout-shape.test.ts` settles the **real** `GraphSimulation` and guards roundness, non-overlap, drag locality and shimmer; `camera.test.ts` pins the projection inverse. The gate gained a **development-only** allowance for `/lab/*` (`gateDecision(..., allowDevPaths)`, fails closed by default, and the route 404s in production). `react-force-graph-2d` was removed. Deleted with the first attempt: ask bar, filter menu, graph settings, hover card, node modal, floating panels, empty state, and the `CanvasGraphModel`/`highlight`/`deepen` modules — each returns as its own reviewed slice.
-  **Previous status (superseded):** ✅ shipped 2026-07-25 — UI-complete canvas + chrome. What landed: `GraphSnapshot` contract (`src/lib/contracts/graph.ts`), `GET /api/graph` over a `GraphRepository` + a **pure projection** (`src/server/graph/project-graph.ts`), and `src/features/graph/*` — force canvas, cluster-seed/pre-warm, token-resolved painting, ask bar + filter menu + graph settings, hover card, node modal, floating panels, empty state, light/dark theme.
-  Decisions made while building (all reversible, and mirrored into the specs they touch):
-  - **Endeavors are the only physics bodies.** Skills/people/orgs stay facets, so shared-facet structure is projected into *endeavor↔endeavor* links, weighted `part_of` > `shared_org` > `shared_skill` > `shared_person`. Hub facets are chained and capped rather than fully connected, otherwise one popular skill creates a crossing storm.
-  - **Node identity is owned outside React** (`CanvasGraphModel`): d3-force mutates position/velocity on the node objects, so a new container is handed over only when node/link *membership* changes. Confirming a proposal (a `state` change) deliberately does **not** re-settle the graph.
-  - **Canvas colour + type are resolved from tokens at runtime** via an offscreen probe, cached per theme — a canvas can't parse `var()`.
-  - **Panels shift the centering force, never the canvas transform**, keeping pointer math honest.
-  - Interim/deferred, called out honestly in the UI: ask is **substring matching** (embeddings ranking is Explore's job), the deepen backlog uses a **placeholder thinness heuristic** over snapshot fields, and the capture panel is chrome-only until U4. A **sample graph** (`sample-graph.ts`) is available from the empty state for layout dogfooding, labelled as unsaved.
-  - Also fixed here: the theme boot script read a key exported from a `"use client"` module, which resolves to `undefined` on the server — shared constants now live in a directive-free module (`src/features/theme/theme-storage.ts`).
-  - Not yet done: the canvas tests are pure-logic only (projection, seeding, physics, highlight, model identity); browser-level assertions on paint/CoG and keyboard traversal of the graph remain open.
+- **Verification:** Dogfood on `/home` and `/lab/graph`: hover, selection, left detail panel, full chrome verified on screen (2026-08-03).
+- **Status:** ✅ **U3 canvas engine + interaction slice shipped** (rebuilt 2026-07-26; interaction polish verified 2026-07-28). See [`graph-canvas.md`](graph-canvas.md) for the live spec and module map.
+
+  **What landed:** `engine/simulation.ts`, `engine/camera.ts`, `engine/render.ts`, `engine/seed.ts`, `engine/palette.ts`, `engine/graph-canvas.tsx` (RAF loop, our own `d3-force` tick), `surfaces/graph-home.tsx` (fetch + full Neubrutalism chrome on `/home`), `lab/dev-hud.tsx` + `/lab/graph` workbench. Hover peek + detail panel live inline in `graph-home.tsx`. Verification: look at `/lab/graph` and `/home`; `src/test/graph/layout-shape.test.ts` guards the real engine (roundness, locality, shimmer).
+
+  **Parallel (U-A, not U3 exit):** Neubrutalism tokens, `/` waitlist landing — see [`design-handoff.md`](design-handoff.md). **Light mode only** (dark deferred).
+
+  **Still deferred to later units:** ask ranking, filter wiring, capture composer, deepen backlog, Explore/diff-skim behavior, NL ranking, real deepen signal — chrome is visible on `/home` but inert until U4–U6.
+
+  **Removed with first attempt:** `react-force-graph-2d`, centered modal + scrim, full chrome built in one pass, Playwright screenshot scripts.
+
+  **Previous status (superseded 2026-07-25):** UI-complete canvas + all chrome in one pass — scrapped; do not treat as current.
 
 ### U4. Capture + LLM Extract stream + proposal persistence
 
@@ -483,6 +484,8 @@ U1 Next app + contracts
 ---
 
 ## Changelog
+
+- **2026-08-03:** **U3 status block rewritten** to match current code: canvas + hover/selection/detail on `/home`; chrome inert until U4–U6; light mode only. Added [`docs/file-catalogue.md`](file-catalogue.md) and [`docs/design-handoff.md`](design-handoff.md).
 
 - **2026-07-26 (later):** **U3 canvas rebuilt on our own render loop; the wrapper is gone.** The retuned layout passed its own measurements and still looked wrong on screen — the diagnosis was architectural, not numerical: with `react-force-graph-2d` owning the tick loop, the zoom transform, drag handling and redraw scheduling, the qualities the canvas is judged on were unreachable from outside. Now ours: [`simulation.ts`](../src/features/graph/simulation.ts), [`camera.ts`](../src/features/graph/camera.ts), [`render.ts`](../src/features/graph/render.ts), [`seed.ts`](../src/features/graph/seed.ts), [`graph-canvas.tsx`](../src/features/graph/graph-canvas.tsx). Three things worth carrying forward beyond this unit: **(1)** captions are gated on *measured clear space* around a node, not a zoom threshold, so overview views are quiet and zooming in reveals names; **(2)** front-end work is now verified in a browser — a dev-only `/lab/graph` workbench (URL-settable forces + a fixture generator up to 600 nodes) plus `npm run shots` / `npm run shots:compare`, which capture fit/zoom/drag states and stitch candidate settings into one comparable image; **(3)** [`layout-shape.test.ts`](../src/features/graph/layout-shape.test.ts) measures the **real** engine, replacing a test that re-implemented the forces and could therefore pass while the screen was wrong. Measured: aspect ratio 1.00–1.06 across 19/26/140/400 nodes, furthest node 1.3–1.7× the median radius, 109–127 fps including mid-drag at 400 nodes. `npm run check` + `next build` green. Docs: [`graph-canvas.md`](graph-canvas.md) replaces the archived physics doctrine and visual system; [`AGENTS.md`](../AGENTS.md) gained a front-end working agreement (build in verified slices; don't specify visuals ahead of building them; own the loop; numbers guard, eyes decide; no translucency over live content).
 - **2026-07-26:** **U3 layout fix — the canvas now honours the physics doctrine.** The shipped U3 graph settled as a stringy sprawl parked off-centre; four causes, all fixed and now measured rather than eyeballed. (1) **No gravity existed**: `forceCenter` only translates the centroid, so `forceX`/`forceY` now supply real cohesion; (2) charge reach is **capped** at ~4× link distance instead of inflating the whole graph; (3) shared facets are wired as **hub-and-spoke stars capped at two derived links per endeavor** instead of arbitrarily ordered chains; (4) cluster centres are ordered around the seeding ring by **link affinity** instead of alphabetically. Framing is fitted after the engine stops. New: [`src/lib/graph/derive-endeavor-links.ts`](../src/lib/graph/derive-endeavor-links.ts) — one isomorphic link rule shared by the server projection and the sample fixture, so the fixture can no longer flatter the layout — and [`layout-quality.test.ts`](../src/features/graph/layout-quality.test.ts), which settles the sample graph *and* a denser synthetic graph in a headless `d3-force` run and asserts crossings, bounding-box roundness, radial fill, overlaps, and edge length. Retuned defaults (gravity `0.09`, link distance `40`, repel `320`) land the sample graph at **zero crossings** and a square-ish bounding box. `npm run check` green. See graph-physics + data-model changelogs.
