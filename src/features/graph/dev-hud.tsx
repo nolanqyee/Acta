@@ -13,7 +13,6 @@
 
 "use client";
 
-import styles from "./dev-hud.module.css";
 import { DEFAULT_TUNABLES, TUNABLE_RANGES, type Tunables } from "./tunables";
 
 /** Human labels for the sliders, in the order they should read. */
@@ -51,10 +50,13 @@ export function DevHud({
   linkCount,
 }: DevHudProps) {
   return (
-    <aside className={styles.panel} aria-label="Graph physics (development)">
-      <header className={styles.header}>
+    <aside
+      className="absolute right-acta-4 top-acta-4 z-10 flex w-[230px] flex-col gap-acta-3 rounded-panel border border-edge-strong bg-elevated p-acta-3 font-ui text-[11px] text-ink shadow-soft"
+      aria-label="Graph physics (development)"
+    >
+      <header className="flex items-baseline justify-between uppercase tracking-widest text-muted">
         <span>physics</span>
-        <span className={styles.stat}>
+        <span className="tabular-nums normal-case tracking-normal text-ink">
           {Math.round(fps)} fps · {nodeCount}n · {linkCount}e
         </span>
       </header>
@@ -62,13 +64,14 @@ export function DevHud({
       {CONTROLS.map(({ key, label }) => {
         const range = TUNABLE_RANGES[key];
         return (
-          <label key={key} className={styles.control}>
-            <span className={styles.label}>
+          <label key={key} className="flex flex-col gap-1">
+            <span className="flex justify-between gap-acta-2 text-muted">
               {label}
-              <span className={styles.value}>{tunables[key]}</span>
+              <span className="tabular-nums text-ink">{tunables[key]}</span>
             </span>
             <input
               type="range"
+              className="w-full accent-accent"
               min={range.min}
               max={range.max}
               step={range.step}
@@ -83,7 +86,7 @@ export function DevHud({
 
       <button
         type="button"
-        className={styles.reset}
+        className="cursor-pointer rounded-ctl border border-edge-strong bg-transparent px-2 py-1.5 font-inherit text-muted hover:text-ink"
         onClick={() => onChange(DEFAULT_TUNABLES)}
       >
         Reset to defaults

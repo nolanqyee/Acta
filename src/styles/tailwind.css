@@ -1,0 +1,90 @@
+/**
+ * Tailwind v4 — layout utilities only. Brand chrome stays in tokens.css (.acta-*).
+ * Theme values reference existing CSS variables from tokens.css (:root).
+ */
+
+@import "tailwindcss";
+
+@theme inline {
+  --color-canvas: var(--bg-canvas);
+  --color-panel: var(--bg-panel);
+  --color-card: var(--bg-card);
+  --color-elevated: var(--bg-elevated);
+  --color-ink: var(--ink);
+  --color-muted: var(--text-muted);
+  --color-accent-text: var(--accent-text);
+  --color-brand-secondary-text: var(--brand-secondary-text);
+  --color-brand-secondary-wash: var(--brand-secondary-wash);
+  --color-edge-strong: var(--edge-strong);
+  --color-accent: var(--accent);
+
+  --font-ui: var(--font-ui);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+
+  --radius-soft: var(--radius-soft);
+  --radius-ctl: var(--radius-ctl);
+  --radius-panel: var(--radius-panel);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-soft: var(--shadow-soft);
+  --shadow-panel: var(--shadow-panel);
+
+  --spacing-acta-1: var(--space-1);
+  --spacing-acta-2: var(--space-2);
+  --spacing-acta-3: var(--space-3);
+  --spacing-acta-4: var(--space-4);
+  --spacing-acta-5: var(--space-5);
+  --spacing-acta-6: var(--space-6);
+
+  --text-ui: var(--text-ui);
+  --text-ui-lg: var(--text-ui-lg);
+  --text-label: var(--text-label);
+  --text-body: var(--text-body);
+  --text-h-lg: var(--text-h-lg);
+
+  --width-panel-max: var(--panel-width-max);
+
+  --animate-caret-blink: caret-blink 1s steps(1, end) infinite;
+  --animate-marquee: marquee-scroll 40s linear infinite;
+  --animate-stream-forward: stream-scroll-forward 38s linear infinite;
+  --animate-stream-reverse: stream-scroll-reverse 44s linear infinite;
+}
+
+@keyframes caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes stream-scroll-forward {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes stream-scroll-reverse {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

@@ -9,7 +9,8 @@ src/app/              App Router: pages, root layout, and /api route handlers (t
 src/lib/contracts/    Shared Zod schemas + types (import via @/lib/contracts)
 src/features/         Graph canvas, capture composer + skim (client components)
 src/server/           Server-only domain logic (GraphRepository, extract, merge) — guarded by `import "server-only"`
-src/styles/tokens.css Design tokens — single source of truth (imported in the root layout)
+src/styles/tokens.css Design tokens + .acta-* recipes (SoT)
+src/styles/tailwind.css Tailwind v4 — layout utilities mapped to tokens
 ```
 
 Read [`docs/building-plan.md`](docs/building-plan.md) for the roadmap (units **U-A…U-J**) and
@@ -30,6 +31,11 @@ changes (branches, commits, PRs, Definition of Done), see [`CONTRIBUTING.md`](CO
 - **Contracts are an internal module** (`src/lib/contracts`), imported via the `@/lib/contracts`
   alias by both client and server. They hold no secrets and are safe to import anywhere.
 - **Design tokens** live only at `src/styles/tokens.css` (SoT), imported once in the root layout. Current visual direction is **Neubrutalism** — opaque surfaces, 3px ink borders, offset shadows, blue primary / pink secondary. Do not implement from archived liquid-glass specs (`docs/archive/brand-design-system.md`).
+- **Styling convention (added 2026-08-03):** **tokens.css + `.acta-*` + Tailwind** — no CSS modules.
+  - **`tokens.css`:** CSS variables and global recipe classes (`.acta-panel`, `.acta-control`, `.acta-button`, `.acta-row`, `.acta-chip`, `.acta-label`, `.acta-panel-close`, surface-specific recipes like `.acta-landing-*` when selectors are too complex for utilities alone).
+  - **`tailwind.css`:** Tailwind v4 with `@theme inline` mapping to existing `--*` tokens (`bg-canvas`, `p-acta-4`, `font-display`, …). Use for **layout variation** — grid, flex, spacing, responsive, positioning.
+  - **Do not add `*.module.css`.** Compose JSX with `.acta-*` + Tailwind classes.
+  - **Canvas:** `palette.ts` still reads tokens for `<canvas>` drawing — it does not use Tailwind.
 - **Long-running work** (bulk imports, embeddings backfill) must be kept off the request
   path — offload to Vercel Cron / a queue / a worker rather than blocking a route handler.
 

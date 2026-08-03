@@ -14,6 +14,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Charis_SIL, Figtree } from "next/font/google";
 import "@/styles/tokens.css";
+import "@/styles/tailwind.css";
 import "@/styles/base.css";
 
 /** Charis SIL — brand/display face: wordmark, headings, node titles (brand §6). */
