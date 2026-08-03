@@ -7,7 +7,7 @@ docs/                 Planning SoT (product, data-model, surfaces, agents, graph
 docs/archive/         Superseded design docs — reasoning worth reading, specifics not canon
 src/app/              App Router: pages, root layout, and /api route handlers (the API)
 src/lib/contracts/    Shared Zod schemas + types (import via @/lib/contracts)
-src/features/         Graph canvas, capture composer + skim (client components)
+src/features/         Graph: `engine/` (physics), `surfaces/` (UI), `lab/` (dev); landing; capture + skim (planned)
 src/server/           Server-only domain logic (GraphRepository, extract, merge) — guarded by `import "server-only"`
 src/styles/tokens.css Design tokens + .acta-* recipes (SoT)
 src/styles/tailwind.css Tailwind v4 — layout utilities mapped to tokens
@@ -36,6 +36,7 @@ changes (branches, commits, PRs, Definition of Done), see [`CONTRIBUTING.md`](CO
   - **`tailwind.css`:** Tailwind v4 with `@theme inline` mapping to existing `--*` tokens (`bg-canvas`, `p-acta-4`, `font-display`, …). Use for **layout variation** — grid, flex, spacing, responsive, positioning.
   - **Do not add `*.module.css`.** Compose JSX with `.acta-*` + Tailwind classes.
   - **Canvas:** `palette.ts` still reads tokens for `<canvas>` drawing — it does not use Tailwind.
+- **Graph folder layout (added 2026-08-03):** `src/features/graph/engine/` (physics + canvas), `surfaces/` (UI), `lab/` (dev). **`engine/` must not import `surfaces/` or `lab/`.**
 - **Long-running work** (bulk imports, embeddings backfill) must be kept off the request
   path — offload to Vercel Cron / a queue / a worker rather than blocking a route handler.
 

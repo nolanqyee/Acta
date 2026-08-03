@@ -18,9 +18,9 @@
 
 import { describe, expect, it } from "vitest";
 import { buildSampleGraph } from "@/lib/graph/sample-graph";
-import { buildLabFixture } from "@/features/graph/lab-fixture";
-import { GraphSimulation } from "@/features/graph/simulation";
-import { collisionRadius, DEFAULT_TUNABLES } from "@/features/graph/tunables";
+import { buildLabFixture } from "@/features/graph/lab/lab-fixture";
+import { GraphSimulation } from "@/features/graph/engine/simulation";
+import { collisionRadius, DEFAULT_TUNABLES } from "@/features/graph/engine/tunables";
 
 /** Hard ceiling on settle loops, so a bug can't hang the suite. */
 const SETTLE_TICKS = 20000;

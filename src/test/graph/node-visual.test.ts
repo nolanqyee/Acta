@@ -10,7 +10,7 @@ import {
   NODE_DIM_OPACITY,
   isThinEndeavor,
   resolveNodePaint,
-} from "@/features/graph/node-visual";
+} from "@/features/graph/engine/node-visual";
 
 const palette = {
   node: "#f4f1e9",

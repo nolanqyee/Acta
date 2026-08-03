@@ -1,8 +1,8 @@
 /**
  * @fileoverview The canvas workbench: the fixture graph, the physics HUD, and
- * nothing else.
+ * nothing else. Part of `features/graph/lab/` — dev-only (`/lab/graph`).
  *
- * Separate from `graph-view.tsx` so the real surface never inherits workbench
+ * Separate from `surfaces/graph-home.tsx` so the product surface never inherits workbench
  * behaviour, and so this can grow deliberately unrealistic controls (a denser
  * fixture, a fixed theme) without leaking them into the product.
  */
@@ -12,15 +12,10 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { buildSampleGraph } from "@/lib/graph/sample-graph";
+import { GraphCanvas, type GraphDebugApi } from "../engine/graph-canvas";
+import { DEFAULT_TUNABLES, type Tunables } from "../engine/tunables";
 import { DevHud } from "./dev-hud";
-import { GraphCanvas, type GraphDebugApi } from "./graph-canvas";
-import {
-  GRAPH_READOUT_BADGE_CLASS,
-  GRAPH_READOUT_CLASS,
-  GRAPH_SHELL_CLASS,
-} from "./graph-view";
 import { buildLabFixture } from "./lab-fixture";
-import { DEFAULT_TUNABLES, type Tunables } from "./tunables";
 
 /** Frame rate is sampled into React state this often; every frame would defeat the point. */
 const FPS_REPORT_INTERVAL_MS = 400;
@@ -92,15 +87,15 @@ export function GraphLab() {
   }, []);
 
   return (
-    <main className={GRAPH_SHELL_CLASS}>
+    <main className="relative h-dvh w-full overflow-hidden bg-canvas">
       <GraphCanvas
         snapshot={snapshot}
         tunables={tunables}
         onFps={handleFps}
         onDebugApi={handleDebugApi}
       />
-      <div className={GRAPH_READOUT_CLASS}>
-        <span className={GRAPH_READOUT_BADGE_CLASS}>
+      <div className="pointer-events-none absolute left-acta-4 top-acta-4 z-10 font-ui text-[11px] text-muted">
+        <span className="rounded-ctl border border-edge-strong bg-elevated px-2 py-1 uppercase tracking-widest">
           lab ·{" "}
           {size > 0 ? `${snapshot.nodes.length}-node fixture` : "sample graph"}
         </span>

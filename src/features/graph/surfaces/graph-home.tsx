@@ -1,7 +1,7 @@
 /**
  * @fileoverview The graph home surface (`/home`): live canvas full-bleed with Neubrutalism
- * product chrome overlaid. Owns React chrome, panels, and data loading; the canvas engine
- * lives in `./graph-canvas.tsx`.
+ * product chrome overlaid. Lives under `surfaces/` — imports the canvas engine from
+ * `../engine/graph-canvas.tsx` but owns React chrome, panels, and data loading only.
  */
 
 "use client";
@@ -15,7 +15,7 @@ import {
 } from "react";
 import { GraphSnapshot, type GraphSnapshot as GraphSnapshotType } from "@/lib/contracts";
 import { buildSampleGraph } from "@/lib/graph/sample-graph";
-import { GraphCanvas, type HoverInfo } from "./graph-canvas";
+import { GraphCanvas, type HoverInfo } from "../engine/graph-canvas";
 import { formatTimeframe, humanize } from "./format-endeavor";
 import { animateFadeIn } from "@/features/motion/enter";
 import { useReducedMotion } from "@/features/motion/use-reduced-motion";

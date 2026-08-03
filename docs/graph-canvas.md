@@ -56,23 +56,24 @@ Rebuilt 2026-07-26 on our own render loop. `react-force-graph-2d` is gone.
 
 | Module | Role |
 | --- | --- |
-| [`tunables.ts`](../src/features/graph/tunables.ts) | The four forces as numbers, with slider ranges. The only place defaults live. |
-| [`simulation.ts`](../src/features/graph/simulation.ts) | `GraphSimulation` — a `d3-force` layout with its internal timer disabled, stepped one tick per painted frame. Owns drag pinning and reheat/settle. |
-| [`seed.ts`](../src/features/graph/seed.ts) | Deterministic starting positions: containment groups start together, groups spiral out from the centre. |
-| [`camera.ts`](../src/features/graph/camera.ts) | Pan/zoom/fit, the exact screen↔world inverse that drag and hit-testing depend on, and a screen-space focus offset (eased by the canvas loop) that nudges the graph clear of the left detail panel. |
-| [`render.ts`](../src/features/graph/render.ts) | One frame: hairline edges, small dots, and the captions that have room. |
-| [`palette.ts`](../src/features/graph/palette.ts) | Resolves `tokens.css` custom properties into values a canvas can draw with. |
-| [`node-visual.ts`](../src/features/graph/node-visual.ts) | Node fill/stroke/hover-dim paint states for the canvas renderer. |
-| [`graph-canvas.tsx`](../src/features/graph/graph-canvas.tsx) | The `<canvas>`, the `requestAnimationFrame` loop, pointer/wheel/resize handling. Nothing per-frame goes through React state. |
-| [`hover-card-placement.ts`](../src/features/graph/hover-card-placement.ts) | Pure geometry — keeps a hover peek card on-screen (flip above/below pointer). |
-| [`dev-hud.tsx`](../src/features/graph/dev-hud.tsx) | Opaque sliders for the forces plus a frame counter. **Lab only** — it used to render on `/` too, which it never should have. |
-| [`graph-home.tsx`](../src/features/graph/graph-home.tsx) | The `/home` surface: fetch `GET /api/graph`, fall back to the sample fixture, Neubrutalism product chrome + canvas + hover/selection. |
-| [`graph-view.tsx`](../src/features/graph/graph-view.tsx) | Minimal canvas-only shell (lab constants); not routed in production. |
-| [`graph-lab.tsx`](../src/features/graph/graph-lab.tsx) + [`/lab/graph`](../src/app/lab/graph/page.tsx) | Dev-only workbench (404s in production, open without a session outside it). `?n=140` generates a fixture of that size; `?gravity=0.5&repulsion=12&…` overrides forces. |
-| [`node-detail.tsx`](../src/features/graph/node-detail.tsx) | Left-side, opaque panel for a selected node — title, kind, status, timeframe, summary, tags, facets. While a *different* node is hovered, the panel **previews** that node and returns to the selection on hover clear. Escape / close / background click deselect. Camera nudges the graph right while open. |
-| [`hover-card.tsx`](../src/features/graph/hover-card.tsx) | Compact peek following the pointer — **only when nothing is selected** (the detail panel owns the left edge once a node is clicked). |
-| [`format-endeavor.ts`](../src/features/graph/format-endeavor.ts) | Shared text formatting (kind/status humanizing, fuzzy-date spans) so the hover card and detail panel agree on how a field reads. |
-| [`../motion/enter.ts`](../src/features/motion/enter.ts) | Shared anime.js enter animations (detail panel fade/pop; hover card fade). |
+| **Engine** (`engine/`) — must not import `surfaces/` or `lab/` | |
+| [`tunables.ts`](../src/features/graph/engine/tunables.ts) | The four forces as numbers, with slider ranges. The only place defaults live. |
+| [`simulation.ts`](../src/features/graph/engine/simulation.ts) | `GraphSimulation` — a `d3-force` layout with its internal timer disabled, stepped one tick per painted frame. Owns drag pinning and reheat/settle. |
+| [`seed.ts`](../src/features/graph/engine/seed.ts) | Deterministic starting positions: containment groups start together, groups spiral out from the centre. |
+| [`camera.ts`](../src/features/graph/engine/camera.ts) | Pan/zoom/fit, the exact screen↔world inverse that drag and hit-testing depend on, and a screen-space focus offset (eased by the canvas loop) that nudges the graph clear of the left detail panel. |
+| [`render.ts`](../src/features/graph/engine/render.ts) | One frame: hairline edges, small dots, and the captions that have room. |
+| [`palette.ts`](../src/features/graph/engine/palette.ts) | Resolves `tokens.css` custom properties into values a canvas can draw with. |
+| [`node-visual.ts`](../src/features/graph/engine/node-visual.ts) | Node fill/stroke/hover-dim paint states for the canvas renderer. |
+| [`graph-canvas.tsx`](../src/features/graph/engine/graph-canvas.tsx) | The `<canvas>`, the `requestAnimationFrame` loop, pointer/wheel/resize handling. Nothing per-frame goes through React state. |
+| **Surfaces** (`surfaces/`) | |
+| [`graph-home.tsx`](../src/features/graph/surfaces/graph-home.tsx) | The `/home` surface: fetch `GET /api/graph`, fall back to the sample fixture, Neubrutalism product chrome + canvas + hover/selection/detail (inline panels). |
+| [`hover-card-placement.ts`](../src/features/graph/surfaces/hover-card-placement.ts) | Pure geometry — keeps a hover peek card on-screen (flip above/below pointer). |
+| [`format-endeavor.ts`](../src/features/graph/surfaces/format-endeavor.ts) | Shared text formatting (kind/status humanizing, fuzzy-date spans) for graph chrome. |
+| **Lab** (`lab/`) — dev-only | |
+| [`dev-hud.tsx`](../src/features/graph/lab/dev-hud.tsx) | Opaque sliders for the forces plus a frame counter. **Lab only** — it used to render on `/` too, which it never should have. |
+| [`graph-lab.tsx`](../src/features/graph/lab/graph-lab.tsx) + [`/lab/graph`](../src/app/lab/graph/page.tsx) | Dev-only workbench (404s in production, open without a session outside it). `?n=140` generates a fixture of that size; `?gravity=0.5&repulsion=12&…` overrides forces. |
+| [`lab-fixture.ts`](../src/features/graph/lab/lab-fixture.ts) | Synthetic graph generator for scale testing in the lab. |
+| [`../motion/enter.ts`](../src/features/motion/enter.ts) | Shared anime.js enter animations (panel fade/pop; hover card fade). |
 
 **How the requirements are met.** Gravity is a per-node pull toward the origin, so
 every node is pulled (R1); repulsion is global, with the disc's size set by the balance
@@ -229,6 +230,12 @@ graph fixture (see [`data-model.md`](data-model.md) § Canvas snapshot).
 ---
 
 ## Changelog
+
+- **2026-08-03:** **Folder split.** `features/graph/` → `engine/` (physics + canvas),
+  `surfaces/` (graph-home + formatting/placement), `lab/` (workbench + fixture).
+  Removed superseded `graph-view`, `hover-card`, and `node-detail` modules (chrome
+  lives inline in `graph-home.tsx`). **Import rule:** `engine/` must not import
+  `surfaces/` or `lab/`.
 
 - **2026-08-03:** **Graph app at `/home`.** `graph-home.tsx` ships Neubrutalism product
   chrome (ask row, explore/deepen panels, Capture CTA) on the live canvas. Auth callback

@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { boundsOf, Camera } from "@/features/graph/camera";
+import { boundsOf, Camera } from "@/features/graph/engine/camera";
 
 const VIEW = { width: 1200, height: 800 };
 

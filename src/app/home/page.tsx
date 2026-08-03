@@ -4,7 +4,7 @@
  * this page runs.
  */
 
-import { GraphHome } from "@/features/graph/graph-home";
+import { GraphHome } from "@/features/graph/surfaces/graph-home";
 
 /**
  * Renders the graph home surface for authenticated users.
