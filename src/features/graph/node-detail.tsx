@@ -52,7 +52,7 @@ function ChipSection({ label, values }: { label: string; values: string[] }) {
  *
  * @param props.node - The selected node, read straight from the canvas snapshot.
  * @param props.onClose - Called on Escape or the close button. A click on the canvas
- *   background also deselects, one layer up in `graph-view.tsx` — there's no scrim
+ *   background also deselects, one layer up in `graph-home.tsx` — there's no scrim
  *   here to catch it.
  * @returns The panel, mounted at the root of the graph surface.
  */

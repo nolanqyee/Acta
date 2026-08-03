@@ -15,13 +15,13 @@ import { createServerSupabase } from "@/lib/supabase/server";
  *
  * @param request - The redirect request from Supabase, carrying `?code=` and an
  *   optional `?next=` destination path.
- * @returns A redirect to `next` (default `/`) on success, or to `/login?error=`
+ * @returns A redirect to `next` (default `/home`) on success, or to `/login?error=`
  *   when the code is missing or the exchange fails.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const next = searchParams.get("next") ?? "/home";
 
   if (code) {
     const supabase = await createServerSupabase();

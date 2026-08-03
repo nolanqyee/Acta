@@ -1,13 +1,7 @@
 /**
- * @fileoverview The `/` surface while the canvas is being rebuilt: the graph, hover,
- * and selection — nothing more.
- *
- * The chrome from the first attempt (ask bar, filter menu, floating panels) was
- * deliberately deleted rather than carried over. Those surfaces are still the plan —
- * see docs/surfaces-and-flows.md — but each one gets built and looked at on its own, on
- * top of a canvas that already feels right (docs/graph-canvas.md § Deliberately
- * deferred). The tunables slider panel lives only in the dev workbench
- * (`graph-lab.tsx`); this surface renders with the finalised defaults.
+ * @fileoverview Minimal graph surface (canvas + hover + selection) without product
+ * chrome. Superseded at `/home` by `graph-home.tsx`; kept so `graph-lab.tsx` can share
+ * shell layout constants without importing the full product chrome.
  */
 
 "use client";
