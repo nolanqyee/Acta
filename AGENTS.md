@@ -47,6 +47,12 @@ changes (branches, commits, PRs, Definition of Done), see [`CONTRIBUTING.md`](CO
   silently ships a build with no blur at all. Always put the `-webkit-` copy first and the
   unprefixed copy last, with identical values. Browserslist targets do not change this.
 
+## Copy style (added 2026-08-03)
+
+User-facing text (UI, landing, product docs): **no inline arrows** (`->`, `→`, `=>`, etc.
+as prose connectors) and **no em dashes** (`—`). Use sentences, commas, colons, or lists
+instead. Code syntax and diagrams are exempt. See `.cursor/rules/copy-style.mdc`.
+
 ## Front-end working agreement (added 2026-07-26)
 
 The first graph canvas was scrapped, and the lesson is recorded here so it isn't
