@@ -1,26 +1,18 @@
 /**
- * @fileoverview Per-slide enter animations for the marketing landing page — each
- * section gets motion that matches its content (panels rising, streams sliding,
- * adapter rows peeling in, etc.) rather than one generic fade.
+ * @fileoverview Enter animations for the marketing landing page. Elements marked with
+ * `data-enter` are posed off-screen while their slide is pending, then animated in
+ * when the slide becomes active. Only the recipes the two remaining slides use are
+ * defined here; the richer per-section set was removed with those sections on
+ * 2026-08-04.
  */
 
 import { animate, type JSAnimation } from "animejs";
-import type { LandingSlideId } from "./landing-scroll";
 
 /** Enter animation recipe keyed on `data-enter`. */
-export type SlideEnterKind =
-  | "fade"
-  | "rise"
-  | "panel-up"
-  | "slide-left"
-  | "slide-right"
-  | "deal-in"
-  | "stream-left"
-  | "stream-right"
-  | "menu-right"
-  | "form-up";
+export type SlideEnterKind = "fade" | "rise" | "form-up";
 
-const DEFAULT_STAGGER_MS = 65;
+const DEFAULT_STAGGER_MS = 40;
+const ENTER_DURATION_MS = 420;
 
 /**
  * Reads the enter kind and optional delay index from a marked element.
@@ -39,7 +31,8 @@ function readEnterMeta(el: HTMLElement): { kind: SlideEnterKind; delay: number }
  *
  * @param el - Target element.
  * @param kind - Animation recipe.
- * @param direction - Scroll direction (1 down, -1 up).
+ * @param direction - Scroll direction (1 down, -1 up), so content enters from the
+ *   side the reader is travelling from.
  */
 export function prepareEnterElement(
   el: HTMLElement,
@@ -49,35 +42,14 @@ export function prepareEnterElement(
   el.style.opacity = "0";
 
   switch (kind) {
-    case "slide-left":
-      el.style.transform = "translateX(-56px) scale(0.94)";
-      break;
-    case "slide-right":
-      el.style.transform = "translateX(56px) scale(0.94)";
-      break;
-    case "stream-left":
-      el.style.transform = "translateX(-120px)";
-      break;
-    case "stream-right":
-      el.style.transform = "translateX(120px)";
-      break;
-    case "menu-right":
-      el.style.transform = "translateX(72px) scale(0.96)";
-      break;
-    case "panel-up":
-      el.style.transform = "translateY(64px) scale(0.9)";
-      break;
     case "form-up":
-      el.style.transform = `translateY(${direction * 28}px) scale(0.97)`;
-      break;
-    case "deal-in":
-      el.style.transform = "translateY(32px) scale(0.88) rotate(-4deg)";
+      el.style.transform = `translateY(${direction * 18}px) scale(0.98)`;
       break;
     case "rise":
-      el.style.transform = `translateY(${direction * 24}px) scale(0.97)`;
+      el.style.transform = `translateY(${direction * 16}px) scale(0.98)`;
       break;
     default:
-      el.style.transform = `translateY(${direction * 16}px)`;
+      el.style.transform = `translateY(${direction * 12}px)`;
   }
 }
 
@@ -93,57 +65,22 @@ function enterKeyframes(
   direction: 1 | -1,
 ): Record<string, (string | number)[]> {
   switch (kind) {
-    case "slide-left":
-      return {
-        opacity: [0, 1],
-        translateX: [-56, 0],
-        scale: [0.94, 1],
-      };
-    case "slide-right":
-      return {
-        opacity: [0, 1],
-        translateX: [56, 0],
-        scale: [0.94, 1],
-      };
-    case "stream-left":
-      return { opacity: [0, 1], translateX: [-120, 0] };
-    case "stream-right":
-      return { opacity: [0, 1], translateX: [120, 0] };
-    case "menu-right":
-      return {
-        opacity: [0, 1],
-        translateX: [72, 0],
-        scale: [0.96, 1],
-      };
-    case "panel-up":
-      return {
-        opacity: [0, 1],
-        translateY: [64, 0],
-        scale: [0.9, 1],
-      };
     case "form-up":
       return {
         opacity: [0, 1],
-        translateY: [direction * 28, 0],
-        scale: [0.97, 1],
-      };
-    case "deal-in":
-      return {
-        opacity: [0, 1],
-        translateY: [32, 0],
-        scale: [0.88, 1],
-        rotate: [-4, 0],
+        translateY: [direction * 18, 0],
+        scale: [0.98, 1],
       };
     case "rise":
       return {
         opacity: [0, 1],
-        translateY: [direction * 24, 0],
-        scale: [0.97, 1],
+        translateY: [direction * 16, 0],
+        scale: [0.98, 1],
       };
     default:
       return {
         opacity: [0, 1],
-        translateY: [direction * 16, 0],
+        translateY: [direction * 12, 0],
       };
   }
 }
@@ -152,14 +89,13 @@ function enterKeyframes(
  * Runs the enter animation for every `[data-enter]` element in a slide.
  *
  * @param slide - Slide root.
- * @param slideId - Which slide (used to tune duration/ease per section).
  * @param direction - Scroll direction.
  * @param reducedMotion - Skip animation when true.
- * @returns Combined animation handle, or null when skipped.
+ * @returns Handle for the first animation (used to interrupt a run in progress), or
+ *   null when there was nothing to animate.
  */
 export function animateSlideEnter(
   slide: HTMLElement | null,
-  slideId: LandingSlideId,
   direction: 1 | -1,
   reducedMotion: boolean,
 ): JSAnimation | null {
@@ -167,13 +103,6 @@ export function animateSlideEnter(
 
   const targets = slide.querySelectorAll<HTMLElement>("[data-enter]");
   if (targets.length === 0) return null;
-
-  const duration =
-    slideId === "how" || slideId === "outputs"
-      ? 560
-      : slideId === "compare"
-        ? 480
-        : 520;
 
   targets.forEach((el) => {
     const { kind } = readEnterMeta(el);
@@ -187,9 +116,9 @@ export function animateSlideEnter(
     animations.push(
       animate(el, {
         ...enterKeyframes(kind, direction),
-        duration,
+        duration: ENTER_DURATION_MS,
         delay,
-        ease: slideId === "importers" ? "out(2)" : "out(3)",
+        ease: "out(2)",
       }),
     );
   });

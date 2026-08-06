@@ -470,20 +470,6 @@
   align-items: center;
 }
 
-.acta-landing-page[data-slide-mode] .acta-landing-slide-compact .acta-landing-section-compact {
-  width: 100%;
-  padding: 32px 56px;
-  gap: 20px;
-}
-
-.acta-landing-page[data-slide-mode] .acta-landing-slide-outputs .acta-landing-section-outputs {
-  width: 100%;
-  min-height: 100%;
-  padding: 48px 56px;
-  justify-content: center;
-  gap: 40px;
-}
-
 .acta-landing-page[data-slide-mode] .acta-landing-slide-hero .acta-landing-slide-inner-hero {
   overflow: hidden;
   display: flex;
@@ -521,13 +507,6 @@
     --hero-copy-nudge-y: 0px;
   }
 
-  .acta-landing-page[data-slide-mode] .acta-landing-slide-compact .acta-landing-section-compact {
-    padding: 32px 24px;
-  }
-
-  .acta-landing-page[data-slide-mode] .acta-landing-slide-outputs .acta-landing-section-outputs {
-    padding: 40px 24px;
-  }
 }
 
 /** Hover peek card — elevated soft surface (no ink border). */
