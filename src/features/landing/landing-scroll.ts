@@ -8,19 +8,14 @@ import { animate, type JSAnimation } from "animejs";
 import { animateSlideEnter } from "./landing-slide-enters";
 
 /** Anchor ids for each landing slide, in scroll order. */
-export const LANDING_SLIDE_IDS = [
-  "top",
-  "how",
-  "importers",
-  "kinds",
-  "compare",
-  "outputs",
-  "footer",
-] as const;
+export const LANDING_SLIDE_IDS = ["top", "footer"] as const;
 
 export type LandingSlideId = (typeof LANDING_SLIDE_IDS)[number];
 
-const SLIDE_DURATION_MS = 720;
+/** Slide transition length — shared with chrome that waits for the track to settle. */
+export const LANDING_SLIDE_DURATION_MS = 720;
+
+const SLIDE_DURATION_MS = LANDING_SLIDE_DURATION_MS;
 const SLIDE_EASE = "inOut(3)";
 const WHEEL_THRESHOLD_PX = 48;
 const SWIPE_THRESHOLD_PX = 56;
@@ -46,6 +41,7 @@ export function slideTrackOffset(
 
 /**
  * Resolves a slide index from a hash anchor (`#how`, `#importers`, …).
+ * Used only when slide mode is off and native in-page anchors apply.
  *
  * @param hash - Location hash including or excluding `#`.
  * @returns Matching slide index, or 0 when unknown.
@@ -148,12 +144,7 @@ export function createLandingScrollController(options: {
     if (!shouldAnimate) return;
 
     contentAnim?.pause();
-    contentAnim = animateSlideEnter(
-      slide,
-      LANDING_SLIDE_IDS[index] ?? "top",
-      direction,
-      false,
-    );
+    contentAnim = animateSlideEnter(slide, direction, false);
   };
 
   const setTrackOffset = (
@@ -164,6 +155,7 @@ export function createLandingScrollController(options: {
     currentAnim?.pause();
     if (instant || disabled) {
       track.style.transform = `translate3d(0, ${-offset}px, 0)`;
+      animating = false;
       onDone?.();
       return;
     }
@@ -209,13 +201,6 @@ export function createLandingScrollController(options: {
         runContentEnter(next, direction);
       }
     });
-
-    const id = LANDING_SLIDE_IDS[next];
-    if (id && id !== "top") {
-      window.history.replaceState(null, "", `#${id}`);
-    } else {
-      window.history.replaceState(null, "", window.location.pathname);
-    }
   };
 
   const goToId = (id: LandingSlideId): void => {
@@ -301,27 +286,23 @@ export function createLandingScrollController(options: {
     setTrackOffset(slideTrackOffset(slides, activeIndex), true);
   };
 
-  const syncFromHash = (): void => {
-    if (disabled) return;
-    const index = slideIndexFromHash(window.location.hash);
-    if (index === 0) {
-      activeIndex = 0;
-      setTrackOffset(0, true);
-      return;
-    }
-    goToIndex(index);
-  };
-
   if (!disabled) {
     document.body.style.overflow = "hidden";
+    if (window.location.hash) {
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}`,
+      );
+    }
+    activeIndex = 0;
+    animating = false;
+    setTrackOffset(0, true);
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("resize", onResize);
-    window.addEventListener("hashchange", syncFromHash);
-    syncFromHash();
-    setTrackOffset(0, true);
   }
 
   const controller: LandingScrollController = {
@@ -343,7 +324,6 @@ export function createLandingScrollController(options: {
       window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("resize", onResize);
-      window.removeEventListener("hashchange", syncFromHash);
     }
   };
 
