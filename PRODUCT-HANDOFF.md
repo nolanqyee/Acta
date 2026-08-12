@@ -331,7 +331,9 @@ Same record. Different views. Grounded in what you actually recorded.
 | `docs/surfaces-and-flows.md` | App IA, surfaces, core flows |
 | `docs/agent-interaction-model.md` | AI write policy, confirm vs auto, proposals |
 | `docs/building-plan.md` | Build roadmap (units U-A through U-J) |
-| `docs/design-handoff.md` | What is on screen today (pixels, not planned behavior) |
+| `docs/design-system.md` | Visual system guide (`tokens.css` is SoT) |
+| `docs/surfaces-and-flows.md` | IA, chrome placement, what is wired vs mocked |
+| `docs/file-catalogue.md` | What ships in code today |
 
 ---
 

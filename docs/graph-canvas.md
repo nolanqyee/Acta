@@ -232,7 +232,7 @@ graph fixture (see [`data-model.md`](data-model.md) § Canvas snapshot).
 
 ## Changelog
 
-- **2026-08-03:** **Canon doc sync (PR 8).** Added [`design-handoff.md`](design-handoff.md) and [`file-catalogue.md`](file-catalogue.md); deleted superseded `docs/archive/` (lessons live here and in design-handoff).
+- **2026-08-03:** **Canon doc sync (PR 8).** Added [`design-system.md`](design-system.md) and [`file-catalogue.md`](file-catalogue.md); deleted superseded `docs/archive/` (lessons live here and in design-system).
 
 - **2026-08-03:** **Folder split.** `features/graph/` → `engine/` (physics + canvas),
   `surfaces/` (graph-home + formatting/placement), `lab/` (workbench + fixture).

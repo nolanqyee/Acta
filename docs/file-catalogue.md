@@ -2,7 +2,7 @@
 
 Last updated: 2026-08-03
 
-**Purpose:** A single inventory of what lives in the repo, what each area does, and what's safe to delete. Update this when files move or slices ship — companion to [`building-plan.md`](building-plan.md) (roadmap) and [`design-handoff.md`](design-handoff.md) (pixels on screen).
+**Purpose:** A single inventory of what lives in the repo, what each area does, and what's safe to delete. Update this when files move or slices ship — companion to [`building-plan.md`](building-plan.md) (roadmap) and [`design-system.md`](design-system.md) (visual system).
 
 **Counts (approx.):** ~80 files under `src/`, ~25 under `docs/`, ~115 total tracked (excluding `node_modules`).
 
@@ -27,7 +27,7 @@ Last updated: 2026-08-03
 | `surfaces-and-flows.md` | IA + interaction flows (contract) | U-B/C | planning |
 | `agent-interaction-model.md` | Confirm vs auto, write policy | U-D | planning |
 | `graph-canvas.md` | Live canvas spec (check on screen) | U3 | planning |
-| `design-handoff.md` | Pixels on screen today | U-A | planning |
+| `design-system.md` | Visual system guide (`tokens.css` is SoT) | U-A | planning |
 | `building-plan.md` | Roadmap U-A…U-J | — | planning |
 | `technical-implementation-plan.md` | HOW, milestones U1–U6 | U-J | planning |
 | **`file-catalogue.md`** | **This inventory** | — | planning |
@@ -194,7 +194,7 @@ Import boundary: **`engine/`** must not import **`surfaces/`** or **`lab/`**. Su
 | --- | --- |
 | `.design-import/*` | Claude Design reference HTML — already ported to code |
 | `app/landing/page.tsx` | Legacy `/landing` redirect — removed (no traffic yet) |
-| `docs/archive/*` | Superseded liquid-glass + pre-build physics/mocks — lessons in `graph-canvas.md` + `design-handoff.md` |
+| `docs/archive/*` | Superseded liquid-glass + pre-build physics/mocks — lessons in `graph-canvas.md` + `design-system.md` |
 | `scripts/fetch-claude-design.mjs` | Fetch script for above |
 | `src/features/design-lab/*` | Superseded — chrome lives in `graph/surfaces/graph-home.tsx` |
 | `graph/graph-view.tsx`, `hover-card.tsx`, `node-detail.tsx` | Merged into `graph-home.tsx` |
@@ -207,7 +207,7 @@ Import boundary: **`engine/`** must not import **`surfaces/`** or **`lab/`**. Su
 
 ## Changelog
 
-- **2026-08-03:** Canon doc sync (PR 8): `design-handoff.md`, `file-catalogue.md`, route map (`/` landing, `/home` graph). Split `features/graph/` into `engine/`, `surfaces/`, `lab/`.
+- **2026-08-03:** Canon doc sync (PR 8): `design-system.md`, `file-catalogue.md`, route map (`/` landing, `/home` graph). Split `features/graph/` into `engine/`, `surfaces/`, `lab/`.
 
 - **2026-08-03:** Graph app at `/home`; public waitlist at `/`. Tailwind v4 + `.acta-*`; deleted `graph-view.tsx`, `hover-card.tsx`, `node-detail.tsx`.
 
