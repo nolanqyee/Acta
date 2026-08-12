@@ -2,7 +2,7 @@
 
 Last updated: 2026-07-31 Update whenever planning decisions, scope, or open questions change.
 
-**Active ideation thread:** working brand = **Acta**. **U-A** visual system is being rebuilt from working screens — current pixels in [`design-handoff.md`](design-handoff.md). The up-front liquid-glass spec was scrapped (2026-07-26); do not resurrect it.
+**Active ideation thread:** working brand = **Acta**. **U-A** visual system is being rebuilt from working screens — see [`design-system.md`](design-system.md) and [`src/styles/tokens.css`](../src/styles/tokens.css). The up-front liquid-glass spec was scrapped (2026-07-26); do not resurrect it.
 
 **Doc altitude:** this is a **product spec** (what / why / scope). Detailed UI, UX, and user flows come later — capture product intent and capabilities here, not screen-level design.
 
@@ -605,7 +605,7 @@ Earlier working brand **Stilva** (still × vita) and soft candidate **Stiva** �
 
 ## Changelog
 
-- **2026-07-31:** **U-A in progress** — Neubrutalism tokens + `/home` graph chrome + `/` waitlist landing; link to [`design-handoff.md`](design-handoff.md). Next stack updated (U4 capture, not re-litigating U-J).
+- **2026-07-31:** **U-A in progress** — Neubrutalism tokens + `/home` graph chrome + `/` waitlist landing; link to [`design-system.md`](design-system.md). Next stack updated (U4 capture, not re-litigating U-J).
 
 - **2026-07-15:** Brand lore — Acta secondary reading **A Call To Action** (inspire deeds → capture). Visual system in U-A rebuild.
 - **2026-07-14:** Working brand → **Acta** (Latin *acta* — deeds/record). Cut **Stilva**. Finalists: Atlas, Stele, Ariadne. Domain TBD. **U-A** specified up front, then scrapped for rebuild-from-screen.

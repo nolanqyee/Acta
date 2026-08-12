@@ -4,7 +4,7 @@ Last updated: 2026-08-03
 
 **Owns:** information architecture (primary surfaces) and end-to-end interaction flows at contract altitude — not pixels, brand tokens, or full adapter editor design.
 
-**Visual pixels (current build):** [`design-handoff.md`](design-handoff.md) — Neubrutalism tokens, `/home` graph chrome, `/` waitlist landing. This doc stays the IA contract; where placement diverged (e.g. left detail panel vs centered modal), the changelog below marks what is superseded.
+**Visual system:** [`design-system.md`](design-system.md) — Neubrutalism tokens and recipes; **`src/styles/tokens.css` is SoT**. This doc stays the IA contract; where placement diverged (e.g. left detail panel vs centered modal), the changelog below marks what is superseded.
 
 Companions: [`personal-evidence-graph.md`](personal-evidence-graph.md) (product), [`data-model.md`](data-model.md) (schema), [`agent-interaction-model.md`](agent-interaction-model.md) (write policy), [`building-plan.md`](building-plan.md) (roadmap), [`graph-canvas.md`](graph-canvas.md) (the live canvas spec).
 
@@ -72,7 +72,7 @@ The homepage of the app. **The graph canvas is the entire background.** Every co
 
 #### Bottom chrome — ask / filter / graph settings
 
-6. **Ask bar** — persistent **bottom** prompt/chat-like control (opaque in current visual system — see design-handoff). NL query (“what have I done related to Redis?”). Results → Explore floating panel + canvas highlight — not a separate Explore app.
+6. **Ask bar** — persistent **bottom** prompt/chat-like control (opaque — see [`design-system.md`](design-system.md)). NL query (“what have I done related to Redis?”). Results → Explore floating panel + canvas highlight — not a separate Explore app.
 7. **Filters** — **not** always-visible chips. A **filter button** beside the ask cluster opens a panel. Filtering is **facet selection that slices endeavors**, not “toggle entity types onto the canvas”:
     - **Kind** — include/exclude endeavor kinds (role, project, …).
     - **Specific skills / people / orgs** — pick concrete values (e.g. skill=`Redis`, person=`Alex`, org=`Bubble`) to **highlight** related **endeavors** (accent). Optional search within each facet list. Active filters show as removable pills. Dimming non-matches deferred until density needs it (see brand).
@@ -96,7 +96,7 @@ The homepage of the app. **The graph canvas is the entire background.** Every co
 #### Other
 
 15. **List mode (secondary)** — same underlying set for people who don’t want the force view. Not marketing default.
-16. **Panel separation** — overlay panels use the active visual system (currently Neubrutalism: ink border + offset shadow — see design-handoff). No translucent surfaces over the live graph (**R7**).
+16. **Panel separation** — overlay panels use the active visual system (Neubrutalism: ink border + offset shadow — see [`design-system.md`](design-system.md)). No translucent surfaces over the live graph (**R7**).
 17. **Light mode only (for now)** — dark mode and theme toggle deferred until the visual system is settled on screen.
 
 **Canvas node set (locked):** unchanged — Endeavors only on canvas; Skills / People / Orgs not physics nodes.
@@ -358,7 +358,7 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
 
 - **2026-08-03:** **Light mode only** — theme toggle removed from IA contract; dark mode deferred.
 
-- **2026-08-03:** **`/` = public waitlist landing; `/home` = graph app (auth required).** Magic-link callback defaults to `/home`. Pixels on screen: [`design-handoff.md`](design-handoff.md). IA unchanged except confirming: ask bar = bottom opaque prompt control (liquid-glass language superseded); panel dismiss = top-right ×; dev route `/lab/graph` in route map.
+- **2026-08-03:** **`/` = public waitlist landing; `/home` = graph app (auth required).** Magic-link callback defaults to `/home`. Visual system: [`design-system.md`](design-system.md). IA unchanged except confirming: ask bar = bottom opaque prompt control (liquid-glass language superseded); panel dismiss = top-right ×; dev route `/lab/graph` in route map.
 
 - **2026-07-26 (later):** **Node click surface reconsidered: left panel, not a centered
   modal.** The first node-detail build (docs/graph-canvas.md's ninth pass) followed this

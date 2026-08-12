@@ -11,7 +11,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | [`surfaces-and-flows.md`](surfaces-and-flows.md) | IA / surfaces + core interaction flows |
 | [`agent-interaction-model.md`](agent-interaction-model.md) | Agents, confirm vs auto, pending proposals, write policy |
 | [`graph-canvas.md`](graph-canvas.md) | The live canvas spec (requirements + how we work on the graph) |
-| [`design-handoff.md`](design-handoff.md) | Design-session synthesis — pixels on screen today (`/home`, `/`, tokens) |
+| [`design-system.md`](design-system.md) | Visual system guide — `tokens.css` is SoT for values and recipes |
 | [`file-catalogue.md`](file-catalogue.md) | Repo file inventory — what each path owns |
 | [`technical-implementation-plan.md`](technical-implementation-plan.md) | **HOW** to implement locked plan docs (**U-J** — locked) |
 | **This doc** | What to harden next: brand, IA, flows, agents, tech plan, auth |
@@ -52,7 +52,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | Data model | **v1 draft locked** — [`data-model.md`](data-model.md) |
 | IA + core flows (**U-B** + **U-C**) | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | Agent write policy (**U-D**) | **Locked** — [`agent-interaction-model.md`](agent-interaction-model.md) |
-| Brand / visual (**U-A**) | **In progress** — Neubrutalism on `/home` + `/` landing; see [`design-handoff.md`](design-handoff.md) |
+| Brand / visual (**U-A**) | **In progress** — Neubrutalism on `/home` + `/` landing; see [`design-system.md`](design-system.md) |
 | Tech implementation plan (**U-J**) | **Locked** — [`technical-implementation-plan.md`](technical-implementation-plan.md) |
 | Persistence / auth (**U-E**) | **In first build wave** — thin Supabase Auth/Postgres + proposals from U-J U2; extras (export, connectors) still queued |
 | Code | **U-J U3 verified (2026-07-28)** — canvas + hover/selection/detail on `/home`. **U-A in progress** — Neubrutalism chrome shipped; controls inert until U4+. **Next = U-J U4** (Capture + LLM Extract stream) |
@@ -110,7 +110,7 @@ Monetization, GTM, domain/legal, B2B/coach-share, essay adapters, voice, kitchen
 
 ### U-A. Brand & visual system — **in progress (Neubrutalism rebuild)**
 
-**Deliverable:** [`src/styles/tokens.css`](../src/styles/tokens.css) — brand + UI foundation rebuilt from working screens. Session handoff for current pixels: [`design-handoff.md`](design-handoff.md). The up-front liquid-glass visual spec was scrapped (2026-07-26) — do not resurrect it.
+**Deliverable:** [`src/styles/tokens.css`](../src/styles/tokens.css) — brand + UI foundation (SoT). Human guide: [`design-system.md`](design-system.md). The up-front liquid-glass visual spec was scrapped (2026-07-26) — do not resurrect it.
 
 **Name (locked for now):** **Acta** — Latin *acta* (deeds / record of what was done). Supersedes Stilva. Domain TBD.
 
@@ -185,7 +185,7 @@ Practical order: **implement U-J milestones U1–U5** → Explore polish / thin 
 
 | Unit | Status |
 | --- | --- |
-| U-A Brand & visual | **In progress** — Neubrutalism in [`src/styles/tokens.css`](../src/styles/tokens.css); see [`design-handoff.md`](design-handoff.md) |
+| U-A Brand & visual | **In progress** — Neubrutalism in [`src/styles/tokens.css`](../src/styles/tokens.css); see [`design-system.md`](design-system.md) |
 | U-B IA & surfaces | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | U-C Core flows | **Locked** — [`surfaces-and-flows.md`](surfaces-and-flows.md) |
 | U-D Agent model | **Locked** — [`agent-interaction-model.md`](agent-interaction-model.md) |
@@ -203,7 +203,7 @@ Code: **U-J U3 verified** — canvas + hover/selection/detail on `/home` (see [`
 
 ## Changelog
 
-- **2026-08-03:** **Canon doc sync (PR 8).** Added [`design-handoff.md`](design-handoff.md) and [`file-catalogue.md`](file-catalogue.md); synced IA, tech plan, and README to `/` landing + `/home` graph + `engine/`/`surfaces/`/`lab/` split. **Deleted `docs/archive/`** — superseded liquid-glass and pre-build physics docs removed; durable lessons live in `graph-canvas.md` and `design-handoff.md`.
+- **2026-08-03:** **Canon doc sync (PR 8).** Added [`design-system.md`](design-system.md) (formerly design-handoff) and [`file-catalogue.md`](file-catalogue.md); synced IA, tech plan, and README to `/` landing + `/home` graph + `engine/`/`surfaces/`/`lab/` split. **Deleted `docs/archive/`** — superseded liquid-glass and pre-build physics docs removed; durable lessons live in `graph-canvas.md` and `design-system.md`.
 
 - **2026-08-03:** **Graph app at `/home`.** Signed-in surface is `graph-home.tsx`
   (Neubrutalism chrome + canvas). Magic link lands on `/home` by default.

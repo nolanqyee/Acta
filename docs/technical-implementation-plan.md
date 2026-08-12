@@ -12,7 +12,7 @@ origin: docs/building-plan.md (U-J); locked companions: personal-evidence-graph.
 
 **Owns:** HOW to implement locked product docs — stack defaults, module map, capture+render slice, persistence/auth path, agent/runtime seams, sequenced milestones, risks. Does **not** re-litigate product IA, schema kinds, or brand look.
 
-**Companions:** [`building-plan.md`](building-plan.md) (roadmap), [`data-model.md`](data-model.md) (schema), [`agent-interaction-model.md`](agent-interaction-model.md) (write policy), [`surfaces-and-flows.md`](surfaces-and-flows.md) (chrome/flows), [`graph-canvas.md`](graph-canvas.md) (canvas behaviour), [`design-handoff.md`](design-handoff.md) (pixels on screen), [`src/styles/tokens.css`](../src/styles/tokens.css) (tokens).
+**Companions:** [`building-plan.md`](building-plan.md) (roadmap), [`data-model.md`](data-model.md) (schema), [`agent-interaction-model.md`](agent-interaction-model.md) (write policy), [`surfaces-and-flows.md`](surfaces-and-flows.md) (chrome/flows), [`graph-canvas.md`](graph-canvas.md) (canvas behaviour), [`design-system.md`](design-system.md) (visual system), [`src/styles/tokens.css`](../src/styles/tokens.css) (token SoT).
 
 **Note on IDs:** Implementation units below (`U1`…) are **build milestones inside this plan**. Building-plan roadmap units remain **`U-A`…`U-J`**.
 
@@ -117,7 +117,7 @@ flowchart LR
 | Entity/edge Zod + ExtractProposal shape | `src/lib/contracts` (+ server persist) | `data-model.md` |
 | Capture → Extract → Proposal → Merge | `src/server/*` (route handlers call it) | `agent-interaction-model.md` |
 | Force canvas, overlays, skim chrome | `src/features/*` (client) | `surfaces-and-flows.md`, `graph-canvas.md` |
-| Tokens / visual | `src/styles/tokens.css` (imported in root layout) | itself — see `design-handoff.md` and `graph-canvas.md` for canvas visuals |
+| Tokens / visual | `src/styles/tokens.css` (imported in root layout) | itself — see `design-system.md` and `graph-canvas.md` for usage |
 | Auth session | browser client + `middleware.ts` cookie verify | **U-E** detail inside this plan’s early milestones |
 
 ### Capture / proposal state machine (KTD10)
@@ -345,7 +345,7 @@ Rationale: quality is built in per unit (readable code + tests), not bolted on l
 
   **What landed:** `engine/simulation.ts`, `engine/camera.ts`, `engine/render.ts`, `engine/seed.ts`, `engine/palette.ts`, `engine/graph-canvas.tsx` (RAF loop, our own `d3-force` tick), `surfaces/graph-home.tsx` (fetch + full Neubrutalism chrome on `/home`), `lab/dev-hud.tsx` + `/lab/graph` workbench. Hover peek + detail panel live inline in `graph-home.tsx`. Verification: look at `/lab/graph` and `/home`; `src/test/graph/layout-shape.test.ts` guards the real engine (roundness, locality, shimmer).
 
-  **Parallel (U-A, not U3 exit):** Neubrutalism tokens, `/` waitlist landing — see [`design-handoff.md`](design-handoff.md). **Light mode only** (dark deferred).
+  **Parallel (U-A, not U3 exit):** Neubrutalism tokens, `/` waitlist landing — see [`design-system.md`](design-system.md). **Light mode only** (dark deferred).
 
   **Still deferred to later units:** ask ranking, filter wiring, capture composer, deepen backlog, Explore/diff-skim behavior, NL ranking, real deepen signal — chrome is visible on `/home` but inert until U4–U6.
 
@@ -485,7 +485,7 @@ U1 Next app + contracts
 
 ## Changelog
 
-- **2026-08-03:** **U3 status block rewritten** to match current code: canvas + hover/selection/detail on `/home`; chrome inert until U4–U6; light mode only. Added [`docs/file-catalogue.md`](file-catalogue.md) and [`docs/design-handoff.md`](design-handoff.md).
+- **2026-08-03:** **U3 status block rewritten** to match current code: canvas + hover/selection/detail on `/home`; chrome inert until U4–U6; light mode only. Added [`docs/file-catalogue.md`](file-catalogue.md) and [`docs/design-system.md`](design-system.md).
 
 - **2026-07-26 (later):** **U3 canvas rebuilt on our own render loop; the wrapper is gone.** The retuned layout passed its own measurements and still looked wrong on screen — the diagnosis was architectural, not numerical: with `react-force-graph-2d` owning the tick loop, the zoom transform, drag handling and redraw scheduling, the qualities the canvas is judged on were unreachable from outside. Now ours: [`simulation.ts`](../src/features/graph/simulation.ts), [`camera.ts`](../src/features/graph/camera.ts), [`render.ts`](../src/features/graph/render.ts), [`seed.ts`](../src/features/graph/seed.ts), [`graph-canvas.tsx`](../src/features/graph/graph-canvas.tsx). Three things worth carrying forward beyond this unit: **(1)** captions are gated on *measured clear space* around a node, not a zoom threshold, so overview views are quiet and zooming in reveals names; **(2)** front-end work is now verified in a browser — a dev-only `/lab/graph` workbench (URL-settable forces + a fixture generator up to 600 nodes) plus `npm run shots` / `npm run shots:compare`, which capture fit/zoom/drag states and stitch candidate settings into one comparable image; **(3)** [`layout-shape.test.ts`](../src/features/graph/layout-shape.test.ts) measures the **real** engine, replacing a test that re-implemented the forces and could therefore pass while the screen was wrong. Measured: aspect ratio 1.00–1.06 across 19/26/140/400 nodes, furthest node 1.3–1.7× the median radius, 109–127 fps including mid-drag at 400 nodes. `npm run check` + `next build` green. Docs: [`graph-canvas.md`](graph-canvas.md) replaces the archived physics doctrine and visual system; [`AGENTS.md`](../AGENTS.md) gained a front-end working agreement (build in verified slices; don't specify visuals ahead of building them; own the loop; numbers guard, eyes decide; no translucency over live content).
 - **2026-07-26:** **U3 layout fix — the canvas now honours the physics doctrine.** The shipped U3 graph settled as a stringy sprawl parked off-centre; four causes, all fixed and now measured rather than eyeballed. (1) **No gravity existed**: `forceCenter` only translates the centroid, so `forceX`/`forceY` now supply real cohesion; (2) charge reach is **capped** at ~4× link distance instead of inflating the whole graph; (3) shared facets are wired as **hub-and-spoke stars capped at two derived links per endeavor** instead of arbitrarily ordered chains; (4) cluster centres are ordered around the seeding ring by **link affinity** instead of alphabetically. Framing is fitted after the engine stops. New: [`src/lib/graph/derive-endeavor-links.ts`](../src/lib/graph/derive-endeavor-links.ts) — one isomorphic link rule shared by the server projection and the sample fixture, so the fixture can no longer flatter the layout — and [`layout-quality.test.ts`](../src/features/graph/layout-quality.test.ts), which settles the sample graph *and* a denser synthetic graph in a headless `d3-force` run and asserts crossings, bounding-box roundness, radial fill, overlaps, and edge length. Retuned defaults (gravity `0.09`, link distance `40`, repel `320`) land the sample graph at **zero crossings** and a square-ish bounding box. `npm run check` green. See graph-physics + data-model changelogs.

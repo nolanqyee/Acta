@@ -582,7 +582,7 @@ The graph is the mechanism. Memory, compounding, and never starting from scratch
 | [`personal-evidence-graph.md`](personal-evidence-graph.md) | Product spec (what / why / scope). This doc owns **how we talk about it**. |
 | [`PRODUCT-HANDOFF.md`](../PRODUCT-HANDOFF.md) | Temporary full product writeup for external copy. Update hero section to match this doc when refreshed. |
 | [`landing-copy.ts`](../src/features/landing/landing-copy.ts) | Shipped strings on `/`. Should track hero Option 1 when updated. |
-| [`design-handoff.md`](design-handoff.md) | Pixels today, not messaging strategy. |
+| [`design-system.md`](design-system.md) | Visual system, not messaging strategy. |
 
 When product positioning changes, update this doc first, then landing copy, then product spec summary if needed.
 

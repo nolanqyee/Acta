@@ -15,7 +15,7 @@ Canonical docs (`docs/`):
 - `docs/agent-interaction-model.md` — agents, confirm vs auto, pending proposals, write policy
 - `docs/graph-canvas.md` — the live spec for the graph canvas: hard requirements, what's deferred, and how we work on it (one verified slice at a time)
 - `docs/building-plan.md` — build roadmap. **Units are `U-A`…`U-J`** (say “U-D”, never bare “D” for roadmap items). See Doc conventions in that file. **U-J** = technical implementation plan (HOW).
-- `docs/design-handoff.md` — pixels on screen today (Neubrutalism, routes, chrome inventory)
+- `docs/design-system.md` — visual system guide; **`src/styles/tokens.css` is SoT** for values and `.acta-*` recipes
 
 When this conversation involves the graph canvas — physics, rendering, labels, zoom, drag, or how it should look and feel:
 

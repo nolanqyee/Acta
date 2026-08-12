@@ -17,7 +17,7 @@ Planning docs live in [`docs/`](docs/). Building-plan units are **U-A…U-J** (s
 | [`docs/graph-canvas.md`](docs/graph-canvas.md) | The graph canvas — requirements + how we work on it |
 | [`docs/building-plan.md`](docs/building-plan.md) | Build roadmap |
 | [`docs/technical-implementation-plan.md`](docs/technical-implementation-plan.md) | **HOW** (**U-J** — locked) |
-| [`docs/design-handoff.md`](docs/design-handoff.md) | Pixels on screen today — Neubrutalism, `/home`, `/` landing |
+| [`docs/design-system.md`](docs/design-system.md) | Visual system guide — Neubrutalism tokens + recipes (`tokens.css` is SoT) |
 | [`docs/file-catalogue.md`](docs/file-catalogue.md) | Repo file inventory — what each area owns |
 
 **Design tokens (source of truth):** [`src/styles/tokens.css`](src/styles/tokens.css)

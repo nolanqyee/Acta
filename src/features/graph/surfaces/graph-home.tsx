@@ -7,6 +7,14 @@
 "use client";
 
 import {
+  ArrowUp,
+  Filter,
+  Inbox,
+  Menu,
+  Plus,
+  Settings,
+} from "lucide-react";
+import {
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -55,13 +63,44 @@ const CARD_WIDTH_PX = HOVER_CARD_WIDTH_PX;
 /** Longest summary snippet shown before an ellipsis. */
 const MAX_SNIPPET_CHARS = 140;
 
-/** Shared Neubrutalism icon-button chrome (hamburger, deepen, settings). */
-const CONTROL_BTN =
-  "acta-control relative grid size-[var(--ctl-size-brutal)] cursor-pointer place-items-center bg-card font-ui text-ink transition-[background,transform] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-panel active:translate-x-px active:translate-y-px active:shadow-[2px_2px_0_var(--ink)]";
+/** Top chrome height — compact controls (brand row, capture, profile). */
+const TOP_H = "h-[var(--ctl-size-brutal)]";
 
-/** Shared pressable pill control (filter, explore toggle base). */
-const PILL_BTN =
-  "acta-control cursor-pointer font-ui text-ink transition-[background,transform] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-card active:translate-x-px active:translate-y-px active:shadow-[2px_2px_0_var(--ink)]";
+/** Bottom ask row height — ask bar, explore, filter, settings. */
+const ASK_H = "h-[var(--ask-height-brutal)]";
+
+/** Lucide sizing — slightly smaller in the compact top row. */
+const TOP_ICON_SIZE = 16;
+const ASK_ICON_SIZE = 18;
+const ICON_STROKE = 2.25;
+
+/** Square icon button for the top chrome row. */
+const TOP_ICON_BTN = [
+  "acta-control relative grid aspect-square min-w-[var(--ctl-size-brutal)] cursor-pointer place-items-center bg-card font-ui text-ink",
+  TOP_H,
+  "transition-[background,transform] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-panel active:translate-x-px active:translate-y-px active:shadow-[2px_2px_0_var(--ink)]",
+].join(" ");
+
+/** Pill control for the top chrome row. */
+const TOP_PILL_BTN = [
+  "acta-control inline-flex cursor-pointer items-center font-ui text-ink",
+  TOP_H,
+  "transition-[background,transform] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-card active:translate-x-px active:translate-y-px active:shadow-[2px_2px_0_var(--ink)]",
+].join(" ");
+
+/** Square icon button for the bottom ask row. */
+const ASK_ICON_BTN = [
+  "acta-control relative grid aspect-square min-w-[var(--ask-height-brutal)] cursor-pointer place-items-center bg-card font-ui text-ink",
+  ASK_H,
+  "transition-[background,transform] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-panel active:translate-x-px active:translate-y-px active:shadow-[2px_2px_0_var(--ink)]",
+].join(" ");
+
+/** Pill control for the bottom ask row. */
+const ASK_PILL_BTN = [
+  "acta-control inline-flex cursor-pointer items-center font-ui text-ink",
+  ASK_H,
+  "transition-[background,transform] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-card active:translate-x-px active:translate-y-px active:shadow-[2px_2px_0_var(--ink)]",
+].join(" ");
 
 /**
  * Renders one labelled chip list in the node detail panel, or nothing if the
@@ -343,19 +382,12 @@ export function GraphHome() {
           <div className="relative shrink-0">
             <button
               type="button"
-              className={CONTROL_BTN}
+              className={TOP_ICON_BTN}
               aria-label={adapterMenuOpen ? "Close adapters" : "Open adapters"}
               aria-expanded={adapterMenuOpen}
               onClick={() => setAdapterMenuOpen((open) => !open)}
             >
-              <span
-                className="flex flex-col items-center justify-center gap-1 [&_span]:block [&_span]:h-[1.5px] [&_span]:w-3.5 [&_span]:rounded-[1px] [&_span]:bg-ink"
-                aria-hidden
-              >
-                <span />
-                <span />
-                <span />
-              </span>
+              <Menu size={TOP_ICON_SIZE} strokeWidth={ICON_STROKE} aria-hidden />
             </button>
             {adapterMenuOpen ? (
               <div
@@ -391,26 +423,24 @@ export function GraphHome() {
       </div>
 
       <div className="fixed right-acta-6 top-acta-6 z-20 flex items-center gap-acta-3">
-        <button type="button" className="acta-button acta-button-accent acta-button-primary">
-          <span className="text-[15px] leading-none" aria-hidden>
-            +
-          </span>
+        <button
+          type="button"
+          className="acta-button acta-button-accent acta-button-primary"
+        >
+          <Plus size={TOP_ICON_SIZE} strokeWidth={ICON_STROKE} aria-hidden />
           Capture
         </button>
 
         <div className="relative inline-flex">
           <button
             type="button"
-            className={CONTROL_BTN}
+            className={TOP_ICON_BTN}
             aria-label={deepenOpen ? "Close deepen backlog" : "Open deepen backlog"}
             aria-expanded={deepenOpen}
             aria-pressed={deepenOpen}
             onClick={() => setDeepenOpen((open) => !open)}
           >
-            <span
-              className="h-3 w-[15px] rounded-[2px] border-[1.5px] border-ink"
-              aria-hidden
-            />
+            <Inbox size={TOP_ICON_SIZE} strokeWidth={ICON_STROKE} aria-hidden />
           </button>
           <span className="absolute -right-1 -top-[5px] grid h-[18px] min-w-[18px] place-items-center rounded-pill border-2 border-ink bg-[var(--brand-secondary)] px-1 font-ui text-[10px] font-bold leading-none text-[var(--brand-secondary-ink)]">
             7
@@ -419,16 +449,14 @@ export function GraphHome() {
 
         <button
           type="button"
-          className={`${CONTROL_BTN} acta-button h-[var(--ctl-size-brutal)] w-auto px-4 pl-1.5`}
+          className={`${TOP_PILL_BTN} acta-button gap-2 px-3 pl-2`}
           aria-label="Profile menu"
         >
-          <span className="flex items-center gap-acta-3">
-            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[var(--brand-primary)] font-ui text-[10px] font-semibold text-[var(--brand-primary-ink)]">
-              NY
-            </span>
-            <span className="whitespace-nowrap font-ui text-[13px] font-medium text-ink">
-              Nolan
-            </span>
+          <span className="grid size-6 shrink-0 place-items-center rounded-full bg-[var(--brand-primary)] font-ui text-[10px] font-semibold text-[var(--brand-primary-ink)]">
+            NY
+          </span>
+          <span className="whitespace-nowrap font-ui text-[13px] font-medium text-ink">
+            Nolan
           </span>
         </button>
       </div>
@@ -442,15 +470,15 @@ export function GraphHome() {
           />
           <button
             type="button"
-            className="shrink-0 cursor-pointer border-0 bg-transparent p-0 text-[15px] leading-none text-muted shadow-none hover:text-ink"
+            className="shrink-0 cursor-pointer border-0 bg-transparent p-0 text-muted shadow-none hover:text-ink"
             aria-label="Send"
           >
-            ↑
+            <ArrowUp size={ASK_ICON_SIZE} strokeWidth={ICON_STROKE} aria-hidden />
           </button>
         </div>
         <button
           type="button"
-          className={`${PILL_BTN} acta-button h-[var(--ask-height-brutal)] shrink-0 whitespace-nowrap px-4 aria-pressed:bg-[var(--brand-primary)] aria-pressed:text-[var(--brand-primary-ink)]`}
+          className={`${ASK_PILL_BTN} acta-button shrink-0 whitespace-nowrap px-4 aria-pressed:bg-[var(--brand-primary)] aria-pressed:text-[var(--brand-primary-ink)]`}
           aria-pressed={exploreOpen}
           aria-label="Toggle explore panel"
           onClick={() => setExploreOpen((open) => !open)}
@@ -459,19 +487,18 @@ export function GraphHome() {
         </button>
         <button
           type="button"
-          className={`${PILL_BTN} h-[var(--ask-height-brutal)] shrink-0 px-5 text-[13px]`}
+          className={`${ASK_PILL_BTN} shrink-0 gap-acta-2 px-5 text-[13px]`}
+          aria-label="Filter graph"
         >
+          <Filter size={16} strokeWidth={ICON_STROKE} aria-hidden />
           Filter
         </button>
         <button
           type="button"
-          className={`${CONTROL_BTN} size-[var(--ask-height-brutal)] shrink-0`}
+          className={`${ASK_ICON_BTN} shrink-0`}
           aria-label="Graph settings"
         >
-          <span
-            className="size-[13px] rounded-full border-[1.5px] border-ink"
-            aria-hidden
-          />
+          <Settings size={ASK_ICON_SIZE} strokeWidth={ICON_STROKE} aria-hidden />
         </button>
       </div>
 

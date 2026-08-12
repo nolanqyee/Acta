@@ -6,6 +6,7 @@
  * no blur, no scrims, no liquid glass.
  *
  * Light mode only for now — dark mode deferred until the visual system is settled.
+ * Human guide: docs/design-system.md. Edit token values and recipes here first.
  */
 
 :root {
@@ -90,8 +91,11 @@
   --shadow: var(--shadow-panel);
 
   /* —— Control / chrome sizes —— */
-  --ctl-size-brutal: 2.375rem; /* 38 */
-  --ask-height-brutal: 3rem; /* 48 */
+  /* Compact tier (38): top chrome — hamburger, capture, deepen, profile.
+     Ask-row tier (48): bottom strip — ask bar and inline peers (Explore, Filter, Settings).
+     Rule: same row, same height; different rows may differ when the control's job differs. */
+  --ctl-size-brutal: 2.375rem; /* 38 — compact chrome controls */
+  --ask-height-brutal: 3rem; /* 48 — ask bar + bottom-row peers */
   --ctl-size: var(--ctl-size-brutal);
   --ask-height: var(--ask-height-brutal);
   --panel-width-brutal: 22.75rem; /* 364 */
