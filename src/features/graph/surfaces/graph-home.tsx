@@ -22,7 +22,10 @@ import {
   useState,
 } from "react";
 import { GraphSnapshot, type GraphSnapshot as GraphSnapshotType } from "@/lib/contracts";
-import { buildSampleGraph } from "@/lib/graph/sample-graph";
+import { mergePendingPreviewsIntoSnapshot } from "@/lib/graph/merge-pending-previews";
+import { pendingGhostNodeId } from "@/lib/graph/pending-ghost-id";
+import { DiffSkimPanel } from "@/features/capture/diff-skim-panel";
+import { useOpenProposal } from "@/features/capture/use-open-proposal";
 import { GraphCanvas, type HoverInfo } from "../engine/graph-canvas";
 import { formatTimeframe, humanize } from "./format-endeavor";
 import { animateFadeIn } from "@/features/motion/enter";
@@ -51,8 +54,8 @@ const EXPLORE_RESULTS: ExploreResult[] = [
   { title: "Graph embedding study", kind: "Project" },
 ];
 
-/** Where the rendered graph came from, so the status line can say so honestly. */
-type GraphSource = "loading" | "live" | "sample";
+/** Whether the user's graph has loaded from the API yet. */
+type GraphLoadState = "loading" | "live" | "error";
 
 /** Gap between the pointer and the hover card, in CSS px. */
 const OFFSET_PX = HOVER_CARD_OFFSET_PX;
@@ -141,16 +144,18 @@ function snippet(summary: string | undefined): string | null {
  * Builds the bottom status line from graph state and chrome toggles.
  *
  * @param snapshot - Loaded graph, if any.
- * @param source - Whether data is live, sample, or still loading.
+ * @param loadState - Whether the graph fetch is still in flight or failed.
  * @param selectedNode - Currently selected canvas node, if any.
  * @param exploreOpen - Whether the Explore panel is open.
  * @returns Status copy for the footer readout.
  */
 function statusLine(
   snapshot: GraphSnapshotType | null,
-  source: GraphSource,
+  loadState: GraphLoadState,
   selectedNode: GraphSnapshotType["nodes"][number] | null,
   exploreOpen: boolean,
+  capturePanelOpen: boolean,
+  pendingReviewCount: number,
 ): string {
   if (selectedNode) {
     const facetCount =
@@ -159,16 +164,30 @@ function statusLine(
       selectedNode.facets.orgs.length;
     return `${facetCount} facets · detail open`;
   }
+  if (capturePanelOpen && pendingReviewCount > 0) {
+    return `${pendingReviewCount} pending · review open`;
+  }
+  if (pendingReviewCount > 0) {
+    return `${pendingReviewCount} pending · open Capture to review`;
+  }
   if (exploreOpen) {
     return `${EXPLORE_RESULTS.length} of ${snapshot?.nodes.length ?? "—"} shown · filter · 2`;
   }
-  if (!snapshot || source === "loading") {
+  if (loadState === "loading") {
     return "loading graph…";
+  }
+  if (loadState === "error") {
+    return "couldn't load your graph · refresh to retry";
+  }
+  if (!snapshot) {
+    return "your graph";
+  }
+  if (snapshot.nodes.length === 0) {
+    return "empty graph · capture to add your first endeavor";
   }
   const endeavorWord = snapshot.nodes.length === 1 ? "endeavor" : "endeavors";
   const linkWord = snapshot.links.length === 1 ? "link" : "links";
-  const sourceLabel = source === "sample" ? "sample graph" : "live simulation";
-  return `${snapshot.nodes.length} ${endeavorWord} · ${snapshot.links.length} ${linkWord} · ${sourceLabel}`;
+  return `${snapshot.nodes.length} ${endeavorWord} · ${snapshot.links.length} ${linkWord} · your graph`;
 }
 
 /**
@@ -180,12 +199,22 @@ export function GraphHome() {
   const reducedMotion = useReducedMotion();
 
   const [snapshot, setSnapshot] = useState<GraphSnapshotType | null>(null);
-  const [source, setSource] = useState<GraphSource>("loading");
+  const [loadState, setLoadState] = useState<GraphLoadState>("loading");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hover, setHover] = useState<HoverInfo | null>(null);
   const [adapterMenuOpen, setAdapterMenuOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
   const [deepenOpen, setDeepenOpen] = useState(false);
+  const [capturePanelOpen, setCapturePanelOpen] = useState(false);
+
+  const {
+    proposal,
+    busy: captureBusy,
+    pendingUnitCount,
+    captureBlocked,
+    submitCapture,
+    retryExtract,
+  } = useOpenProposal();
 
   const hamburgerAreaRef = useRef<HTMLDivElement>(null);
   const hoverCardRef = useRef<HTMLDivElement>(null);
@@ -200,19 +229,12 @@ export function GraphHome() {
           throw new Error(`graph fetch failed: ${response.status}`);
         const parsed = GraphSnapshot.parse(await response.json());
         if (cancelled) return;
-
-        if (parsed.nodes.length > 0) {
-          setSnapshot(parsed);
-          setSource("live");
-          return;
-        }
+        setSnapshot(parsed);
+        setLoadState("live");
       } catch {
-        // Fall through to the fixture.
+        if (cancelled) return;
+        setLoadState("error");
       }
-
-      if (cancelled) return;
-      setSnapshot(buildSampleGraph());
-      setSource("sample");
     })();
 
     return () => {
@@ -220,9 +242,19 @@ export function GraphHome() {
     };
   }, []);
 
+  const canvasSnapshot = useMemo(() => {
+    if (!snapshot) {
+      return null;
+    }
+    if (!proposal || proposal.pendingEndeavorPreviews.length === 0) {
+      return snapshot;
+    }
+    return mergePendingPreviewsIntoSnapshot(snapshot, proposal);
+  }, [snapshot, proposal]);
+
   const selectedNode = useMemo(
-    () => snapshot?.nodes.find((node) => node.id === selectedId) ?? null,
-    [snapshot, selectedId],
+    () => canvasSnapshot?.nodes.find((node) => node.id === selectedId) ?? null,
+    [canvasSnapshot, selectedId],
   );
 
   /**
@@ -316,9 +348,9 @@ export function GraphHome() {
       data-mode="light"
     >
       <div className="absolute inset-0 z-0 bg-canvas [background-image:linear-gradient(var(--ink-wash)_1px,transparent_1px),linear-gradient(90deg,var(--ink-wash)_1px,transparent_1px)] [background-size:36px_36px] [&_canvas]:block [&_canvas]:size-full">
-        {snapshot ? (
+        {canvasSnapshot ? (
           <GraphCanvas
-            snapshot={snapshot}
+            snapshot={canvasSnapshot}
             transparentBackground
             showThinNodes={deepenOpen}
             selectedId={selectedId}
@@ -423,13 +455,25 @@ export function GraphHome() {
       </div>
 
       <div className="fixed right-acta-6 top-acta-6 z-20 flex items-center gap-acta-3">
-        <button
-          type="button"
-          className="acta-button acta-button-accent acta-button-primary"
-        >
-          <Plus size={TOP_ICON_SIZE} strokeWidth={ICON_STROKE} aria-hidden />
-          Capture
-        </button>
+        <div className="relative inline-flex">
+          <button
+            type="button"
+            className="acta-button acta-button-accent acta-button-primary"
+            aria-expanded={capturePanelOpen}
+            onClick={() => {
+              setExploreOpen(false);
+              setCapturePanelOpen(true);
+            }}
+          >
+            <Plus size={TOP_ICON_SIZE} strokeWidth={ICON_STROKE} aria-hidden />
+            Capture
+          </button>
+          {pendingUnitCount > 0 && !capturePanelOpen ? (
+            <span className="absolute -right-1 -top-[5px] grid h-[18px] min-w-[18px] place-items-center rounded-pill border-2 border-ink bg-[var(--brand-secondary)] px-1 font-ui text-[10px] font-bold leading-none text-[var(--brand-secondary-ink)]">
+              {pendingUnitCount}
+            </span>
+          ) : null}
+        </div>
 
         <div className="relative inline-flex">
           <button
@@ -503,7 +547,14 @@ export function GraphHome() {
       </div>
 
       <p className="pointer-events-none fixed bottom-[var(--status-offset)] left-1/2 z-20 -translate-x-1/2 whitespace-nowrap font-mono text-label uppercase tracking-[0.16em] text-muted">
-        {statusLine(snapshot, source, selectedNode, exploreOpen)}
+        {statusLine(
+          snapshot,
+          loadState,
+          selectedNode,
+          exploreOpen,
+          capturePanelOpen,
+          pendingUnitCount,
+        )}
       </p>
 
       {exploreOpen ? (
@@ -546,6 +597,26 @@ export function GraphHome() {
           </div>
         </div>
       ) : null}
+
+      <DiffSkimPanel
+        open={capturePanelOpen}
+        proposal={proposal}
+        busy={captureBusy}
+        captureBlocked={captureBlocked}
+        onClose={() => setCapturePanelOpen(false)}
+        onSubmitCapture={submitCapture}
+        onRetryExtract={() => {
+          const captureId = proposal?.captureIds[0];
+          if (captureId && proposal) {
+            void retryExtract(captureId, proposal.id);
+          }
+        }}
+        onFocusPendingUnit={(tempId) => {
+          if (proposal) {
+            setSelectedId(pendingGhostNodeId(proposal.id, tempId));
+          }
+        }}
+      />
 
       {selectedNode ? (
         <div

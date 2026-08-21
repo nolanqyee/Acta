@@ -13,25 +13,38 @@ import { ApplicationTag } from "./tags";
 import { EdgeType } from "./edges";
 import { EntityType } from "./common";
 
+/** One proposed endeavor in an ExtractProposal emit. */
+export const ExtractEndeavorProposal = z.object({
+  tempId: z.string(),
+  kind: EndeavorKind,
+  title: z.string().min(1),
+  summary: z.string().optional(),
+  ext: z.record(z.string(), z.unknown()).optional(),
+  applicationTags: z.array(ApplicationTag).optional(),
+  primaryParentTempId: z.string().optional(),
+  /** When updating an existing canvas endeavor instead of inserting a new one. */
+  updateTargetEndeavorId: z.uuid().optional(),
+  /** When nesting under an existing graph parent (not a proposed temp parent). */
+  existingParentEndeavorId: z.uuid().optional(),
+});
+
+/** One proposed edge in an ExtractProposal emit. */
+export const ExtractEdgeProposal = z.object({
+  type: EdgeType,
+  fromTempId: z.string(),
+  fromType: EntityType,
+  toTempId: z.string(),
+  toType: EntityType,
+  attrs: z.record(z.string(), z.unknown()).optional(),
+});
+
 /**
  * The full extract emit shape: proposed entities keyed by `tempId` plus edges
  * that reference those temp ids. Every collection defaults to empty so a sparse
  * model response still parses. Validated before merge; never written directly.
  */
 export const ExtractProposal = z.object({
-  endeavors: z
-    .array(
-      z.object({
-        tempId: z.string(),
-        kind: EndeavorKind,
-        title: z.string().min(1),
-        summary: z.string().optional(),
-        ext: z.record(z.string(), z.unknown()).optional(),
-        applicationTags: z.array(ApplicationTag).optional(),
-        primaryParentTempId: z.string().optional(),
-      }),
-    )
-    .default([]),
+  endeavors: z.array(ExtractEndeavorProposal).default([]),
   achievements: z
     .array(
       z.object({
@@ -104,17 +117,9 @@ export const ExtractProposal = z.object({
       }),
     )
     .default([]),
-  edges: z
-    .array(
-      z.object({
-        type: EdgeType,
-        fromTempId: z.string(),
-        fromType: EntityType,
-        toTempId: z.string(),
-        toType: EntityType,
-        attrs: z.record(z.string(), z.unknown()).optional(),
-      }),
-    )
-    .default([]),
+  edges: z.array(ExtractEdgeProposal).default([]),
 });
 export type ExtractProposal = z.infer<typeof ExtractProposal>;
+
+export { ExtractProposalLlm, parseExtractProposalFromLlm } from "./extract-llm";
+export type { ExtractProposalLlm as ExtractProposalLlmType } from "./extract-llm";

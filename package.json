@@ -37,8 +37,10 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.96",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.7",
+    "ai": "^6.0.253",
     "animejs": "^4.5.0",
     "d3-force": "^3.0.0",
     "lucide-react": "^1.27.0",

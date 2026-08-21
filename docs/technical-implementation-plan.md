@@ -8,7 +8,7 @@ origin: docs/building-plan.md (U-J); locked companions: personal-evidence-graph.
 
 # feat: Acta technical implementation plan (U-J)
 
-**Last updated:** 2026-08-03
+**Last updated:** 2026-08-13
 
 **Owns:** HOW to implement locked product docs — stack defaults, module map, capture+render slice, persistence/auth path, agent/runtime seams, sequenced milestones, risks. Does **not** re-litigate product IA, schema kinds, or brand look.
 
@@ -122,18 +122,24 @@ flowchart LR
 
 ### Capture / proposal state machine (KTD10)
 
-Statuses: `streaming` → `ready` | `failed`; `ready` → `merging` → `confirmed` | `discarded`; `failed` → Retry (back to `streaming`) | `discarded`.
+Product flow spec: [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md).
+
+Proposal statuses: `streaming` → `ready` | `failed`; `ready` → partial merges until **closed** (or `discarded` whole proposal on fail/abandon).
+
+Per-node disposition on each `pending_endeavor_preview`: `pending` → `confirmed` | `discarded`.
 
 | Rule | Default |
 | --- | --- |
 | Who starts Extract | BE **auto-starts** after Capture commit (logical `extract_capture`). Public HTTP: `POST /captures/:id/extract` = **retry** only (idempotent if already `streaming`) |
-| Confirm while streaming | **Disabled** until `ready`. v1 = **batch confirm only**; U-D optional chunk-confirm deferred |
-| User edits vs stream patches | Edits allowed after first chunk; stream must **not overwrite user-touched fields** |
+| Confirm / discard / edit while streaming | **Disabled** until proposal `ready` |
+| Review actions | **Per unit:** accept, discard; **bulk:** selected, accept all, discard all/remaining; **PATCH** pending fields before accept |
+| Panel dismiss | Allowed anytime; pending ghosts + open proposal persist; Capture+ blocked until no pending units |
+| Confirm granularity | One **merge unit** (endeavor add/update) + bundled **new** and **update** deps |
 | Extract runtime | **In-process detached task** on single-node BE; timeout → `failed`. **Escape:** queue worker later |
 | Disconnect / refresh mid-stream | BE job **continues**; partial proposal persisted (service role + `user_id`); FE reattaches via `GET /proposals/:id` snapshot (+ optional `GET …/events?cursor=`) |
 | Auth expiry mid-stream | Job keeps writing with service role (identity captured at start); FE refreshes session and reattaches; **Confirm** requires valid user JWT |
-| Concurrent Capture+ while skim open | **Block** with finish-or-discard (≤1 open proposal in `streaming\|ready\|failed\|merging`) |
-| Discard / failed Extract | **Keep Capture** row; no Capture inbox UI in first slice |
+| Concurrent Capture+ while skim open | **Block** when proposal is `streaming`, `ready` (pending units), or `merging`. **`failed` does not block** — submit a new Capture or retry Extract on the same Capture |
+| Discard / failed Extract | **Keep Capture** row; discard-remaining or per-node discard drops pending units |
 | Empty Extract | Status `failed` with reason `empty` — Retry/Discard only; Confirm disabled |
 
 ### HTTP route map (capture slice)
@@ -148,13 +154,15 @@ Paths below are logical; as Next route handlers they live under `/api/` (e.g. `P
 | `GET` | `/proposals/open` | Open proposal for hydrate (0..1 in v1) |
 | `GET` | `/proposals/:id` | Full proposal snapshot (reattach) |
 | `GET` | `/proposals/:id/events` | SSE; `?cursor=` for resume; cookie-session auth via `fetch` (not EventSource) |
-| `PATCH` | `/proposals/:id` | User inline fixes (user JWT + RLS) |
-| `POST` | `/proposals/:id/confirm` | Merge transaction; idempotent |
-| `POST` | `/proposals/:id/discard` | Drop proposal; keep Capture |
+| `PATCH` | `/proposals/:id/units/:tempId` | User edit pending fields (Phase B) |
+| `POST` | `/proposals/:id/units/:tempId/accept` | Partial merge one unit |
+| `POST` | `/proposals/:id/units/:tempId/discard` | Drop one unit |
+| `POST` | `/proposals/:id/units/accept` | Body `{ tempIds }` — selected or all pending |
+| `POST` | `/proposals/:id/units/discard` | Body `{ tempIds \| "remaining" }` |
 
 ### Streaming event lean (directional)
 
-SSE events (names indicative): `proposal_upsert`, `endeavor_preview_upsert`, `changelog_append`, `stream_done`, `stream_error`. Changelog is append/patch — not a full rewrite every token. Partial streams drive UI only; **final Zod-validated payload** is what Confirm merges.
+SSE events (names indicative): `proposal_upsert`, `endeavor_preview_upsert`, `changelog_append`, `stream_done`, `stream_error`. Changelog is append/patch — not a full rewrite every token. Partial streams drive UI only; **final Zod-validated payload** is required before `ready`. **Per-node confirm** merges validated slices after `ready`.
 
 ### Auth & secrets
 
@@ -171,7 +179,7 @@ Same-origin, so no CORS layer. Secret isolation is enforced by the `NEXT_PUBLIC_
 Revive and extend former `supabase/migrations/20260710120000_init_graph.sql` patterns:
 
 - Entity tables + `edges` as already sketched.
-- New **`extract_proposals`**: `id`, `user_id`, `capture_ids[]`, `status`, `payload jsonb`, `changelog jsonb`, `pending_endeavor_previews jsonb`, `failure_reason?`, `stream_cursor?`, timestamps.
+- New **`extract_proposals`**: `id`, `user_id`, `capture_ids[]`, `status`, `payload jsonb`, **`merge_units` jsonb** (disposition SoT per endeavor unit), `changelog` jsonb (append-only thread events or derived), `failure_reason?`, `stream_cursor?`, timestamps.
 - RLS: `user_id = auth.uid()` for user-scoped clients (reads + user PATCH). Extract stream upserts + confirm merge: **service role + explicit `user_id` filter** after identity check at job/confirm start.
 - Canonical physical lean also in [`data-model.md`](data-model.md) (§ ExtractProposal persistence); keep **state-machine rules here** and avoid duplicating column lists when they change.
 
@@ -355,35 +363,41 @@ Rationale: quality is built in per unit (readable code + tests), not bolted on l
 
 ### U4. Capture + LLM Extract stream + proposal persistence
 
-- **Goal:** Typed yap → Capture row → BE Extract (AI SDK) streams SSE patches → proposal `streaming`→`ready`/`failed` persisted; FE shows changelog + pending ghosts incrementally.
+- **Goal:** Typed yap → Capture row → BE Extract (AI SDK) streams SSE patches → proposal `streaming`→`ready`/`failed` persisted; disposition-ready preview rows for later per-node merge.
 - **Requirements:** R2, R3, R4, R7
 - **Dependencies:** U2, U3
-- **Files:** `src/app/api/*` capture/extract/proposal routes + `src/server/agents/extract`; `src/features/capture` + skim
-- **Approach:** Auto-start Extract after Capture; `Output.array` (or object) for endeavor previews; persist partials via service role + `user_id`; final Zod validate before `ready`. Apply KTD10 concurrency/auth/runtime rules.
+- **Files:** `src/app/api/*` capture/extract/proposal routes + `src/server/agents/extract`; `src/features/capture` deferred to **U4-F** (frontend last)
+- **Approach:** Backend-first sub-units (see [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md) § Build sequencing). Auto-start Extract after Capture; persist partials via service role + `user_id`; final Zod validate before `ready`. Apply KTD10 rules.
 - **Test scenarios:**
   - Capture exists in DB before first SSE event; empty/whitespace Capture rejected before Extract.
   - Mid-stream refresh restores partial proposal + ghosts via snapshot/cursor; no duplicate Capture.
-  - User-touched field is not overwritten by a later stream patch.
-  - Extract failure or BE process kill mid-extract → `failed` + Retry without second Capture.
-  - Empty model output → `failed`/`empty`; Retry/Discard only.
-  - JWT refresh mid-stream then Confirm still succeeds with valid session.
-  - Second Capture+ while open proposal → blocked with message.
+  - Confirm/discards rejected while `streaming`.
+  - Extract failure or BE process kill mid-extract → `failed`; user may **retry** (`POST /captures/:id/extract`) or **submit a new Capture** without discarding first.
+  - Empty model output → `failed`/`empty`; retry or new Capture.
+  - Second Capture+ while a blocking proposal exists (`streaming`, `ready` with pending units, `merging`) → blocked with message.
   - Client bundle contains no LLM API keys.
-- **Verification:** End-to-end yap with real provider key on BE only; pending nodes animate in; refresh survives.
+- **Verification:** End-to-end yap via API + SSE (no product UI required); pending previews persist; `ready` latched only after Zod-valid payload.
 
-### U5. Inline edit, confirm merge, discard
+### U4-F. Diff-skim UI (frontend)
 
-- **Goal:** Patch proposal; Confirm merges into graph (dedup lean from data-model); Discard drops proposal/ghosts and keeps Capture; update-ops overlay existing nodes.
+- **Goal:** Composer + panel Phase A preview + Phase B per-node buttons wired to U4/E APIs.
+- **Dependencies:** U4 backend units through U4-E
+- **Verification:** On screen: stream ghosts, refresh survives, confirm/discards enabled only after `ready`.
+
+### U5. Accept/discard (one, selected, all), inline edit, partial merge
+
+- **Goal:** Accept/discard at unit granularity plus bulk; PATCH pending fields; partial merge transactions (new + update bundles per unit).
 - **Requirements:** R2, R4, R7
 - **Dependencies:** U4
-- **Files:** proposal PATCH/confirm/discard; merge transaction in GraphRepository
-- **Approach:** Idempotent confirm; service role merge only after JWT check; do not clobber stamped stories (N/A until Stories ship — still don’t invent story writes).
+- **Files:** unit accept/discard routes; merge in `src/server/merge/`; proposal PATCH
+- **Approach:** Idempotent unit accept; shared-entity dedup across units; single transaction for accept-all when possible; archive closed proposals.
 - **Test scenarios:**
-  - Edited title wins over raw LLM text on Confirm.
-  - Confirm → ghosts become committed; proposal terminal; second Confirm is no-op/409.
-  - Discard → ghosts gone; Capture retained; graph unchanged.
-  - Update proposal on existing endeavor → one node, not a duplicate.
-  - Two tabs: one Confirm; other hydrate shows merged graph.
+  - Accept one unit merges new + update bundle; others stay pending.
+  - Accept selected / accept all.
+  - Discard selected / discard remaining closes proposal.
+  - User PATCH on pending field wins over stream; accept uses edited value.
+  - Panel dismiss + reopen preserves pending units.
+  - Shared skill across two units: first accept creates, second links.
 - **Verification:** Full capture+render loop dogfoodable on real Auth/DB/LLM.
 
 ### U6. Path to Explore, thin Generate, and U-E polish
@@ -404,8 +418,9 @@ Rationale: quality is built in per unit (readable code + tests), not bolted on l
 U1 Next app + contracts
     → U2 Auth + schema + RLS
         → U3 Canvas bootstrap
-            → U4 Capture + LLM stream + proposals
-                → U5 Edit / confirm / discard   ← dogfoodable capture+render
+            → U4 Capture + LLM stream + proposals (backend-first)
+                → U4-F Diff-skim UI
+                → U5 Per-node merge + edit + discard   ← dogfoodable capture+render
                     → U6 Path notes
                         → Explore / thin Generate / U-E extras / U-F…
 ```
@@ -484,6 +499,9 @@ U1 Next app + contracts
 ---
 
 ## Changelog
+
+- **2026-08-13:** Bulk accept/discard, PATCH edits, panel dismiss, `merge_units[]` SoT, chat-shaped panel. See [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md).
+- **2026-08-12:** **Per-node diff-skim** locked. KTD10 + HTTP map updated (per-node confirm/discard; no batch confirm-all). U4 split into backend-first + **U4-F** UI; U5 = partial merge transactions. Spec: [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md).
 
 - **2026-08-03:** **U3 status block rewritten** to match current code: canvas + hover/selection/detail on `/home`; chrome inert until U4–U6; light mode only. Added [`docs/file-catalogue.md`](file-catalogue.md) and [`docs/design-system.md`](design-system.md).
 

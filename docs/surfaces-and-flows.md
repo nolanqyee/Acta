@@ -1,6 +1,6 @@
 # Acta — Surfaces & Core Flows
 
-Last updated: 2026-08-03
+Last updated: 2026-08-13
 
 **Owns:** information architecture (primary surfaces) and end-to-end interaction flows at contract altitude — not pixels, brand tokens, or full adapter editor design.
 
@@ -144,23 +144,21 @@ Clear search / close panel → graph recenters to normal framing.
 
 ### Capture / diff-skim — composition (contract)
 
-**Locked chrome: floating right panel** (Explore family) — graph stays visible so **new / updated nodes can animate in**.
+**Locked chrome: chat-shaped floating right panel** (Explore family). Opens on **Capture+**; composer at bottom, proposal thread above. Full spec: [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md).
 
-1. **Floating right panel** — under top-right controls, right-aligned; graph CoG shifts left.
-2. **Changelog summary** — top of panel: readable summary of pending adds/edits/removes. Primary skim path.
-3. **Pending on canvas** — affected endeavors appear/update in **pending** state (animate in when new).
-4. **Hover pending → change detail** — complements changelog.
-5. **Panel detail** — expand any changelog row for field-level edit/fix before confirm.
-6. **Confirm / discard** — merge writes graph; pending styling clears. Discard removes pending ghosts.
-
-Fat onboarding imports use the **same** pattern (panel + live pending nodes), sized for longer changelogs.
+1. **Panel opens on Capture+** — not a separate modal that closes before skim.
+2. **Phase A (Extracting)** — thread rows + pending ghosts stream in. Accept, discard, and edit **disabled**.
+3. **Phase B (Review)** — after `ready`: edit pending fields; accept/discard **one**, **selected**, or **all**.
+4. **One merge unit per proposed endeavor** — accept/discard bundles **new** entities and **updates** to existing linked entities for that unit.
+5. **Panel dismiss** — user may close panel to view graph; pending ghosts remain; reopen from indicator; Capture+ blocked until pending units resolved.
+6. **Future:** conversational Extract turns in the same thread (P2); voice via transcription → Capture (P2).
 
 ### Onboarding import — composition (contract)
 
 One-time / rare re-import, rooted in Graph:
 
 1. **Floating panel / flow** — questions / connector steps while the **graph remains visible**.
-2. **Live build** — after every answered step that actually creates nodes, **pending → confirmed endeavors animate onto the canvas** (same diff-skim language: changelog in panel, pending state on graph). User watches their graph assemble in real time.
+2. **Live build** — Extract streams pending nodes; user confirms per node after each Extract reaches `ready` (same Phase A/B as quick-add). User watches the graph assemble as they accept proposals.
 3. **Connectors + redirect** — manage connected sources; OAuth / redirect / reconnect flows as needed. Classic sources: resume upload/paste, LinkedIn, GitHub.
 4. **Agent connectors (later):** connect **Claude / other coding agents** and pull **chat histories** for feature/project-level work → capture → extract. **Build order: after classic MVP imports** (resume / LinkedIn / GitHub) — not parallel with capture+render. Same connector-management surface when the time comes; do not stub loudly in v1 onboarding.
 
@@ -201,7 +199,7 @@ Graph home (full-bleed canvas + overlays)
     → Hover card (peek)
     → Click node → Node modal (header image + straddling title)
     → Bottom ask → Floating right Explore panel (+ graph CoG left; highlights)
-    → Capture + → Floating right diff-skim panel (changelog + pending nodes) → confirm → settled
+    → Capture + → diff-skim panel (stream preview → per-node confirm) → settled nodes
     → Top-right deepen (badge) → backlog panel → Node modal
     → Top-left hamburger → Adapter menu → Adapter page (expandable mini-graph peek)
     → Profile menu → settings / logout
@@ -231,8 +229,8 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
 | --- | --- |
 | **Trigger** | New user / empty graph / “Re-import” |
 | **Actors** | User; Extract agent |
-| **Steps** | 1) User connects sources and/or answers onboarding steps in a **floating panel**. 2) System creates Capture(s). 3) Extract emits proposal; **floating right diff-skim panel** shows **changelog summary**; **pending endeavor nodes** appear/update on the visible Graph (animate in). 4) User skims changelog + hover pending nodes for per-node diffs; inline fix. 5) Confirm merge → pending clears. 6) Finish on Graph home with skeleton. |
-| **Mutations** | Captures immutable; entities + edges + tags written on confirm |
+| **Steps** | 1) User connects sources and/or answers onboarding steps in a **floating panel**. 2) System creates Capture(s). 3) Extract streams proposal; diff-skim panel shows changelog + pending ghosts (**preview only** until `ready`). 4) User skims; per-node Confirm / Discard after Extract finishes. 5) Partial merges land on canvas as each node is confirmed. 6) Finish on Graph home with skeleton. |
+| **Mutations** | Captures immutable; entities + edges + tags written **per-node confirm** |
 | **Fail / skip** | Partial import OK (one source). Extract failure → retry or manual quick-add. Enter with thin graph — deepen later. **Never** block entry on deep-dives. |
 
 ### Flow 2 — Yap → extract → merge (quick-add)
@@ -241,9 +239,9 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
 | --- | --- |
 | **Trigger** | Capture + on Graph (mic chrome optional / voice later) |
 | **Actors** | User; Extract agent |
-| **Steps** | 1) User types yap. 2) Capture saved. 3) Extract proposal. 4) **Floating right diff-skim panel** + **changelog summary** + **pending nodes** animate onto Graph (CoG shifts left). 5) Skim/fix via panel and hover-on-pending. 6) Confirm merge; pending → settled. |
-| **Mutations** | Same as import merge; `sourced_from_capture` links |
-| **Fail / skip** | User discards proposal → capture may remain for later re-extract; no silent graph write without confirm. |
+| **Steps** | 1) Capture+ opens diff-skim panel (composer). 2) User submits yap; Capture saved. 3) Extract streams into panel + pending ghosts. 4) Phase A: preview only. 5) Phase B: edit, accept/discard one | selected | all. 6) User may dismiss panel and return while units stay pending. 7) Proposal closes when no pending units. |
+| **Mutations** | Same as import; `sourced_from_capture` links; **per-node** partial merges |
+| **Fail / skip** | Discard one node or remainder; Capture kept for re-extract. No silent graph write. See [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md). |
 
 ### Flow 3 — Deepen (backlog + skippable JIT)
 
@@ -372,6 +370,9 @@ Altitude: steps, actors, graph mutations, fail/skip. Not UI mockups.
   this build (no image field exists on an endeavor yet regardless); that line should be
   read as superseded, not as a rework target the way the straddling-title bug below
   still is.
+- **2026-08-13:** Chat-shaped diff-skim panel; bulk accept/discard; panel dismiss; edit before accept. [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md).
+- **2026-08-12:** **Per-node diff-skim** locked.
+- **2026-08-12:** **`/home` no longer falls back to a sample graph.** Each signed-in user sees their own snapshot from `GET /api/graph` (empty canvas when they have no endeavors). Layout dogfooding uses `/lab/graph` instead. The earlier "Preview a sample graph" escape hatch on home is retired.
 - **2026-07-26:** **The chrome described here is currently unbuilt — on purpose.** The
   first Graph-home implementation shipped every surface below in one pass and none of
   them landed well; the canvas was rebuilt from scratch and the chrome was deleted with

@@ -1,6 +1,6 @@
 # Acta — Building Plan
 
-Last updated: 2026-08-03
+Last updated: 2026-08-12
 
 Overarching **build** roadmap (not business/GTM). Companion to:
 
@@ -14,6 +14,7 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 | [`design-system.md`](design-system.md) | Visual system guide — `tokens.css` is SoT for values and recipes |
 | [`file-catalogue.md`](file-catalogue.md) | Repo file inventory — what each path owns |
 | [`technical-implementation-plan.md`](technical-implementation-plan.md) | **HOW** to implement locked plan docs (**U-J** — locked) |
+| [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md) | Capture → Extract → diff-skim screen flow, storage layers, per-node merge |
 | **This doc** | What to harden next: brand, IA, flows, agents, tech plan, auth |
 
 **App scaffold: U-J U1 shipped as a single Next.js app** at the repo root (`src/*`, route-handler API, contracts in `src/lib/contracts`, tokens at [`src/styles/tokens.css`](../src/styles/tokens.css); `docs/` stays at root). One Vercel deploy; secrets server-only. (Stack reversed 2026-07-20 from the interim Vite SPA + Hono API to Next — see technical-implementation-plan KTD2.)
@@ -103,6 +104,14 @@ Overarching **build** roadmap (not business/GTM). Companion to:
 ### Explicitly out of near scope
 
 Monetization, GTM, domain/legal, B2B/coach-share, essay adapters, voice, kitchen-sink / **agent chat-history** connectors (post classic MVP), Jake’s/DOCX exports.
+
+### P2 backlog (after capture+render dogfoods)
+
+| Item | Notes |
+| --- | --- |
+| **Account onboarding** | Post sign-up profile setup: display name, avatar, use-case / intent (why they're here). Distinct from **import onboarding** (Flow 1 in surfaces-and-flows). Profile chrome on `/home` is mocked today ("Nolan", initials chip). Wire after U5 or when real multi-user dogfood starts. |
+| **Conversational Extract** | Chat turns in the diff-skim panel to revise proposal via natural language (proposal-only writes). Same surface as capture thread. Post core loop. |
+| **Voice capture (Whisper)** | Record → server transcribe (OpenAI Whisper API recommended) → Capture text → same Extract pipeline. Post typed capture. |
 
 ---
 
@@ -202,6 +211,10 @@ Code: **U-J U3 verified** — canvas + hover/selection/detail on `/home` (see [`
 ---
 
 ## Changelog
+
+- **2026-08-12:** **Per-node diff-skim flow spec** ([`capture-diff-skim-flow.md`](capture-diff-skim-flow.md)). Preview while streaming; confirm/discards per endeavor node after `ready`; dependencies bundle with node confirm. Retired batch confirm-all. U4 backend-first + U4-F UI noted in tech plan.
+
+- **2026-08-12:** **`/home` shows each user's real graph.** Removed the sample-graph fallback on Graph home; empty accounts get a quiet canvas + Capture CTA. Sample/fixture graphs remain on `/lab/graph` only. Added **P2 account onboarding** backlog (name, avatar, use cases), distinct from import onboarding.
 
 - **2026-08-03:** **Canon doc sync (PR 8).** Added [`design-system.md`](design-system.md) (formerly design-handoff) and [`file-catalogue.md`](file-catalogue.md); synced IA, tech plan, and README to `/` landing + `/home` graph + `engine/`/`surfaces/`/`lab/` split. **Deleted `docs/archive/`** — superseded liquid-glass and pre-build physics docs removed; durable lessons live in `graph-canvas.md` and `design-system.md`.
 

@@ -1,6 +1,6 @@
 # Acta — Agent / System Interaction Model
 
-Last updated: 2026-07-15
+Last updated: 2026-08-13
 
 **Owns:** capture **pipeline** vs reasoning **agents**; read vs write; confirm vs auto; pending proposals; what must not be invented; how proposals become graph state.
 
@@ -32,7 +32,7 @@ yap / import
     → Capture          (auto — immutable raw text / blob)
     → Extract agent    (propose structure only)
     → Diff-skim UI     (changelog + pending endeavor nodes)
-    → Merge            (user confirm)  OR  Discard
+    → Per-node merge   (user confirm each node)  OR  per-node / remainder discard
 ```
 
 | Stage | What it is | Writes |
@@ -40,7 +40,7 @@ yap / import
 | **Capture** | System persist of intake | **Capture row only** (auto) |
 | **Extract** | Agent — see catalog below | **Proposal only** until confirm |
 | **Diff-skim** | User + UI (surfaces) | Edits stay on the proposal |
-| **Merge / Discard** | User decision | Merge → canonical graph; Discard → drop proposal (Capture may remain for re-extract) |
+| **Per-node merge / discard** | User decision (after Extract `ready`) | Confirm one node → partial merge + bundled deps; Discard one node → drop that unit; proposal closes when none remain (Capture kept) |
 
 ### Capture stage contract
 
@@ -78,22 +78,28 @@ Plus UI-facing:
 | `proposal_id` | Stable for the skim session |
 | `capture_ids[]` | Source captures |
 | `changelog_summary` | Human skim list: adds / updates / link changes (endeavor-first) |
-| `pending_endeavor_previews[]` | Enough to render canvas ghosts (temp id, kind, title, parent hints, op: add\|update) |
+| `pending_endeavor_previews[]` | Canvas ghosts: temp id, kind, title, parent hints, `op: add\|update`, **`disposition: pending\|confirmed\|discarded`** |
+| `merge_unit_id` | Each changelog row maps to one endeavor merge unit (see [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md)) |
 
 ### Lifecycle
 
 ```
 Capture saved (immutable)
-    → Extract runs → ExtractProposal (pending)
-    → UI: right sidebar changelog + pending endeavor nodes on canvas
-    → User edits proposal inline (still pending)
-    → Confirm → Merge into graph (canonical) → pending clears
-    → OR Discard → proposal dropped; Capture may remain for later re-extract
+    → Extract runs (streaming) → ExtractProposal preview grows
+    → UI: changelog + pending endeavor ghosts (Confirm/Discard DISABLED)
+    → Extract ready → per-node Confirm / Discard ENABLED
+    → Each Confirm → partial merge (that node + bundled deps) → ghost settles
+    → Each Discard → that unit dropped from proposal
+    → Proposal closed when no pending nodes; Capture kept for re-extract
 ```
+
+Full screen-by-screen spec: [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md).
+
+**Merge unit (locked v1):** one **proposed endeavor node** (add or update). Confirming it merges **bundled dependencies** scoped to that node (achievements, linked skills/people/orgs, metrics, evidence, edges internal to the bundle). Skills/people/orgs are not separate confirm buttons.
 
 **Merge rules**
 
-- Write entities + edges + tags; attach `sourced_from_capture`.
+- Partial merges write entities + edges + tags; attach `sourced_from_capture`.
 - Dedup per data-model identity table; when unsure, keep distinct and surface in skim — don’t silently collapse.
 - Do **not** overwrite `stamped` Stories/Lessons; fingerprint drift → `stale` nudge.
 - Do **not** rewrite Capture text from entities.
@@ -107,13 +113,16 @@ Capture saved (immutable)
 
 **Pending persistence (locked):** ExtractProposals are **stored until confirm or discard** (survive refresh). **U-J:** thin Supabase `extract_proposals` from the first build wave (not memory-first). After merge/discard, drop or archive the proposal. Captures remain immutable either way. See [`technical-implementation-plan.md`](technical-implementation-plan.md).
 
-**Streaming extract (locked): incremental.** As Extract emits (or the user edits/confirms pieces), **pending endeavor nodes animate in/update** and the changelog grows. Partial proposals are first-class; mid-stream dedup may refine pending ghosts (merge/replace) with animation — don’t block the UI on a complete proposal.
+**Streaming extract (locked): incremental preview, deferred decisions.** As Extract emits, pending endeavor nodes and thread rows grow. **No accept/discard/edit until `ready`.**
 
-**Implement lean (so this isn’t heroic):**
-- Emit/append pending endeavors in chunks; changelog is append-only + patch rows, not a full rewrite every token.
-- Global force re-layout can be cheap/throttled; prefer local spawn + light settle over constant full physics restart.
-- User confirm of a chunk (onboarding live-build) may merge that slice while other pendings stay pending — **optional later**; **v1 (U-J) = batch confirm after stream `ready` only**. Minimum is incremental *preview*; small yaps still use the same path.
-- Small yaps will often look “single-shot” simply because Extract finishes fast — same incremental path, not a second mode.
+**Review actions (locked v1):** per merge unit: **accept**, **discard**, multi-**select**, **accept all**, **discard all/remaining**. User may **edit** pending fields before accept (PATCH; user edits win over stream).
+
+**Panel dismiss:** user may close diff-skim panel while units remain pending; ghosts stay on canvas; proposal stays open; Capture+ blocked until resolved. See [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md).
+
+**Implement lean:**
+- Emit/append merge units in chunks; avoid triple-storing the same field values (payload + merge_units SoT).
+- Per-unit accept is a partial merge; proposal closes when no units remain `pending`.
+- Small yaps finish fast on the same path.
 
 ---
 
@@ -123,7 +132,10 @@ Capture saved (immutable)
 | --- | --- | --- |
 | Create Capture (yap/import blob) | **Yes** | — |
 | Extract → propose entities/edges | Runs auto; **writes proposal only** | Diff-skim required before graph merge |
-| Merge ExtractProposal | **No** | Confirm (or discard) |
+| Merge one proposed endeavor unit | **No** | Accept (after `ready`); bundles new + update deps |
+| Discard one proposed unit | **No** | Discard |
+| Accept/discard selected or all pending units | **No** | Bulk actions after `ready` |
+| Edit pending proposal fields | **No** (user actor) | PATCH before accept; edits win over stream |
 | User edit entity fields in modal | **Yes** (user is actor) | — |
 | Soft archive / demote / user tags | **Yes** (user) | Hard delete = confirm |
 | Explore NL | **Yes** (read) | — |
@@ -155,7 +167,8 @@ Capture saved (immutable)
 - **In:** Capture(s); existing graph for dedup hints.
 - **Out:** ExtractProposal + changelog_summary + pending_endeavor_previews.
 - **Writes:** Proposal store only until merge.
-- **UI:** Right sidebar diff-skim (surfaces). **Incremental** pending nodes + changelog as Extract emits; user edits/confirms can animate too. Onboarding live-build uses the same path.
+- **UI:** Right sidebar diff-skim (surfaces). **Incremental** pending nodes + changelog as Extract emits; **confirm/discards only after `ready`**. Onboarding live-build uses the same path.
+- **Future (deferred):** conversational Extract in the skim panel (user tells Extract how to revise the proposal; writes proposal only, not graph).
 - **Fail:** Retry extract; user can discard and yap manually. Partial import OK.
 
 ### Explore
@@ -230,9 +243,11 @@ Stable names for code; not an HTTP API.
 
 - `create_capture({ text | blob, source_type })` — pipeline stage, not an agent tool in product language
 - `extract_capture(capture_ids[])` → ExtractProposal — **Extract agent**
-- `update_proposal(proposal_id, patch)` — user inline fixes
-- `confirm_proposal(proposal_id)` → merge
-- `discard_proposal(proposal_id)`
+- `update_proposal(proposal_id, patch)` — user inline fixes; future: NL chat revisions
+- `accept_proposal_unit(proposal_id, temp_id)` → partial merge
+- `discard_proposal_unit(proposal_id, temp_id)`
+- `accept_proposal_units(proposal_id, temp_ids[])` — selected or all pending
+- `discard_proposal_units(proposal_id, temp_ids[] | remaining)`
 
 **Write (user-gated or user-actor)**
 
@@ -282,15 +297,18 @@ Details: [`surfaces-and-flows.md`](surfaces-and-flows.md). Schemas: [`data-model
 ## Open questions
 
 - [x] Proposal persistence: **store until confirm/discard** (survive refresh); **U-J** = Supabase proposals in first slice (not memory-first)
-- [x] Streaming extract: **incremental** — pending nodes/changelog animate as proposals (and user decisions) land; same path for small yaps (just finishes fast). Implement lean: chunked append, throttled layout, batch confirm still OK
+- [x] Streaming extract: **incremental preview** while `streaming`; **per-node confirm/discard only after `ready`** (not batch confirm-all, not mid-stream confirm). See [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md).
 - [x] Adapter citation UX: **thin UX** — inline marks + click → focus endeavor / node modal (+ optional mini-graph pulse). `citations[]` ids required. Richer provenance = **U-G**
+- [ ] **Conversational Extract** in diff-skim (chat to tweak proposal) — deferred post core loop; must remain proposal-only writes
 
-*(No open questions remaining — **U-D locked** 2026-07-13.)*
+*(U-D locked 2026-07-13; per-node skim confirm locked 2026-08-12.)*
 
 ---
 
 ## Changelog
 
+- **2026-08-13:** Bulk accept/discard; manual edit before accept; panel dismiss with pending units; chat-shaped panel; merge bundles include new + update deps. Voice (Whisper) noted deferred. [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md).
+- **2026-08-12:** **Per-node confirm/discard** replaces batch confirm-all for v1. Preview-only while `streaming`; decisions unlock at `ready`. Merge unit = one endeavor node + bundled deps. Added deferred **conversational Extract**. Spec: [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md).
 - **2026-07-15:** Proposal persistence aligned to **U-J** — thin Supabase from first slice (not memory-first scaffold).
 - **2026-07-14:** Product brand → **Acta**.
 - **2026-07-13:** **U-D locked** for implementation planning.

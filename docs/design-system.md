@@ -1,6 +1,6 @@
 # Acta — Design system
 
-Last updated: 2026-08-12
+Last updated: 2026-08-17
 
 **Purpose:** Human-readable guide to Acta's visual language. **Values and recipes live in code**; this doc explains how to use them and records decisions that are not obvious from token names alone.
 
@@ -55,6 +55,24 @@ Loaded via `next/font` into `--font-*-loaded`; fallbacks in `tokens.css`.
 
 Buttons use `.acta-button` (bold Figtree, `--text-button`, tracked).
 
+### What is loaded today
+
+| Font | Loaded in `layout.tsx` | Token | Typical use |
+| --- | --- | --- | --- |
+| **Charis SIL** | Yes | `--font-display` | Wordmark, node detail titles, hover card titles |
+| **Figtree** | Yes | `--font-ui` | All chrome, forms, body, buttons |
+| **Space Mono** | **No** (falls back to system mono) | `--font-mono` | `.acta-label` section labels only |
+
+### Panel typography (dense workflow surfaces)
+
+Capture review, deepen backlog, and similar **task panels** should stay on **Figtree only** at `--text-body` (13px). Use **weight and color** for hierarchy (muted type prefix, semibold title, magenta pending state), not a third typeface.
+
+Reserve **Charis** for content the user is *reading* (endeavor titles on the left detail panel, marketing). Reserve **Space Mono** for sparse section chrome (Explore filters, settings groups), or drop it from in-panel UI until the face is self-hosted like the other two.
+
+### Shell vs interior
+
+Neubrutalism applies to **floating shells**: `.acta-panel` border + offset shadow, primary CTAs (Capture+), ask bar. **Inside** a panel, prefer flat lists, hairline dividers (`--ink-faint`), and `.acta-icon-btn` (bare icons with semantic hover color). Do not wrap every row in `.acta-control` or `.acta-row` unless the row is itself a primary affordance.
+
 ---
 
 ## Spacing & radius
@@ -65,7 +83,10 @@ Spacing: `--space-1` (4px) through `--space-8` (64px). Page margin: `--space-7` 
 | --- | --- |
 | Panels | `--radius-panel-brutal` (18px) |
 | Rows / soft corners | `--radius-row` (12px) |
-| Pills / controls | `--radius-pill` |
+| Pills / single-line controls | `--radius-pill` |
+| Multiline composers / tall text fields | `--radius-row` (via `.acta-composer`) |
+
+**Radius rule:** `--radius-pill` is for single-line control height (ask bar, compact chrome). Anything taller than the ask row uses `--radius-row` through `.acta-composer`, not `.acta-control`.
 
 ---
 
@@ -107,6 +128,7 @@ All defined in `tokens.css`. Common compositions:
 | --- | --- |
 | `.acta-panel` | Floating panels (detail, Explore, adapter menu) |
 | `.acta-control` | Ask bar shell, filter/explore pills, icon buttons |
+| `.acta-composer` | Multiline capture composer, lab textareas |
 | `.acta-button` | Label typography on pressable controls |
 | `.acta-button-accent` | Primary filled CTA (Capture); height `--ctl-size-brutal` |
 | `.acta-button-accent-lg` | Taller accent variant (`--ask-height-brutal`) |
@@ -115,6 +137,7 @@ All defined in `tokens.css`. Common compositions:
 | `.acta-chip` / `.acta-chip-accent` | Facet tags, selected states |
 | `.acta-row` | Diff / deepen list rows inside panels |
 | `.acta-label` | Space Mono section labels |
+| `.acta-icon-btn` (+ `-info` / `-danger` / `-success`) | Bare icon actions inside panels |
 | `.acta-peek` | Hover card (elevated, no ink border) |
 | `.acta-focus-ring` | Focus-visible outline |
 | `.acta-landing-*` | Landing slide-scroll structural shell |
@@ -176,7 +199,8 @@ Duration tokens: `--duration-fast` (120ms), `--duration` (200ms), `--duration-sl
 
 ## Changelog
 
-- **2026-08-12:** Renamed from `design-handoff.md`. Stripped IA, flows, canvas behavior, and build status. Declared `tokens.css` as SoT; this file is the guide only.
+- **2026-08-17:** Panel interior rule (shell brutalist, inside minimal); Figtree-only dense panels; `.acta-icon-btn` recipe; documented which fonts are actually loaded.
+- **2026-08-13:** `.acta-composer` for multiline fields; pill radius rule for single-line controls only.
 - **2026-08-11:** Two-tier control heights; Lucide interim icons.
 - **2026-08-03:** Light mode only; Neubrutalism replaces liquid glass.
 - **2026-07-31:** Initial Neubrutalism token import from Claude Design.

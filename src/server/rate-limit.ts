@@ -129,3 +129,36 @@ export function withRateLimit(
     return handler(request);
   };
 }
+
+/**
+ * Same as {@link withRateLimit} for App Router handlers that also receive
+ * dynamic route `context` (e.g. `[id]` segments).
+ *
+ * @param handler - Route handler with params context.
+ * @param options - Limit + window for this route.
+ * @returns Wrapped handler that short-circuits with 429 when over the limit.
+ */
+export function withRateLimitContext<P>(
+  handler: (
+    request: Request,
+    context: { params: Promise<P> },
+  ) => Response | Promise<Response>,
+  options: { limit: number; windowMs: number },
+): (
+  request: Request,
+  context: { params: Promise<P> },
+) => Promise<Response> {
+  return async (request: Request, context: { params: Promise<P> }) => {
+    const result = rateLimit(clientKeyForRequest(request), options);
+    if (!result.ok) {
+      return Response.json(
+        { error: "rate_limited" },
+        {
+          status: 429,
+          headers: { "Retry-After": String(result.retryAfterSeconds) },
+        },
+      );
+    }
+    return handler(request, context);
+  };
+}

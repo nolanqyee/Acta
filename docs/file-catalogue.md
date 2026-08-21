@@ -1,6 +1,6 @@
 # Acta — File catalogue
 
-Last updated: 2026-08-03
+Last updated: 2026-08-12
 
 **Purpose:** A single inventory of what lives in the repo, what each area does, and what's safe to delete. Update this when files move or slices ship — companion to [`building-plan.md`](building-plan.md) (roadmap) and [`design-system.md`](design-system.md) (visual system).
 
@@ -25,6 +25,7 @@ Last updated: 2026-08-03
 | `personal-evidence-graph.md` | Product vision, wedge, scope | — | planning |
 | `data-model.md` | Schema, entities, extract contracts | U-E | planning |
 | `surfaces-and-flows.md` | IA + interaction flows (contract) | U-B/C | planning |
+| `capture-diff-skim-flow.md` | Capture → diff-skim screen flow, storage, per-node merge | U4/U5 | planning |
 | `agent-interaction-model.md` | Confirm vs auto, write policy | U-D | planning |
 | `graph-canvas.md` | Live canvas spec (check on screen) | U3 | planning |
 | `design-system.md` | Visual system guide (`tokens.css` is SoT) | U-A | planning |
@@ -47,6 +48,7 @@ Last updated: 2026-08-03
 | `api/meta/route.ts` | Build/meta probe | U1 | shipped |
 | `api/graph/route.ts` | `GET` graph snapshot (RLS) | U3 | shipped |
 | `lab/graph/page.tsx` | Physics workbench (404 prod) | U3 | lab |
+| `lab/capture/page.tsx` | Capture API workbench (404 prod) | U4 | lab |
 | `settings/page.tsx` | Placeholder route name | U-E | placeholder |
 | `generate/page.tsx` | Adapter picker placeholder | U6 | placeholder |
 | `adapters/[kind]/page.tsx` | Adapter workspace placeholder | U-F | placeholder |

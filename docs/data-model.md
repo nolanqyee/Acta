@@ -1,6 +1,6 @@
 # Acta — Data Model Spec
 
-Last updated: 2026-07-26
+Last updated: 2026-08-13
 
 Product: **Acta** — personal evidence graph. Companion to [`personal-evidence-graph.md`](personal-evidence-graph.md) (product spec) and [`surfaces-and-flows.md`](surfaces-and-flows.md) (Graph UI). **This doc owns schema, entity types, edges, provenance, extraction contracts, and how adapters/agents consume the graph.** Product decisions that depend on the model should link here rather than inventing schema in the product doc.
 
@@ -169,10 +169,9 @@ Immutable raw intake. Re-extract links to new/updated entities; do not rewrite c
 | `text` | yes | string | Full text retained |
 | `source_type` | yes | enum | `typed` \| `resume_import` \| `linkedin_import` \| `github_import` \| `other_import` (voice later) |
 | `source_meta?` | no | object | filename, URL, repo, import batch id |
-| `captured_at` | yes | datetime | When the life note/event is *about* (user-facing time; may be backdated) |
-| `created_at` | yes | datetime | When this Capture row was written in Acta |
+| `created_at` | yes | datetime | When this Capture row was written in Acta (“what I captured in March” sorts on this) |
 
-Often equal for a live typed yap; can differ for imports or “note about last week.”
+**When things happened in life** belongs on entity `timeframe` fields after Extract, not on the Capture row.
 
 **Retention:** always keep full text for provenance and re-extract. Chunking is an implementation detail for embedding/index — not a second SoT.
 
@@ -613,13 +612,13 @@ LLM (or import parser) proposes a batch:
 }
 ```
 
-**Diff-skim unit:** proposed Endeavors + key children + parent links — not per-field accept theater. Inline fix → enter / merge.
+**Diff-skim merge unit:** one **proposed endeavor** (`add` or `update`). Accept merges **new** entities/edges scoped to that unit plus **updates** to existing linked entities. Discard drops both. Bulk accept/discard supported after Extract `ready`. User may edit pending fields before accept. [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md).
 
 **Kind profiles as priors:** extract should *prefer* suggested fields/evidence for the inferred kind; must not refuse to emit unusual links if the source text clearly has them.
 
 ### ExtractProposal persistence (physical lean)
 
-Logical emit shape above is normative. **Physical storage** (building-plan **U-J** / **U-E**): Postgres `extract_proposals` (name indicative) with `user_id`, `capture_ids`, `status` (`streaming` | `ready` | `failed` | `merging` | `confirmed` | `discarded`), `payload` jsonb (full proposal), UI-facing `changelog` / `pending_endeavor_previews`, timestamps. RLS user-scoped. Survive refresh until confirm/discard. Details and state-machine rules: [`technical-implementation-plan.md`](technical-implementation-plan.md).
+Logical emit shape above is normative. **Physical storage:** Postgres `extract_proposals` with `user_id`, `capture_ids`, `status`, `payload` jsonb (extract SoT), **`merge_units` jsonb** (per-unit disposition + bundled temp ids), `changelog` jsonb (thread events, not a second field SoT), timestamps. Partial merges on unit accept (U5). Design review: [`capture-diff-skim-flow.md`](capture-diff-skim-flow.md) § Design review.
 
 ### Merge / re-extract
 
@@ -749,7 +748,7 @@ User attaches `audio` demo walkthrough to a tech `role`. Kind profile did not su
 7. Metric is first-class and optional.
 8. Story & Lesson are secondary, stored, hybrid-stamped; **sensitive** staleness fingerprint.
 9. Evidence typed for suggestion; not hard-gated by endeavor kind.
-10. Captures immutable full-text intake; `captured_at` ≠ necessarily `created_at`; entities canonical after confirm.
+10. Captures immutable full-text intake; intake history sorts on `created_at`; life dates live on entity `timeframe`; entities canonical after accept.
 11. Application tags = surface suitability; multi + user override.
 12. Soft demote/archive; no auto-purge.
 13. Graph views = projections / filters over one edge set; **canvas node set is a UI concern** (not a second schema). Graph-home canvas draws **Endeavors only**; Skills, People, and Orgs are not force-layout nodes — see [`surfaces-and-flows.md`](surfaces-and-flows.md).
@@ -773,6 +772,9 @@ User attaches `audio` demo walkthrough to a tech `role`. Kind profile did not su
 
 ## Changelog
 
+- **2026-08-13:** Dropped **`captured_at`** on Capture — intake history uses `created_at`; life dates stay on entity `timeframe`.
+- **2026-08-13:** `merge_units[]` disposition SoT; new + update bundles; bulk accept/discard; design review in capture-diff-skim-flow.
+- **2026-08-12:** **Per-node merge unit** locked.
 - **2026-07-26:** **Facet links reshaped for legibility** (§ Canvas snapshot) — a shared facet now radiates from **one hub** instead of chaining through its members in arbitrary order, and each endeavor keeps at most **two** derived facet links (containment is never capped). Both are layout rules, not model changes: uncapped chained bridges were the main source of edge crossings on the canvas. The derivation moved to an isomorphic module so the client sample graph and the server projection share one rule. Stored model unchanged.
 - **2026-07-25:** **Canvas snapshot projection documented** (§ Graph view projections) — the first read contract built in code (U-J U3): Endeavors-only nodes with inline facet names + a `committed`/`pending` state, endeavor↔endeavor links derived from `part_of` / `related_to` / `primary_parent_id` / shared facets, and a weight per relation (`part_of` 1.0 → `shared_skill` 0.3). Two projection rules added to stop crossing storms — shared facets chain rather than clique, and facets shared by 8+ endeavors are dropped as hubs. Stored model unchanged; this is derived-read-only.
 - **2026-07-15:** ExtractProposal **persistence lean** added (physical table + statuses); points at U-J for state machine.

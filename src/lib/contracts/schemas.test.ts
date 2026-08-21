@@ -7,7 +7,8 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { EndeavorKind, EdgeType, ExtractProposal } from "./index";
+import { EndeavorKind, EdgeType, ExtractProposal, parseExtractProposalFromLlm } from "./index";
+import { ExtractProposalLlm } from "./extract-llm";
 
 describe("enum schemas", () => {
   it("accepts known endeavor kinds and rejects unknown ones", () => {
@@ -52,5 +53,39 @@ describe("ExtractProposal", () => {
         endeavors: [{ tempId: "e1", kind: "project", title: "" }],
       }),
     ).toThrow();
+  });
+
+  it("coerces ExtractProposalLlm output into the full ExtractProposal shape", () => {
+    const llm = ExtractProposalLlm.parse({
+      endeavors: [
+        {
+          tempId: "e1",
+          kind: "role",
+          title: "Intern",
+          summary: null,
+          primaryParentTempId: null,
+          updateTargetEndeavorId: null,
+          existingParentEndeavorId: null,
+        },
+      ],
+      achievements: [],
+      skills: [],
+      people: [],
+      orgs: [],
+      metrics: [],
+      evidence: [],
+      edges: [
+        {
+          type: "part_of",
+          fromTempId: "e2",
+          fromType: "endeavor",
+          toTempId: "e1",
+          toType: "endeavor",
+        },
+      ],
+    });
+    const full = parseExtractProposalFromLlm(llm);
+    expect(full.endeavors[0]?.title).toBe("Intern");
+    expect(full.edges[0]?.type).toBe("part_of");
   });
 });

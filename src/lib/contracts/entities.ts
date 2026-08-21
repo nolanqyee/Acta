@@ -66,8 +66,7 @@ export const Capture = z.object({
   text: z.string().min(1),
   sourceType: CaptureSourceType,
   sourceMeta: z.record(z.string(), z.unknown()).optional(),
-  capturedAt: z.iso.datetime(),
-  createdAt: z.iso.datetime().optional(),
+  createdAt: z.iso.datetime(),
 });
 export type Capture = z.infer<typeof Capture>;
 
